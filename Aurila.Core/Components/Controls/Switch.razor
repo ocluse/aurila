@@ -1,0 +1,25 @@
+@inherits InputBase<Switch, bool>
+
+<div @attributes="GetAppliedAttributes()" @onclick="OnClickAsync">
+    <label class="content">
+        <span class="slider"></span>
+    </label>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        builder.Add("au-switch").AddIf(Value, "checked");
+        base.BuildClass(builder);
+    }
+
+    private async Task OnClickAsync()
+    {
+        var newValue = !Value;
+        await NotifyValueChange(newValue);
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "22.15.17",
+    "esbuild": "^0.25.4"
+  },
+  "scripts": {
+    "build": "esbuild --bundle Scripts/index.ts --outfile=wwwroot/aurila.js --minify --sourcemap --format=esm"
+  }
+}

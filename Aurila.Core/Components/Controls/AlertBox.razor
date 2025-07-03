@@ -1,0 +1,28 @@
+@inherits ControlBase<AlertBox>
+
+<div @attributes="GetAppliedAttributes()">
+    <div class="au-alertbox__icon">
+        @Icon
+    </div>
+    <div class="au-alertbox__content">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment? ChildContent { get; set; }
+
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("au-alertbox");
+    }
+}

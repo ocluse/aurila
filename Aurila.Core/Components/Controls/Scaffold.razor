@@ -1,0 +1,29 @@
+@inherits ControlBase<Scaffold>
+
+<div @attributes="GetAppliedAttributes()">
+    @if (TopBar != null)
+    {
+        <header class="@TopBarClass">
+            @TopBar
+        </header>
+    }
+    <main class="@ChildContentClass">
+        @ChildContent
+
+
+    </main>
+    @if (FloatingActionButton != null)
+    {
+        <div class="fab-container">
+            <div class="fab-positioner @FloatingActionButtonClass">
+                @FloatingActionButton
+            </div>
+        </div>
+    }
+    @if (BottomBar != null)
+    {
+        <footer class="@BottomBarClass">
+            @BottomBar
+        </footer>
+    }
+</div>

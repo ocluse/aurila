@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	  <RootNamespace>Aurila</RootNamespace>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.6" />
+    <PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview5.7" />
+  </ItemGroup>
+
+  <Target Name="BundleTypeScript" BeforeTargets="Build">
+	<Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />
+  </Target>
+</Project>

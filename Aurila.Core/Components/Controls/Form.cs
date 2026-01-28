@@ -37,9 +37,9 @@ public class Form : ComponentBase, IForm
     {
         builder.OpenComponent<CascadingValue<FormContext>>(0);
         {
-            builder.AddAttribute(1, nameof(CascadingValue<FormContext>.Value), this);
-            builder.AddAttribute(2, nameof(CascadingValue<FormContext>.IsFixed), true);
-            builder.AddAttribute(3, nameof(CascadingValue<FormContext>.ChildContent), ChildContent(GetContext()));
+            builder.AddAttribute(1, nameof(CascadingValue<>.Value), this);
+            builder.AddAttribute(2, nameof(CascadingValue<>.IsFixed), true);
+            builder.AddAttribute(3, nameof(CascadingValue<>.ChildContent), ChildContent(GetContext()));
         }
         builder.CloseComponent();
     }

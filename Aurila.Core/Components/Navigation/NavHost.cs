@@ -33,10 +33,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     {
         BackInterceptor.RegisterBackReceiver(this);
 
-        if (Host != null)
-        {
-            Host.IntentReceived += OnIntentReceived;
-        }
+        Host?.IntentReceived += OnIntentReceived;
 
         Type? actualStartPage = StartPage;
         object? actualStartData = StartData;
@@ -292,16 +289,14 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     {
         builder.OpenComponent<CascadingValue<NavHost>>(0);
         {
-            builder.AddAttribute(1, nameof(CascadingValue<NavHost>.Value), this);
-            builder.AddAttribute(2, nameof(CascadingValue<NavHost>.IsFixed), true);
-            builder.AddAttribute(3, nameof(CascadingValue<NavHost>.ChildContent), (RenderFragment)(builder2 =>
+            builder.AddAttribute(1, nameof(CascadingValue<>.Value), this);
+            builder.AddAttribute(2, nameof(CascadingValue<>.IsFixed), true);
+            builder.AddAttribute(3, nameof(CascadingValue<>.ChildContent), (RenderFragment)(builder2 =>
             {
-                builder.OpenRegion(4);
+                builder2.OpenRegion(4);
                 Render(builder2);
-                builder.CloseRegion();
+                builder2.CloseRegion();
             }));
-
-
         }
         builder.CloseComponent();
     }
@@ -321,8 +316,6 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
             }
         }
         builder.CloseElement();
-
-        builder.CloseComponent();
     }
 
     void IDisposable.Dispose()

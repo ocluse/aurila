@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Aurila.Services;
+
 internal class BackInterceptor : IBackInterceptor
 {
     private readonly List<IBackReceiver> _receivers = [];

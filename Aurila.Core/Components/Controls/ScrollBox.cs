@@ -31,9 +31,9 @@ public sealed class ScrollBox : ControlBase<ScrollBox>, IScrollController, IAsyn
     {
         builder.OpenComponent<CascadingValue<IScrollController>>(0);
         {
-            builder.AddAttribute(1, nameof(CascadingValue<ScrollBox>.Value), this);
-            builder.AddAttribute(2, nameof(CascadingValue<ScrollBox>.IsFixed), true);
-            builder.AddAttribute(3, nameof(CascadingValue<ScrollBox>.ChildContent), (RenderFragment)(builder2 =>
+            builder.AddAttribute(1, nameof(CascadingValue<>.Value), this);
+            builder.AddAttribute(2, nameof(CascadingValue<>.IsFixed), true);
+            builder.AddAttribute(3, nameof(CascadingValue<>.ChildContent), (RenderFragment)(builder2 =>
             {
                 builder2.OpenElement(4, "div");
                 {

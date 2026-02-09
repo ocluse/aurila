@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Controls;
 

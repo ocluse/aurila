@@ -1,6 +1,5 @@
 ﻿using Aurila.Contracts.Components;
 using Aurila.Contracts.Navigation;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Modals;

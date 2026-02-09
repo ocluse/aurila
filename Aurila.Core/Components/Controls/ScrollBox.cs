@@ -1,11 +1,5 @@
 ﻿using Aurila.Contracts.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Aurila.Components.Controls;
 public sealed class ScrollBox : ControlBase<ScrollBox>, IScrollController, IAsyncDisposable

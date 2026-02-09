@@ -1,5 +1,4 @@
 ﻿using Aurila.Contracts.Navigation;
-using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Aurila.Components.Navigation;
 

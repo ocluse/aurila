@@ -1,5 +1,4 @@
 ﻿using Aurila.Contracts.Navigation;
-using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Aurila.Components.Navigation;
 public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBackReceiver

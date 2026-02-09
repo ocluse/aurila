@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Aurila.Components.Controls;
 public class NumberPicker<TValue> : TextBoxBase<NumberPicker<TValue>, TValue> where TValue : struct, INumber<TValue>

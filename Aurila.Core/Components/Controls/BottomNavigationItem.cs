@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Rendering;
-
-namespace Aurila.Components.Controls;
+﻿namespace Aurila.Components.Controls;
 
 public class BottomNavigationItem : ClickableBase<BottomNavigationItem>
 {

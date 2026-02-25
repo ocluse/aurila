@@ -26,4 +26,12 @@
             @BottomBar
         </footer>
     }
+    @if (SnackbarHost != null)
+    {
+        <div class="snackbar-host-container">
+            <div class="snackbar-host-positioner">
+                @SnackbarHost
+            </div>
+        </div>
+    }
 </div>

@@ -1,7 +1,7 @@
 ﻿using Microsoft.JSInterop;
 
 namespace Aurila.Components.Controls;
-internal class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
+public class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
 {
     [Parameter]
     public bool IsRefreshing { get; set; }

@@ -25,6 +25,9 @@ public partial class Scaffold
     [Parameter]
     public string? FloatingActionButtonClass { get; set; }
 
+    [Parameter]
+    public RenderFragment? SnackbarHost { get; set; }
+
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);

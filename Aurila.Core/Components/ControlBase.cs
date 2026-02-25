@@ -15,10 +15,10 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     [Parameter]
-    public string? Title { get; set; }
+    public string? HtmlTitleAttr { get; set; }
 
     [Parameter]
-    public string? Id { get; set; }
+    public string? HtmlIdAttr { get; set; }
 
     [Parameter]
     public IAppearance<TControl>? Appearance { get; set; }
@@ -108,13 +108,13 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
         {
             attributes["style"] = appliedStyle;
         }
-        if (!string.IsNullOrWhiteSpace(Title))
+        if (!string.IsNullOrWhiteSpace(HtmlTitleAttr))
         {
-            attributes["title"] = Title;
+            attributes["title"] = HtmlTitleAttr;
         }
-        if (!string.IsNullOrWhiteSpace(Id))
+        if (!string.IsNullOrWhiteSpace(HtmlIdAttr))
         {
-            attributes["id"] = Id;
+            attributes["id"] = HtmlIdAttr;
         }
         BuildAttributes(attributes);
         if (AdditionalAttributes != null)

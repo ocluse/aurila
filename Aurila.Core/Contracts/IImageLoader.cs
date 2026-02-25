@@ -2,5 +2,5 @@
 
 public interface IImageLoader
 {
-    public Task<string?> LoadAsync(string? imageUrl);
+    public Task<string?> LoadAsync(ImageSource source);
 }

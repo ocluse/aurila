@@ -5,7 +5,7 @@ namespace Aurila.Components.Controls;
 public class Image : ControlBase<Image>
 {
     [Parameter]
-    public string? Source { get; set; }
+    public ImageSource? Source { get; set; }
 
     [Parameter]
     public string? FallbackSource { get; set; }

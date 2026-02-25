@@ -30,9 +30,9 @@ public class CheckBox : InputBase<CheckBox, bool>
             {
                 builder.AddAttribute(4, "class", "au-checkbox__content");
 
-                if (Id.IsNotEmpty())
+                if (HtmlIdAttr.IsNotEmpty())
                 {
-                    builder.AddAttribute(5, "for", Id);
+                    builder.AddAttribute(5, "for", HtmlIdAttr);
                 }
 
                 if (ChildContent != null)

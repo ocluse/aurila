@@ -2,28 +2,28 @@
 
 namespace Aurila.Components.Controls;
 
-public class Image : ControlBase<Image>
+public class Image : ControlBase<Image>, IDisposable
 {
     [Parameter]
     public ImageSource? Source { get; set; }
 
     [Parameter]
-    public string? FallbackSource { get; set; }
+    public string? PlaceholderSrc { get; set; }
 
     [Parameter]
-    public string? PlaceholderSource { get; set; }
+    public RenderFragment? PlaceholderContent { get; set; }
 
     [Parameter]
-    public string? ErrorSource { get; set; }
+    public RenderFragment? LoadingContent { get; set; }
 
     [Parameter]
-    public string? Alt { get; set; }
+    public string? ErrorSrc { get; set; }
 
     [Parameter]
-    public RenderFragment? Placeholder { get; set; }
+    public RenderFragment? ErrorContent { get; set; }
 
     [Parameter]
-    public RenderFragment? Error { get; set; }
+    public string? Description { get; set; }
 
     [Parameter]
     public IImageLoader? ImageLoader { get; set; }
@@ -31,24 +31,74 @@ public class Image : ControlBase<Image>
     [Inject]
     private IImageLoader DefaultImageLoader { get; set; } = null!;
 
-    private string? _actualSource;
-    private LoadState _loadState;
+    private LoadState _loadState = LoadState.NotLoading;
 
-    protected override async Task OnInitializedAsync()
+    private string? _resolvedSource;
+    private CancellationTokenSource? _cts;
+    private bool _disposedValue;
+    private bool _isLoadCancellation;
+
+    public override async Task SetParametersAsync(ParameterView parameters)
     {
-        var imageLoader = ImageLoader ?? DefaultImageLoader;
-        _loadState = LoadState.Loading;
-        _actualSource = PlaceholderSource ?? FallbackSource;
+        var sourceProvided = parameters.TryGetValue<ImageSource?>(
+            nameof(Source), out var newSource);
 
-        try
+        await base.SetParametersAsync(parameters);
+
+        if (sourceProvided)
         {
-            _actualSource = await imageLoader.LoadAsync(Source);
-            _loadState = LoadState.NotLoading;
+            await LoadSourceAsync(newSource);
         }
-        catch (Exception)
+    }
+
+    private async Task LoadSourceAsync(ImageSource? source)
+    {
+        CancelOngoingLoad();
+        var loader = ImageLoader ?? DefaultImageLoader;
+        _cts = new CancellationTokenSource();
+
+        if (source == null)
         {
-            _actualSource = ErrorSource ?? FallbackSource;
-            _loadState = LoadState.Error;
+            _loadState = LoadState.NotLoading;
+            _resolvedSource = null;
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            _loadState = LoadState.Loading;
+            _resolvedSource = null;
+            await InvokeAsync(StateHasChanged);
+
+            try
+            {
+                _resolvedSource = await loader.LoadAsync(source, _cts.Token);
+                _loadState = LoadState.NotLoading;
+            }
+            catch (OperationCanceledException) when (_isLoadCancellation)
+            {
+                // Load was cancelled, do nothing
+            }
+            catch
+            {
+                _loadState = LoadState.Error;
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        _isLoadCancellation = false;
+    }
+
+    private void CancelOngoingLoad()
+    {
+        if (_cts != null)
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+            _cts = null;
+            _isLoadCancellation = true;
         }
     }
 
@@ -56,47 +106,114 @@ public class Image : ControlBase<Image>
     {
         base.BuildClass(builder);
         builder.Add("au-image");
-        if(_loadState == LoadState.Loading)
+
+        switch (_loadState)
         {
-            builder.Add("loading");
-        }
-        else if (_loadState == LoadState.Error)
-        {
-            builder.Add("error");
-        }
-        else
-        {
-            builder.Add("not-loading");
+            case LoadState.Loading:
+                builder.Add("au-image__loading");
+                break;
+
+            case LoadState.Error:
+                builder.Add("au-image__error");
+                break;
+
+            case LoadState.NotLoading:
+                builder.Add("au-image__not-loading");
+                break;
         }
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        base.BuildRenderTree(builder);
         builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAppliedAttributes());
-            if(!string.IsNullOrEmpty(_actualSource))
+
+            if (_loadState == LoadState.NotLoading)
             {
-                builder.OpenElement(3, "img");
+                if (_resolvedSource.IsNotEmpty())
                 {
-                    builder.AddAttribute(4, "src", _actualSource);
-                    if (!string.IsNullOrEmpty(Alt))
+                    builder.OpenElement(3, "img");
                     {
-                        builder.AddAttribute(5, "alt", Alt);
+                        builder.AddAttribute(4, "src", _resolvedSource);
+                        if (!string.IsNullOrEmpty(Description))
+                        {
+                            builder.AddAttribute(5, "alt", Description);
+                        }
                     }
+                    builder.CloseElement();
                 }
-                builder.CloseElement();
+                else if (PlaceholderContent != null)
+                {
+                    builder.AddContent(6, PlaceholderContent);
+                }
+                else if (PlaceholderSrc != null)
+                {
+                    builder.OpenElement(7, "img");
+                    builder.AddAttribute(8, "src", PlaceholderSrc);
+                    builder.CloseElement();
+                }
             }
-            else if (_loadState == LoadState.Loading && Placeholder != null)
+            else if (_loadState == LoadState.Loading)
             {
-                builder.AddContent(6, Placeholder);
+                if (LoadingContent != null)
+                {
+                    builder.AddContent(9, LoadingContent);
+                }
+                else if (PlaceholderContent != null)
+                {
+                    builder.AddContent(10, PlaceholderContent);
+                }
+                else if (PlaceholderSrc.IsNotEmpty())
+                {
+                    builder.OpenElement(11, "img");
+                    builder.AddAttribute(12, "src", PlaceholderSrc);
+                    builder.CloseElement();
+                }
             }
-            else if (_loadState == LoadState.Error && Error != null)
+            else if (_loadState == LoadState.Error)
             {
-                builder.AddContent(7, Error);
+                if (ErrorContent != null)
+                {
+                    builder.AddContent(13, ErrorContent);
+                }
+                else if (ErrorSrc.IsNotEmpty())
+                {
+                    builder.OpenElement(14, "img");
+                    builder.AddAttribute(15, "src", ErrorSrc);
+                    builder.CloseElement();
+                }
+                else if (PlaceholderContent != null)
+                {
+                    builder.AddContent(16, PlaceholderContent);
+                }
+                else if (PlaceholderSrc.IsNotEmpty())
+                {
+                    builder.OpenElement(17, "img");
+                    builder.AddAttribute(18, "src", PlaceholderSrc);
+                    builder.CloseElement();
+                }
             }
         }
         builder.CloseElement();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
+        {
+            if (disposing)
+            {
+                _cts?.Cancel();
+                _cts?.Dispose();
+            }
+            _disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

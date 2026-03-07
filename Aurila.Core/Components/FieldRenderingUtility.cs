@@ -17,9 +17,9 @@ internal class FieldRenderingUtility
         }
     }
 
-    public static void BuildField(RenderTreeBuilder builder, IFieldComponent field, IAppearanceProvider appearanceProvider)
+    public static void BuildField(RenderTreeBuilder builder, IFieldComponent field, IAppearanceProvider? appearanceProvider)
     {
-        var headerStyle = appearanceProvider.HeaderStyle;
+        var headerStyle = appearanceProvider?.HeaderStyle ?? FieldHeaderStyle.Static;
 
         builder.OpenElement(1, "div");
         {

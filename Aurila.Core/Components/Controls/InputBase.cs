@@ -107,9 +107,9 @@ public abstract class InputBase<TControl, TValue> : ControlBase<TControl>, IVali
         builder.Add("au-input")
             .AddIf(Validation?.IsValid == false, "au-input__validation-invalid")
             .AddIf(Validation?.IsValid == true, "au-input__validation-valid")
-            .AddIf(Disabled, "au-input__disabled")
-            .AddIf(ReadOnly, "au-input__readonly")
-            .AddIf(hasValue, "au-input__has-value");
+            .AddIf(Disabled, "au-input--disabled")
+            .AddIf(ReadOnly, "au-input--readonly")
+            .AddIf(hasValue, "au-input--has-value");
     }
 
     protected virtual void Dispose(bool disposing)

@@ -2,5 +2,5 @@
 
 public interface IImageLoader
 {
-    public Task<string?> LoadAsync(ImageSource source);
+    Task<string?> LoadAsync(ImageSource source, CancellationToken cancellationToken = default);
 }

@@ -34,7 +34,7 @@ public class Form : ComponentBase, IForm
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenComponent<CascadingValue<FormContext>>(0);
+        builder.OpenComponent<CascadingValue<IForm>>(0);
         {
             builder.AddAttribute(1, nameof(CascadingValue<>.Value), this);
             builder.AddAttribute(2, nameof(CascadingValue<>.IsFixed), true);

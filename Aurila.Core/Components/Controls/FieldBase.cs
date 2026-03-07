@@ -24,6 +24,11 @@ public abstract class FieldBase<TControl, TValue> : InputBase<TControl, TValue>,
         BuildInput(builder);
     }
 
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        FieldRenderingUtility.BuildField(builder, this, AppearanceProvider);
+    }
+
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);

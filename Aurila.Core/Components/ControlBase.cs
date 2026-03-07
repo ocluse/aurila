@@ -1,15 +1,24 @@
 ﻿using Aurila.Contracts.Components;
+using Aurila.Contracts.Modifiers;
+using Aurila.Modifiers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Aurila.Components;
 
-public class ControlBase<TControl> : ComponentBase, IControlComponent 
+public class ControlBase<TControl> : ComponentBase, IControlComponent, ILayoutChild
     where TControl : ControlBase<TControl>
 {
     [Parameter]
     public string? Class { get; set; }
 
     [Parameter]
+    public Action<ClassBuilder>? ClassBuilder { get; set; }
+
+    [Parameter]
     public string? Style { get; set; }
+
+    [Parameter]
+    public Action<StyleBuilder>? StyleBuilder { get; set; }
 
     [Parameter]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
@@ -23,8 +32,16 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
     [Parameter]
     public IAppearance<TControl>? Appearance { get; set; }
 
+    [Parameter]
+    public ModifiersBuilder? Modifier { get; set; }
+
     [CascadingParameter]
     public IAppearanceProvider? AppearanceProvider { get; set; }
+
+    [CascadingParameter]
+    public ILayoutParent? LayoutParent { get; set; }
+
+    ILayoutParent? ILayoutChild.Parent => LayoutParent;
 
     protected virtual void BuildStyle(StyleBuilder builder) { }
 
@@ -36,7 +53,7 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
     {
         var classBuilder = new ClassBuilder();
         BuildClass(classBuilder);
-        
+
         var effectiveAppearance = GetEffectiveAppearance();
 
         if (effectiveAppearance is IBuildingAppearance<TControl> buildingAppearance)
@@ -48,7 +65,13 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
             classBuilder.Add(staticAppearance.Class);
         }
 
+        // Apply modifiers
+        Modifier?.BuildClass(this, classBuilder);
+
         classBuilder.Add(Class);
+
+        // Apply custom builder:
+        ClassBuilder?.Invoke(classBuilder);
 
         return classBuilder.Build();
     }
@@ -57,6 +80,13 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
     {
         var styleBuilder = new StyleBuilder();
         BuildStyle(styleBuilder);
+
+        //Apply modifiers:
+        Modifier?.BuildStyle(this, styleBuilder);
+
+        //Apply custom builder:
+        StyleBuilder?.Invoke(styleBuilder);
+
         string builtStyle = styleBuilder.Build();
 
         var effectiveAppearance = GetEffectiveAppearance();
@@ -67,7 +97,7 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
         }
         else if (effectiveAppearance is IStaticAppearance<TControl> staticAppearance)
         {
-            if(!string.IsNullOrWhiteSpace(staticAppearance.Style))
+            if (!string.IsNullOrWhiteSpace(staticAppearance.Style))
             {
                 if (builtStyle.Length > 0 && !builtStyle.EndsWith(';'))
                 {
@@ -86,6 +116,8 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent
             }
             builtStyle += Style;
         }
+
+
 
         return builtStyle.TrimEnd(';');
     }

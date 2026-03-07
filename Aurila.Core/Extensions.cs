@@ -42,4 +42,74 @@ internal static class Extensions
             _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, null)
         };
     }
+
+}
+
+public static class CssUnitExtensions
+{
+    public static CssLength Px(this double value)
+    {
+        return new CssLength(value, CssUnit.Pixels);
+    }
+
+    public static CssLength Pc(this double value)
+    {
+        return new CssLength(value, CssUnit.Percent);
+    }
+
+    public static CssLength Em(this double value)
+    {
+        return new CssLength(value, CssUnit.Element);
+    }
+
+    public static CssLength Rem(this double value)
+    {
+        return new CssLength(value, CssUnit.RootElement);
+    }
+
+    public static CssLength Vw(this double value)
+    {
+        return new CssLength(value, CssUnit.ViewWidth);
+    }
+
+    public static CssLength Vh(this double value)
+    {
+        return new CssLength(value, CssUnit.ViewHeight);
+    }
+
+    public static CssLength Vmin(this double value)
+    {
+        return new CssLength(value, CssUnit.ViewMin);
+    }
+
+    public static CssLength Vmax(this double value)
+    {
+        return new CssLength(value, CssUnit.ViewMax);
+    }
+
+    public static CssLength Fr(this double value)
+    {
+        return new CssLength(value, CssUnit.Fraction);
+    }
+
+    public static CssLength Dvh(this double value)
+    {
+        return new CssLength(value, CssUnit.DynamicViewHeight);
+    }
+    public static CssLength Dvw(this double value)
+    {
+        return new CssLength(value, CssUnit.DynamicViewWidth);
+    }
+
+    public static CssLength Px(this int value) => ((double)value).Px();
+    public static CssLength Pc(this int value) => ((double)value).Pc();
+    public static CssLength Em(this int value) => ((double)value).Em();
+    public static CssLength Rem(this int value) => ((double)value).Rem();
+    public static CssLength Vw(this int value) => ((double)value).Vw();
+    public static CssLength Vh(this int value) => ((double)value).Vh();
+    public static CssLength Vmin(this int value) => ((double)value).Vmin();
+    public static CssLength Vmax(this int value) => ((double)value).Vmax();
+    public static CssLength Fr(this int value) => ((double)value).Fr();
+    public static CssLength Dvh(this int value) => ((double)value).Dvh();
+    public static CssLength Dvw(this int value) => ((double)value).Dvw();
 }

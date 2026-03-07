@@ -1,7 +1,14 @@
 ﻿namespace Aurila.Components.Controls;
 public class Text : ControlBase<Text>
 {
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public ITextStyle? TextStyle { get; set; }
+
+    [Parameter]
+    public IColor? Color { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {

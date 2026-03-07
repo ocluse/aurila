@@ -1,0 +1,95 @@
+$cycle:          1.333s;
+$expand-ease:    cubic-bezier(0.4, 0.0, 0.2, 1);
+$contract-ease:  cubic-bezier(0.7, 0.0, 1.0, 0.5);
+
+// Minimum arc as a fraction of circumference — arc is always at least this long
+$min-arc: 0.08;
+$max-arc: 0.75;
+// Tail stops just short of head so arc never hits zero
+$tail-max: 0.72;
+
+@property --au-cpi-head {
+  syntax:        '<number>';
+  inherits:      false;
+  initial-value: 0.08;
+}
+
+@property --au-cpi-tail {
+  syntax:        '<number>';
+  inherits:      false;
+  initial-value: 0.08;
+}
+
+// ── Container ─────────────────────────────────────────────────────────────────
+
+.au-circular-progress {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    display: block;
+    overflow: visible;
+  }
+}
+
+// ── Keyframes ─────────────────────────────────────────────────────────────────
+
+@keyframes au-cpi-spin {
+  to { transform: rotate(360deg); }
+}
+
+// Head: starts at min-arc, grows to max-arc, holds there while tail catches up
+@keyframes au-cpi-expand {
+  0%   { --au-cpi-head: #{$min-arc}; }
+  50%  { --au-cpi-head: #{$max-arc}; }
+  100% { --au-cpi-head: #{$max-arc}; }
+}
+
+// Tail: holds at min-arc while head grows, then chases up to tail-max
+// Stops just short of head's max so arc never reaches zero
+@keyframes au-cpi-contract {
+  0%   { --au-cpi-tail: #{$min-arc}; }
+  50%  { --au-cpi-tail: #{$min-arc}; }
+  100% { --au-cpi-tail: #{$tail-max}; }
+}
+
+// ── Indeterminate ─────────────────────────────────────────────────────────────
+
+.au-circular-progress--indeterminate {
+  svg {
+    // Spin period is notably different from cycle so the reset seam
+    // never falls at the same clock position
+    animation: au-cpi-spin 1.75s linear infinite;
+    transform-origin: center;
+  }
+
+  .au-cpi-arc {
+    animation:
+      au-cpi-expand   $cycle $expand-ease   infinite,
+      au-cpi-contract $cycle $contract-ease infinite;
+  }
+}
+
+// ── Determinate ───────────────────────────────────────────────────────────────
+
+.au-circular-progress--determinate {
+  svg circle {
+    transition:
+      stroke-dashoffset 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+      stroke-dasharray  0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+}
+
+// ── Reduced motion ────────────────────────────────────────────────────────────
+
+@media (prefers-reduced-motion: reduce) {
+  .au-circular-progress--indeterminate {
+    svg         { animation-duration: 4s; }
+    .au-cpi-arc { animation-duration: 4s; }
+  }
+  .au-circular-progress--determinate svg circle {
+    transition: none;
+  }
+}

@@ -1,0 +1,10 @@
+.au-box {
+    display: grid;
+    grid-template-areas: "stack";
+    align-items: start;
+    justify-items: start;
+
+    > * {
+        grid-area: stack;
+    }
+}

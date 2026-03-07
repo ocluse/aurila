@@ -7,7 +7,7 @@ namespace Aurila.Services;
 
 public class DefaultImageLoader : IImageLoader
 {
-    public async Task<string?> LoadAsync(ImageSource source)
+    public async Task<string?> LoadAsync(ImageSource source, CancellationToken cancellationToken = default)
     {
         if (source is UrlImageSource url)
         {
@@ -21,7 +21,7 @@ public class DefaultImageLoader : IImageLoader
         else if (source is StreamImageSource stream)
         {
             using MemoryStream ms = new();
-            await stream.Data.CopyToAsync(ms);
+            await stream.Data.CopyToAsync(ms, cancellationToken);
             return SrcFromBytes(ms.ToArray(), stream.Format);
         }
         else

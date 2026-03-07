@@ -1,0 +1,21 @@
+$au-box-v: ( top: start, center: center, bottom: end, stretch: stretch );
+
+$au-box-h: ( start: start, center: center, end: end, stretch: stretch );
+
+@each $v-name, $v-value in $au-box-v {
+    @each $h-name, $h-value in $au-box-h {
+        .au-box-align-#{$v-name}-#{$h-name} {
+            align-items: $v-value;
+            justify-items: $h-value;
+        }
+    }
+}
+
+@each $v-name, $v-value in $au-box-v {
+    @each $h-name, $h-value in $au-box-h {
+        .au-box-item-#{$v-name}-#{$h-name} {
+            align-self: $v-value;
+            justify-self: $h-value;
+        }
+    }
+}

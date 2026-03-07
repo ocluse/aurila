@@ -277,20 +277,15 @@
   grid-area: stack;
 }
 
-:root {
-  --au-color-primary: #6750a4;
-  --au-color-surface-variant: #e7e0ec;
-}
-
 @property --au-cpi-head {
   syntax: "<number>";
   inherits: false;
-  initial-value: 0.08;
+  initial-value: 0;
 }
 @property --au-cpi-tail {
   syntax: "<number>";
   inherits: false;
-  initial-value: 0.08;
+  initial-value: 0;
 }
 .au-circular-progress {
   display: inline-flex;
@@ -301,6 +296,7 @@
 .au-circular-progress svg {
   display: block;
   overflow: visible;
+  will-change: transform;
 }
 
 @keyframes au-cpi-spin {
@@ -308,26 +304,20 @@
     transform: rotate(360deg);
   }
 }
-@keyframes au-cpi-expand {
-  0% {
-    --au-cpi-head: 0.08;
+@keyframes au-cpi-fwd {
+  from {
+    --au-cpi-head: 0;
   }
-  50% {
-    --au-cpi-head: 0.75;
-  }
-  100% {
-    --au-cpi-head: 0.75;
+  to {
+    --au-cpi-head: 1;
   }
 }
-@keyframes au-cpi-contract {
-  0% {
-    --au-cpi-tail: 0.08;
+@keyframes au-cpi-fwd-tail {
+  from {
+    --au-cpi-tail: 0;
   }
-  50% {
-    --au-cpi-tail: 0.08;
-  }
-  100% {
-    --au-cpi-tail: 0.72;
+  to {
+    --au-cpi-tail: 1;
   }
 }
 .au-circular-progress--indeterminate svg {
@@ -335,7 +325,7 @@
   transform-origin: center;
 }
 .au-circular-progress--indeterminate .au-cpi-arc {
-  animation: au-cpi-expand 1.333s cubic-bezier(0.4, 0, 0.2, 1) infinite, au-cpi-contract 1.333s cubic-bezier(0.7, 0, 1, 0.5) infinite;
+  animation: au-cpi-fwd 1.333s cubic-bezier(0, 0, 0.2, 1) infinite, au-cpi-fwd-tail 1.333s cubic-bezier(0.8, 0, 1, 0) infinite;
 }
 
 .au-circular-progress--determinate svg circle {

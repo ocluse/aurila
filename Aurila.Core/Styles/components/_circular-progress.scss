@@ -1,23 +1,24 @@
-$cycle:          1.333s;
-$expand-ease:    cubic-bezier(0.4, 0.0, 0.2, 1);
-$contract-ease:  cubic-bezier(0.7, 0.0, 1.0, 0.5);
+$cycle: 1.333s;
 
-// Minimum arc as a fraction of circumference — arc is always at least this long
-$min-arc: 0.08;
-$max-arc: 0.75;
-// Tail stops just short of head so arc never hits zero
-$tail-max: 0.72;
+// Head: fast out of the gate, decelerates toward the end.
+// CDF is convex — most of the travel happens early.
+$head-ease: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+
+// Tail: slow start, accelerates hard at the end to catch up.
+// CDF is concave — most of the travel happens late.
+// This guarantees F_head(t) > F_tail(t) for all t ∈ (0,1).
+$tail-ease: cubic-bezier(0.8, 0.0, 1.0, 0.0);
 
 @property --au-cpi-head {
   syntax:        '<number>';
   inherits:      false;
-  initial-value: 0.08;
+  initial-value: 0;
 }
 
 @property --au-cpi-tail {
   syntax:        '<number>';
   inherits:      false;
-  initial-value: 0.08;
+  initial-value: 0;
 }
 
 // ── Container ─────────────────────────────────────────────────────────────────
@@ -31,44 +32,44 @@ $tail-max: 0.72;
   svg {
     display: block;
     overflow: visible;
+    will-change: transform;
   }
 }
 
 // ── Keyframes ─────────────────────────────────────────────────────────────────
 
+// Orbital spin — period intentionally differs from $cycle
 @keyframes au-cpi-spin {
   to { transform: rotate(360deg); }
 }
 
-// Head: starts at min-arc, grows to max-arc, holds there while tail catches up
-@keyframes au-cpi-expand {
-  0%   { --au-cpi-head: #{$min-arc}; }
-  50%  { --au-cpi-head: #{$max-arc}; }
-  100% { --au-cpi-head: #{$max-arc}; }
+// Both travel 0 → 1. Easing controls their relative speed.
+@keyframes au-cpi-fwd {
+  from { --au-cpi-head: 0; }
+  to   { --au-cpi-head: 1; }
 }
 
-// Tail: holds at min-arc while head grows, then chases up to tail-max
-// Stops just short of head's max so arc never reaches zero
-@keyframes au-cpi-contract {
-  0%   { --au-cpi-tail: #{$min-arc}; }
-  50%  { --au-cpi-tail: #{$min-arc}; }
-  100% { --au-cpi-tail: #{$tail-max}; }
+@keyframes au-cpi-fwd-tail {
+  from { --au-cpi-tail: 0; }
+  to   { --au-cpi-tail: 1; }
 }
 
 // ── Indeterminate ─────────────────────────────────────────────────────────────
 
 .au-circular-progress--indeterminate {
+
   svg {
-    // Spin period is notably different from cycle so the reset seam
-    // never falls at the same clock position
     animation: au-cpi-spin 1.75s linear infinite;
     transform-origin: center;
   }
 
   .au-cpi-arc {
+    // Head and tail run the same duration with no delay — they start and end
+    // together, but the easing differential keeps head always ahead of tail
+    // throughout the cycle. Arc = (head - tail) * circ oscillates smoothly.
     animation:
-      au-cpi-expand   $cycle $expand-ease   infinite,
-      au-cpi-contract $cycle $contract-ease infinite;
+      au-cpi-fwd      $cycle $head-ease infinite,
+      au-cpi-fwd-tail $cycle $tail-ease infinite;
   }
 }
 

@@ -17,7 +17,22 @@ public class ModifiersBuilder
     {
         foreach (var modifier in _modifiers)
         {
-            modifier.BuildClass(component, builder);
+            if(modifier is IClassModifier classModifier)
+            {
+                classModifier.BuildClass(component, builder);
+            }
+           
+        }
+    }
+
+    public void BuildAttributes(ComponentBase component, IDictionary<string, object> attributes)
+    {
+        foreach (var modifier in _modifiers)
+        {
+            if(modifier is IAttributeModifier attributeModifier)
+            {
+                attributeModifier.BuildAttributes(component, attributes);
+            }
         }
     }
 
@@ -25,7 +40,10 @@ public class ModifiersBuilder
     {
         foreach (var modifier in _modifiers)
         {
-            modifier.BuildStyle(component, builder);
+            if(modifier is IStyleModifier styleModifier)
+            {
+                styleModifier.BuildStyle(component, builder);
+            }
         }
     }
 }

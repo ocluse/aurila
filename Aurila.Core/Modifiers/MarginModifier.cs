@@ -3,18 +3,26 @@ using Aurila.Contracts.Modifiers;
 
 namespace Aurila.Modifiers;
 
-public class MarginModifier(PaddingValues values) : IModifier
+public class MarginModifier(PaddingValues values) : IStyleModifier
 {
-    public void BuildClass(ComponentBase component, ClassBuilder builder)
-    {
-        // No class to add for this modifier
-    }
     public void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
-        builder.Add("margin-top", values.Top.ToString());
-        builder.Add("margin-right", values.Right.ToString());
-        builder.Add("margin-bottom", values.Bottom.ToString());
-        builder.Add("margin-left", values.Left.ToString());
+        if (values.Top.HasValue)
+        {
+            builder.Add($"margin-top", values.Top.ToString());
+        }
+        if (values.Bottom.HasValue)
+        {
+            builder.Add("margin-bottom", values.Bottom.ToString());
+        }
+        if (values.Right.HasValue)
+        {
+            builder.Add("margin-right", values.Right.ToString());
+        }
+        if (values.Left.HasValue)
+        {
+            builder.Add("margin-left", values.Left.ToString());
+        }
 
         builder.Add("box-sizing", "border-box");
     }

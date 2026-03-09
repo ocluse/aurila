@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Aurila.Components.Controls;
+﻿namespace Aurila.Components.Controls;
 
 public class CircularProgress : ControlBase<CircularProgress>
 {
@@ -35,16 +31,12 @@ public class CircularProgress : ControlBase<CircularProgress>
 
     private double Radius => (SvgCanvas - StrokeWidth) / 2.0;
     private double Circumference => 2.0 * Math.PI * Radius;
-    
-    private readonly string _uid = Guid.NewGuid().ToString("N")[..8];
-    
-    private string MaskId => $"au-cpi-mask-{_uid}";
-    private string ClipRingId => $"au-cpi-ring-{_uid}";
-
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         base.BuildRenderTree(builder);
+
+        string arcColor = Color ?? "currentColor";
 
         builder.OpenElement(0, "div");
         builder.AddMultipleAttributes(1, GetAppliedAttributes());
@@ -57,31 +49,27 @@ public class CircularProgress : ControlBase<CircularProgress>
             builder.AddAttribute(7, "aria-hidden", "true");
             {
                 if (Progress.HasValue)
-                    RenderDeterminate(builder);
+                {
+                    RenderDeterminate(builder, arcColor);
+                }
                 else
-                    RenderIndeterminate(builder);
+                {
+                    RenderIndeterminate(builder, arcColor);
+                }
             }
             builder.CloseElement(); // svg
         }
         builder.CloseElement(); // div
     }
 
-    private void RenderIndeterminate(RenderTreeBuilder b)
+    private void RenderIndeterminate(RenderTreeBuilder b, string arcColor)
     {
-        var arcColor = Color ?? "currentColor";
         var circ = Circumference;
         var c = Center;
 
-        // stroke-dasharray and stroke-dashoffset must be CSS properties (set via
-        // style=) not SVG presentation attributes so that calc() and custom
-        // property references resolve correctly during animation.
-        //
-        // arc visible length = (head - tail) * circumference
-        // arc start position = circumference/4 - tail*circumference
-        //   (the /4 offset rotates the start point to 12 o'clock)
         var arcStyle = string.Join(";",
-            $"stroke-dasharray: calc((var(--au-cpi-head) - var(--au-cpi-tail)) * {circ:F3}) 9999",
-            $"stroke-dashoffset: calc({circ / 4.0:F3} - var(--au-cpi-tail) * {circ:F3})"
+            $"stroke-dasharray: calc(var(--au-cpi-len) * {circ:F3}) 9999",
+            $"stroke-dashoffset: calc({circ / 4.0:F3} - var(--au-cpi-offset) * {circ:F3})"
         );
 
         b.OpenElement(10, "circle");
@@ -96,10 +84,9 @@ public class CircularProgress : ControlBase<CircularProgress>
         b.CloseElement();
     }
 
-    private void RenderDeterminate(RenderTreeBuilder b)
+    private void RenderDeterminate(RenderTreeBuilder b, string arcColor)
     {
         var progress = Math.Clamp(Progress!.Value, 0.0, 1.0);
-        var arcColor = Color ?? "currentColor";
         var trackColor = TrackColor ?? "transparent";
         var linecap = RoundStrokeCap ? "round" : "butt";
         var arcLength = Circumference * progress;
@@ -153,7 +140,5 @@ public class CircularProgress : ControlBase<CircularProgress>
         base.BuildStyle(builder);
         builder.Add("width", Size.ToString());
         builder.Add("height", Size.ToString());
-
-        builder.Add("--au-cpi-circ", $"{Circumference:F3}");
     }
 }

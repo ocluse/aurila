@@ -26,3 +26,19 @@ export function createTextField(
 ): TextField {
     return new TextField(element, maxLines);
 }
+
+export function showDialog(dialog: HTMLDialogElement) {
+    dialog.showModal();
+}
+
+export function closeDialog(dialog: HTMLDialogElement) {
+    dialog.close();
+}
+
+export function showPopover(popover: HTMLDialogElement) {
+    popover.showPopover();
+}
+
+export function hidePopover(popover: HTMLDialogElement) {
+    popover.hidePopover();
+}

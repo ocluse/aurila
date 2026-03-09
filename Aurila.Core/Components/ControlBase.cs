@@ -156,6 +156,10 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent, ILayoutCh
                 attributes[kvp.Key] = kvp.Value;
             }
         }
+
+        //modifier attributes:
+        Modifier?.BuildAttributes(this, attributes);
+
         return attributes;
     }
 

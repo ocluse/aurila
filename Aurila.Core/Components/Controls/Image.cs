@@ -28,6 +28,9 @@ public class Image : ControlBase<Image>, IDisposable
     [Parameter]
     public IImageLoader? ImageLoader { get; set; }
 
+    [Parameter]
+    public EventCallback Loaded { get; set; }
+
     [Inject]
     private IImageLoader DefaultImageLoader { get; set; } = null!;
 
@@ -125,23 +128,24 @@ public class Image : ControlBase<Image>, IDisposable
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(1, "div");
+        builder.OpenElement(0, "div");
         {
-            builder.AddMultipleAttributes(2, GetAppliedAttributes());
+            builder.AddMultipleAttributes(1, GetAppliedAttributes());
 
             if (_loadState == LoadState.NotLoading)
             {
                 if (_resolvedSource.IsNotEmpty())
                 {
-                    builder.OpenElement(3, "img");
+                    builder.OpenElement(2, "img");
                     {
-                        builder.AddAttribute(4, "src", _resolvedSource);
+                        builder.AddAttribute(3, "src", _resolvedSource);
                         if (!string.IsNullOrEmpty(Description))
                         {
-                            builder.AddAttribute(5, "alt", Description);
+                            builder.AddAttribute(4, "alt", Description);
                         }
+                        builder.AddAttribute(5, "onload", Loaded);
                     }
-                    builder.CloseElement();
+                    builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
@@ -151,7 +155,7 @@ public class Image : ControlBase<Image>, IDisposable
                 {
                     builder.OpenElement(7, "img");
                     builder.AddAttribute(8, "src", PlaceholderSrc);
-                    builder.CloseElement();
+                    builder.CloseElement(); // img
                 }
             }
             else if (_loadState == LoadState.Loading)
@@ -168,7 +172,7 @@ public class Image : ControlBase<Image>, IDisposable
                 {
                     builder.OpenElement(11, "img");
                     builder.AddAttribute(12, "src", PlaceholderSrc);
-                    builder.CloseElement();
+                    builder.CloseElement(); // img
                 }
             }
             else if (_loadState == LoadState.Error)
@@ -181,7 +185,7 @@ public class Image : ControlBase<Image>, IDisposable
                 {
                     builder.OpenElement(14, "img");
                     builder.AddAttribute(15, "src", ErrorSrc);
-                    builder.CloseElement();
+                    builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
@@ -191,11 +195,11 @@ public class Image : ControlBase<Image>, IDisposable
                 {
                     builder.OpenElement(17, "img");
                     builder.AddAttribute(18, "src", PlaceholderSrc);
-                    builder.CloseElement();
+                    builder.CloseElement(); // img
                 }
             }
         }
-        builder.CloseElement();
+        builder.CloseElement(); // div
     }
 
     protected virtual void Dispose(bool disposing)

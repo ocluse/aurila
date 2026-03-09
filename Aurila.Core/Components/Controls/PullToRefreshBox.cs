@@ -40,9 +40,10 @@ public class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
             builder.CloseElement();
             builder.OpenComponent<ScrollBox>(6);
             {
-                builder.AddComponentReferenceCapture(7, component => _scrollBox = (ScrollBox)component);
-                builder.AddComponentParameter(8, nameof(ScrollBox.Class), "au-pull-to-refresh-box__content");
-                builder.AddComponentParameter(9, nameof(ScrollBox.ChildContent), (RenderFragment)BuildContent);
+                builder.AddComponentParameter(7, nameof(ScrollBox.Class), "au-pull-to-refresh-box__content");
+                builder.AddComponentParameter(8, nameof(ScrollBox.ChildContent), (RenderFragment)BuildContent);
+                builder.AddComponentReferenceCapture(9, component => _scrollBox = (ScrollBox)component);
+               
             }
             builder.CloseComponent();
         }

@@ -1,0 +1,20 @@
+.au-pull-to-refresh-box {
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+
+    > .au-pull-to-refresh-box__peek-content {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        transform: translateY(var(--pull-distance, 0));
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        opacity: var(--pull-progress);
+    }
+
+    > .au-pull-to-refresh-box__content {
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        transform: translateY(var(--pull-distance, 0));
+    }
+}

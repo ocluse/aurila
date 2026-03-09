@@ -4,7 +4,7 @@ namespace Aurila.Services;
 public sealed class AurilaJSInterop(IJSRuntime jsRuntime) : IAsyncDisposable
 {
     private readonly Lazy<Task<IJSObjectReference>> _moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-            "import", "./_content/Aurila/aurila.js").AsTask());
+            "import", "./_content/Aurila.Core/aurila.js").AsTask());
 
     #region Dialog
     public async ValueTask CloseDialogAsync(ElementReference dialog)

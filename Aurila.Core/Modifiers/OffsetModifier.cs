@@ -6,13 +6,8 @@ using System.Text;
 
 namespace Aurila.Modifiers;
 
-internal class OffsetModifier(CssLength x, CssLength y) : IModifier
+internal class OffsetModifier(CssLength x, CssLength y) : IStyleModifier
 {
-    public void BuildClass(ComponentBase component, ClassBuilder builder)
-    {
-        //no op;
-    }
-
     public void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
         builder.Add("transform", $"translate({x}, {y})");

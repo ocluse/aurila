@@ -1,27 +1,16 @@
 $cycle: 1.333s;
 
-// Head: fast out of the gate, decelerates toward the end.
-// CDF is convex — most of the travel happens early.
-$head-ease: cubic-bezier(0.0, 0.0, 0.2, 1.0);
-
-// Tail: slow start, accelerates hard at the end to catch up.
-// CDF is concave — most of the travel happens late.
-// This guarantees F_head(t) > F_tail(t) for all t ∈ (0,1).
-$tail-ease: cubic-bezier(0.8, 0.0, 1.0, 0.0);
-
-@property --au-cpi-head {
-  syntax:        '<number>';
-  inherits:      false;
-  initial-value: 0;
+@property --au-cpi-len {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0.05;
 }
 
-@property --au-cpi-tail {
-  syntax:        '<number>';
-  inherits:      false;
+@property --au-cpi-offset {
+  syntax: '<number>';
+  inherits: false;
   initial-value: 0;
 }
-
-// ── Container ─────────────────────────────────────────────────────────────────
 
 .au-circular-progress {
   display: inline-flex;
@@ -34,63 +23,70 @@ $tail-ease: cubic-bezier(0.8, 0.0, 1.0, 0.0);
     overflow: visible;
     will-change: transform;
   }
+
+  &.au-circular-progress--indeterminate {
+
+    svg {
+      animation: au-cpi-spin 1.75s linear infinite;
+      transform-origin: center;
+    }
+
+    .au-cpi-arc {
+      animation:
+        au-cpi-len-osc $cycle cubic-bezier(0.45, 0.0, 0.55, 1.0) infinite,
+        au-cpi-offset-fwd $cycle cubic-bezier(0.4, 0.0, 0.8, 1.0) infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      svg {
+        animation-duration: 4s;
+
+        circle {
+          transition: none;
+        }
+      }
+
+      .au-cpi-arc {
+        animation-duration: 4s;
+      }
+    }
+  }
+
+  &.au-circular-progress--determinate {
+    svg circle {
+      transition:
+        stroke-dashoffset 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
+        stroke-dasharray 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+  }
 }
 
-// ── Keyframes ─────────────────────────────────────────────────────────────────
-
-// Orbital spin — period intentionally differs from $cycle
 @keyframes au-cpi-spin {
-  to { transform: rotate(360deg); }
-}
-
-// Both travel 0 → 1. Easing controls their relative speed.
-@keyframes au-cpi-fwd {
-  from { --au-cpi-head: 0; }
-  to   { --au-cpi-head: 1; }
-}
-
-@keyframes au-cpi-fwd-tail {
-  from { --au-cpi-tail: 0; }
-  to   { --au-cpi-tail: 1; }
-}
-
-// ── Indeterminate ─────────────────────────────────────────────────────────────
-
-.au-circular-progress--indeterminate {
-
-  svg {
-    animation: au-cpi-spin 1.75s linear infinite;
-    transform-origin: center;
-  }
-
-  .au-cpi-arc {
-    // Head and tail run the same duration with no delay — they start and end
-    // together, but the easing differential keeps head always ahead of tail
-    // throughout the cycle. Arc = (head - tail) * circ oscillates smoothly.
-    animation:
-      au-cpi-fwd      $cycle $head-ease infinite,
-      au-cpi-fwd-tail $cycle $tail-ease infinite;
+  to {
+    transform: rotate(360deg);
   }
 }
 
-// ── Determinate ───────────────────────────────────────────────────────────────
+@keyframes au-cpi-len-osc {
+  0% {
+    --au-cpi-len: 0.05;
+  }
 
-.au-circular-progress--determinate {
-  svg circle {
-    transition:
-      stroke-dashoffset 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
-      stroke-dasharray  0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  50% {
+    --au-cpi-len: 0.72;
+  }
+
+  100% {
+    --au-cpi-len: 0.05;
   }
 }
 
-// ── Reduced motion ────────────────────────────────────────────────────────────
-
-@media (prefers-reduced-motion: reduce) {
-  .au-circular-progress--indeterminate {
-    svg         { animation-duration: 4s; }
-    .au-cpi-arc { animation-duration: 4s; }
+@keyframes au-cpi-offset-fwd {
+  from {
+    --au-cpi-offset: 0;
   }
-  .au-circular-progress--determinate svg circle {
-    transition: none;
+
+  to {
+    --au-cpi-offset: 1;
   }
 }

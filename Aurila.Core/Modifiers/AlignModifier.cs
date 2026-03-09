@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Aurila.Modifiers;
 
-internal class AlignModifier(IAlignment alignment) : IModifier
+internal class AlignModifier(IAlignment alignment) : IClassModifier, IStyleModifier
 {
     public void BuildClass(ComponentBase component, ClassBuilder builder)
     {

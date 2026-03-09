@@ -6,13 +6,8 @@ using System.Text;
 
 namespace Aurila.Modifiers;
 
-public class FillMaxSizeModifier() : IModifier
+public class FillMaxSizeModifier() : IStyleModifier
 {
-    public void BuildClass(ComponentBase component, ClassBuilder builder)
-    {
-        // No class to add for this modifier
-    }
-
     public void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
         builder.Add("width", "100%");

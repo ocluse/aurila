@@ -16,16 +16,16 @@ public static class ModifierExtensions
         return builder.Add(new PaddingModifier(all));
     }
 
-    public static ModifiersBuilder Padding(this ModifiersBuilder builder, CssLength vertical = default, CssLength horizontal = default)
+    public static ModifiersBuilder Padding(this ModifiersBuilder builder, CssLength? vertical = null, CssLength? horizontal = null)
     {
         return builder.Add(new PaddingModifier(PaddingValues.Symmetric(vertical, horizontal)));
     }
 
     public static ModifiersBuilder Padding(this ModifiersBuilder builder,
-        CssLength top = default,
-        CssLength right = default,
-        CssLength bottom = default,
-        CssLength left = default)
+        CssLength? top = null,
+        CssLength? right = null,
+        CssLength? bottom = null,
+        CssLength? left = null)
     {
         return builder.Add(new PaddingModifier(new PaddingValues
         {
@@ -36,21 +36,21 @@ public static class ModifierExtensions
         }));
     }
 
-    public static ModifiersBuilder Margin(this ModifiersBuilder builder, CssLength all = default)
+    public static ModifiersBuilder Margin(this ModifiersBuilder builder, CssLength all)
     {
         return builder.Add(new MarginModifier(all));
     }
 
-    public static ModifiersBuilder Margin(this ModifiersBuilder builder, CssLength vertical = default, CssLength horizontal = default)
+    public static ModifiersBuilder Margin(this ModifiersBuilder builder, CssLength? vertical = null, CssLength? horizontal = null)
     {
         return builder.Add(new MarginModifier(PaddingValues.Symmetric(vertical, horizontal)));
     }
 
     public static ModifiersBuilder Margin(this ModifiersBuilder builder,
-        CssLength top = default,
-        CssLength right = default,
-        CssLength bottom = default,
-        CssLength left = default)
+        CssLength? top = null,
+        CssLength? right = null,
+        CssLength? bottom = null,
+        CssLength? left = null)
     {
         return builder.Add(new MarginModifier(new PaddingValues
         {
@@ -69,5 +69,20 @@ public static class ModifierExtensions
     public static ModifiersBuilder Offset(this ModifiersBuilder builder, CssLength x, CssLength y)
     {
         return builder.Add(new OffsetModifier(x, y));
+    }
+
+    public static ModifiersBuilder Clickable(this ModifiersBuilder builder, Action execute)
+    {
+        return builder.Add(new ClickableModifier(execute));
+    }
+
+    public static ModifiersBuilder Clickable(this ModifiersBuilder builder, Func<Task> executeAsync)
+    {
+        return builder.Add(new ClickableModifier(executeAsync));
+    }
+
+    public static ModifiersBuilder Clickable(this ModifiersBuilder builder, EventCallback callback)
+    {
+        return builder.Add(new ClickableModifier(callback));
     }
 }

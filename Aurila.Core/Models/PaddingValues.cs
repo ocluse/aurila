@@ -6,15 +6,15 @@ namespace Aurila.Models;
 
 public record PaddingValues
 {
-    public CssLength Top { get; set; }
+    public CssLength? Top { get; set; }
 
-    public CssLength Bottom { get; set; }
+    public CssLength? Bottom { get; set; }
 
-    public CssLength Left { get; set; }
+    public CssLength? Left { get; set; }
 
-    public CssLength Right { get; set; }
+    public CssLength? Right { get; set; }
 
-    public static PaddingValues All(CssLength value) => new()
+    public static PaddingValues All(CssLength? value) => new()
     {
         Top = value,
         Bottom = value,
@@ -22,7 +22,7 @@ public record PaddingValues
         Right = value
     };
 
-    public static PaddingValues Symmetric(CssLength vertical, CssLength horizontal) => new()
+    public static PaddingValues Symmetric(CssLength? vertical, CssLength? horizontal) => new()
     {
         Top = vertical,
         Bottom = vertical,

@@ -1,7 +1,8 @@
 ﻿using Microsoft.JSInterop;
 
 namespace Aurila.Components.Controls;
-public class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
+
+public sealed class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
 {
     [Parameter]
     public bool IsRefreshing { get; set; }
@@ -43,7 +44,7 @@ public class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
                 builder.AddComponentParameter(7, nameof(ScrollBox.Class), "au-pull-to-refresh-box__content");
                 builder.AddComponentParameter(8, nameof(ScrollBox.ChildContent), (RenderFragment)BuildContent);
                 builder.AddComponentReferenceCapture(9, component => _scrollBox = (ScrollBox)component);
-               
+
             }
             builder.CloseComponent();
         }
@@ -77,9 +78,18 @@ public class PullToRefreshBox : ControlBase<PullToRefreshBox>, IAsyncDisposable
         {
             if (_scrollBox != null && _scrollBox.ScrollElement.Context != null)
             {
-                _dotNetObjRef = DotNetObjectReference.Create(this);
-                _jsObjectRef = await JSInterop.CreateObjectAsync("PullToRefreshBox", _scrollBox.ScrollElement, _dotNetObjRef);
-                _created = true;
+                try
+                {
+                    _dotNetObjRef = DotNetObjectReference.Create(this);
+                    _jsObjectRef = await JSInterop.CreateObjectAsync("PullToRefreshBox", _scrollBox.ScrollElement, _dotNetObjRef);
+                    _created = true;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The component was disposed before the JS interop call completed/could be made.
+                    return;
+                }
+
             }
         }
     }

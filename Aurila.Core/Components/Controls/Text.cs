@@ -10,10 +10,32 @@ public class Text : ControlBase<Text>
     [Parameter]
     public IColor? Color { get; set; }
 
+    [Parameter]
+    public TextAlign? Align { get; set; }
+
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
         builder.Add("au-text");
+    }
+
+    protected override void BuildStyle(StyleBuilder builder)
+    {
+        base.BuildStyle(builder);
+
+        if (Align.HasValue)
+        {
+            string alignValue = Align.Value switch
+            {
+                TextAlign.Start => "start",
+                TextAlign.End => "end",
+                TextAlign.Center => "center",
+                TextAlign.Justify => "justify",
+                _ => throw new InvalidOperationException($"Unsupported TextAlign value: {Align.Value}")
+            };
+
+            builder.Add("text-align", alignValue);
+        }
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)

@@ -1,7 +1,7 @@
 ﻿namespace Aurila;
-internal static class Extensions
+public static class Extensions
 {
-    internal static string? GetDisplayValue<T>(this T? value, Func<T?, string>? displayMemberFunc)
+    public static string? GetDisplayValue<T>(this T? value, Func<T?, string>? displayMemberFunc)
     {
         if (displayMemberFunc != null)
         {
@@ -14,7 +14,7 @@ internal static class Extensions
         return value.ToString();
     }
 
-    internal static string ToHtmlAttribute(this UpdateTrigger trigger)
+    public static string ToHtmlAttribute(this UpdateTrigger trigger)
     {
         return trigger switch
         {
@@ -24,7 +24,7 @@ internal static class Extensions
         };
     }
 
-    internal static string ToCssValue(this double value, CssUnit unit)
+    public static string ToCssValue(this double value, CssUnit unit)
     {
         return unit switch
         {
@@ -40,6 +40,19 @@ internal static class Extensions
             CssUnit.DynamicViewHeight => $"{value}dvh",
             CssUnit.DynamicViewWidth => $"{value}dvw",
             _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, null)
+        };
+    }
+
+    public static string ToContentType(this ImageFormat format)
+    {
+        return format switch
+        {
+            ImageFormat.Png => "image/png",
+            ImageFormat.Jpeg => "image/jpeg",
+            ImageFormat.Webp => "image/webp",
+            ImageFormat.Gif => "image/gif",
+            ImageFormat.Svg => "image/svg+xml",
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
     }
 

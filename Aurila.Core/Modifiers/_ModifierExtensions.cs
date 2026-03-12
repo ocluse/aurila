@@ -85,4 +85,9 @@ public static class ModifierExtensions
     {
         return builder.Add(new ClickableModifier(callback));
     }
+
+    public static ModifiersBuilder Weight(this ModifiersBuilder builder, double weight)
+    {
+        return builder.Add(new WeightModifier(weight));
+    }
 }

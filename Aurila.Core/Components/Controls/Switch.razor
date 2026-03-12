@@ -1,8 +1,8 @@
 @inherits InputBase<Switch, bool>
 
 <div @attributes="GetAppliedAttributes()" @onclick="OnClickAsync">
-    <label class="content">
-        <span class="slider"></span>
+    <label class="au-switch__content">
+        <span class="au-switch__content__slider"></span>
     </label>
     @ChildContent
 </div>
@@ -13,7 +13,7 @@
 
     protected override void BuildClass(ClassBuilder builder)
     {
-        builder.Add("au-switch").AddIf(Value, "checked");
+        builder.Add("au-switch").AddIf(Value, "au-switch--checked");
         base.BuildClass(builder);
     }
 

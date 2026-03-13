@@ -1,4 +1,5 @@
 ﻿namespace Aurila.Components.Controls;
+
 public class TextBox : TextBoxBase<TextBox, string>
 {
     [Parameter]

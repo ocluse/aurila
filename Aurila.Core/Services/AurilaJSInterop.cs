@@ -62,6 +62,13 @@ public sealed class AurilaJSInterop(IJSRuntime jsRuntime) : IAsyncDisposable
         var module = await _moduleTask.Value;
         await module.InvokeVoidAsync("scrollToPosition", elementReference, position, isVertical);
     }
+
+    public async Task<bool> IsNearBottomAsync(ElementReference elementReference, int threshold = 100)
+    {
+        var module = await _moduleTask.Value;
+        return await module.InvokeAsync<bool>("isNearBottom", elementReference, threshold);
+    }
+
     #endregion
 
     public async ValueTask DisposeAsync()

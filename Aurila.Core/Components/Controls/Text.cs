@@ -1,5 +1,5 @@
 ﻿namespace Aurila.Components.Controls;
-public class Text : ControlBase<Text>
+public class TextBlock : ControlBase<TextBlock>
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -16,7 +16,7 @@ public class Text : ControlBase<Text>
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
-        builder.Add("au-text");
+        builder.Add("au-text-block");
     }
 
     protected override void BuildStyle(StyleBuilder builder)

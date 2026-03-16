@@ -23,95 +23,94 @@ export class BottomSheet {
     private dragStartY    = 0;
     private dragStartTime = 0;
     private currentDeltaY = 0;
-    private startHeight   = 0;   // px — offsetHeight at drag-start
-    private maxHeightPx   = 0;   // px — resolved maxHeight at drag-start
+    private startHeight   = 0;
+    private maxHeightPx   = 0;
 
-    private boundPointerDown: (e: PointerEvent) => void;
-    private boundPointerMove: (e: PointerEvent) => void;
-    private boundPointerUp:   (e: PointerEvent) => void;
+    // Touch handlers
+    private boundTouchStart:  (e: TouchEvent)   => void;
+    private boundTouchMove:   (e: TouchEvent)   => void;
+    private boundTouchEnd:    (e: TouchEvent)   => void;
+
+    // Mouse/pointer handlers (document-level, attached only during drag)
+    private boundPointerDown:   (e: PointerEvent) => void;
+    private boundDocPointerMove: (e: PointerEvent) => void;
+    private boundDocPointerUp:   (e: PointerEvent) => void;
+
+    // Prevent synthetic pointer events from double-firing after a touch gesture
+    private touchActive = false;
 
     constructor(contentArea: HTMLElement, dotNetObj: DotNetObject, maxHeight: string) {
         this.contentArea = contentArea;
         this.dotNetObj   = dotNetObj;
         this.maxHeight   = maxHeight;
 
-        this.boundPointerDown = this.handlePointerDown.bind(this);
-        this.boundPointerMove = this.handlePointerMove.bind(this);
-        this.boundPointerUp   = this.handlePointerUp.bind(this);
+        this.boundTouchStart      = this.handleTouchStart.bind(this);
+        this.boundTouchMove       = this.handleTouchMove.bind(this);
+        this.boundTouchEnd        = this.handleTouchEnd.bind(this);
+        this.boundPointerDown     = this.handlePointerDown.bind(this);
+        this.boundDocPointerMove  = this.handleDocPointerMove.bind(this);
+        this.boundDocPointerUp    = this.handleDocPointerUp.bind(this);
 
+        // Touch events — on the element
+        this.contentArea.addEventListener('touchstart',  this.boundTouchStart,  { passive: false });
+        this.contentArea.addEventListener('touchmove',   this.boundTouchMove,   { passive: false });
+        this.contentArea.addEventListener('touchend',    this.boundTouchEnd);
+        this.contentArea.addEventListener('touchcancel', this.boundTouchEnd);
+
+        // Pointer events — pointerdown on element; move/up on document during drag
         this.contentArea.addEventListener('pointerdown', this.boundPointerDown);
 
-        // Open animation — entirely JS-driven so CSS keyframes never own transform.
+        // Open animation
         this.setTransform('translateY(100%)', '');
-        this.contentArea.getBoundingClientRect(); // force reflow
+        this.contentArea.getBoundingClientRect();
         this.setTransform('translateY(0)', `transform ${OPEN_DURATION}ms ${EASING_OPEN}`);
         setTimeout(() => this.clearTransition(), OPEN_DURATION);
     }
 
-    // ── drag ──────────────────────────────────────────────────────────────────
+    // ── shared drag core ──────────────────────────────────────────────────────
 
-    private handlePointerDown(e: PointerEvent): void {
-        if (!e.isPrimary) return;
-
-        // When expanded, allow dragging from anywhere (sheet fills most of screen).
-        // When at default height, only start if content is scrolled to top.
-        if (this.state === 'default') {
-            const scrollable = this.findScrollable();
-            if (scrollable && scrollable.scrollTop > 0) return;
-        }
+    private startDrag(clientY: number): void {
+        const scrollable = this.findScrollable();
+        if (this.state === 'default' && scrollable && scrollable.scrollTop > 0) return;
 
         this.isDragging    = true;
-        this.dragStartY    = e.clientY;
+        this.dragStartY    = clientY;
         this.dragStartTime = performance.now();
         this.currentDeltaY = 0;
         this.startHeight   = this.contentArea.offsetHeight;
         this.maxHeightPx   = this.resolveMaxHeightPx();
 
-        this.contentArea.setPointerCapture(e.pointerId);
-        this.contentArea.addEventListener('pointermove',   this.boundPointerMove);
-        this.contentArea.addEventListener('pointerup',     this.boundPointerUp);
-        this.contentArea.addEventListener('pointercancel', this.boundPointerUp);
-
         this.clearTransition();
     }
 
-    private handlePointerMove(e: PointerEvent): void {
-        if (!this.isDragging || !e.isPrimary) return;
+    private moveDrag(clientY: number): void {
+        if (!this.isDragging) return;
 
-        const deltaY = e.clientY - this.dragStartY;
+        const deltaY = clientY - this.dragStartY;
 
         if (deltaY > 0) {
-            // Dragging down — translate downward.
-            // Pin height in px so clearing the CSS value (e.g. "90vh") doesn't
-            // collapse the element to its natural height mid-drag.
             this.contentArea.style.height = `${this.startHeight}px`;
             this.setTransform(`translateY(${deltaY}px)`, '');
         } else {
-            // Dragging up — stretch height, keep at translateY(0).
             this.setTransform('translateY(0)', '');
-            const newHeight = this.startHeight - deltaY; // deltaY negative → adds
+            const newHeight = this.startHeight - deltaY;
             this.contentArea.style.height = `min(${newHeight}px, ${this.maxHeight})`;
         }
 
         this.currentDeltaY = deltaY;
     }
 
-    private handlePointerUp(e: PointerEvent): void {
-        if (!this.isDragging || !e.isPrimary) return;
+    private endDrag(): void {
+        if (!this.isDragging) return;
         this.isDragging = false;
 
-        this.contentArea.removeEventListener('pointermove',   this.boundPointerMove);
-        this.contentArea.removeEventListener('pointerup',     this.boundPointerUp);
-        this.contentArea.removeEventListener('pointercancel', this.boundPointerUp);
-
-        const elapsed  = performance.now() - this.dragStartTime;
-        const velocity = elapsed > 0 ? this.currentDeltaY / elapsed : 0;
+        const elapsed      = performance.now() - this.dragStartTime;
+        const velocity     = elapsed > 0 ? this.currentDeltaY / elapsed : 0;
         const fastFlickDown = velocity > VELOCITY_DISMISS;
 
         if (this.currentDeltaY < 0) {
-            // ── Dragged UP ────────────────────────────────────────────────────
-            // Expand if released past halfway between current height and maxHeight.
-            const halfway = this.startHeight + (this.maxHeightPx - this.startHeight) / 2;
+            // Dragged UP — expand if past halfway between start height and max
+            const halfway       = this.startHeight + (this.maxHeightPx - this.startHeight) / 2;
             const currentHeight = this.contentArea.offsetHeight;
             if (currentHeight >= halfway) {
                 this.snapToExpanded();
@@ -119,18 +118,16 @@ export class BottomSheet {
                 this.snapToDefault();
             }
         } else if (this.state === 'expanded') {
-            // ── Dragged DOWN from expanded ────────────────────────────────────
-            // dragged > 50% of maxHeight down → dismiss; otherwise → restore to default size.
+            // Dragged DOWN from expanded
+            // > 50% of maxHeight dragged → dismiss; otherwise → restore to default
             if (fastFlickDown || this.currentDeltaY > this.maxHeightPx * 0.5) {
                 this.slideOut().then(() => this.dotNetObj.invokeMethodAsync('HandleDismissed'));
             } else {
-                // Still more than half visible → snap back to natural (default) height.
                 this.snapToDefault();
             }
         } else {
-            // ── Dragged DOWN from default ─────────────────────────────────────
-            const dismiss120px = this.currentDeltaY > 120;
-            if (dismiss120px || fastFlickDown) {
+            // Dragged DOWN from default
+            if (fastFlickDown || this.currentDeltaY > 120) {
                 this.slideOut().then(() => this.dotNetObj.invokeMethodAsync('HandleDismissed'));
             } else {
                 this.snapToDefault();
@@ -140,15 +137,62 @@ export class BottomSheet {
         this.currentDeltaY = 0;
     }
 
+    // ── touch handlers ────────────────────────────────────────────────────────
+
+    private handleTouchStart(e: TouchEvent): void {
+        if (e.touches.length !== 1) return;
+        this.touchActive = true;
+        // Prevent scroll and suppress the synthetic pointer events the browser
+        // fires after touch events, which would cause double-handling.
+        e.preventDefault();
+        this.startDrag(e.touches[0].clientY);
+    }
+
+    private handleTouchMove(e: TouchEvent): void {
+        if (!this.isDragging || e.touches.length !== 1) return;
+        e.preventDefault();
+        this.moveDrag(e.touches[0].clientY);
+    }
+
+    private handleTouchEnd(e: TouchEvent): void {
+        this.touchActive = false;
+        this.endDrag();
+    }
+
+    // ── pointer (mouse) handlers ──────────────────────────────────────────────
+
+    private handlePointerDown(e: PointerEvent): void {
+        // Ignore if a touch gesture is already active (synthetic pointer after touch)
+        if (this.touchActive) return;
+        if (!e.isPrimary || e.pointerType === 'touch') return;
+
+        this.startDrag(e.clientY);
+
+        if (this.isDragging) {
+            // Attach move/up to document so dragging outside the element still works
+            document.addEventListener('pointermove', this.boundDocPointerMove);
+            document.addEventListener('pointerup',   this.boundDocPointerUp);
+            document.addEventListener('pointercancel', this.boundDocPointerUp);
+        }
+    }
+
+    private handleDocPointerMove(e: PointerEvent): void {
+        if (!e.isPrimary) return;
+        this.moveDrag(e.clientY);
+    }
+
+    private handleDocPointerUp(e: PointerEvent): void {
+        if (!e.isPrimary) return;
+        document.removeEventListener('pointermove',   this.boundDocPointerMove);
+        document.removeEventListener('pointerup',     this.boundDocPointerUp);
+        document.removeEventListener('pointercancel', this.boundDocPointerUp);
+        this.endDrag();
+    }
+
     // ── snapping ──────────────────────────────────────────────────────────────
 
     private snapToDefault(): void {
         this.state = 'default';
-        // Transition height back to natural. We can't transition to 'auto', so
-        // transition to 0 then clear — but the element has content so it won't
-        // actually collapse; instead set an explicit transition and let the browser
-        // interpolate from the current px height down by clearing to ''.
-        // Simplest reliable approach: transition transform, then on end clear height.
         this.setTransform('translateY(0)', `transform ${SNAP_DURATION}ms ${EASING_SNAP}, height ${SNAP_DURATION}ms ${EASING_SNAP}`);
         this.contentArea.style.height = '';
         setTimeout(() => this.clearTransition(), SNAP_DURATION);
@@ -156,13 +200,11 @@ export class BottomSheet {
 
     private snapToExpanded(): void {
         this.state = 'expanded';
-        // Resolve maxHeight to px so we can transition from the current px height.
         const targetPx = this.resolveMaxHeightPx();
         this.setTransform('translateY(0)', `transform ${SNAP_DURATION}ms ${EASING_SNAP}, height ${SNAP_DURATION}ms ${EASING_SNAP}`);
         this.contentArea.style.height = `${targetPx}px`;
         setTimeout(() => {
             this.clearTransition();
-            // Switch to the CSS value so it stays correct if the viewport resizes.
             this.contentArea.style.height = this.maxHeight;
         }, SNAP_DURATION);
     }
@@ -171,21 +213,26 @@ export class BottomSheet {
 
     public slideOut(): Promise<void> {
         this.clearTransition();
-        this.contentArea.getBoundingClientRect(); // force reflow
+        this.contentArea.getBoundingClientRect();
         this.setTransform('translateY(100%)', `transform ${CLOSE_DURATION}ms ${EASING_CLOSE}`);
         this.contentArea.style.height = '';
         return new Promise(resolve => setTimeout(resolve, CLOSE_DURATION));
     }
 
     public dispose(): void {
-        this.contentArea.removeEventListener('pointerdown',   this.boundPointerDown);
-        this.contentArea.removeEventListener('pointermove',   this.boundPointerMove);
-        this.contentArea.removeEventListener('pointerup',     this.boundPointerUp);
-        this.contentArea.removeEventListener('pointercancel', this.boundPointerUp);
+        this.contentArea.removeEventListener('touchstart',  this.boundTouchStart);
+        this.contentArea.removeEventListener('touchmove',   this.boundTouchMove);
+        this.contentArea.removeEventListener('touchend',    this.boundTouchEnd);
+        this.contentArea.removeEventListener('touchcancel', this.boundTouchEnd);
+        this.contentArea.removeEventListener('pointerdown', this.boundPointerDown);
+        document.removeEventListener('pointermove',   this.boundDocPointerMove);
+        document.removeEventListener('pointerup',     this.boundDocPointerUp);
+        document.removeEventListener('pointercancel', this.boundDocPointerUp);
         this.contentArea.style.transform  = '';
         this.contentArea.style.height     = '';
         this.contentArea.style.transition = '';
-        this.isDragging = false;
+        this.isDragging   = false;
+        this.touchActive  = false;
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -199,9 +246,7 @@ export class BottomSheet {
         this.contentArea.style.transition = '';
     }
 
-    /** Resolves the maxHeight CSS value (e.g. "90vh") to pixels at the current moment. */
     private resolveMaxHeightPx(): number {
-        // Apply it temporarily to a zero-size element to let the browser compute it.
         const probe = document.createElement('div');
         probe.style.cssText = `position:fixed;visibility:hidden;height:${this.maxHeight};top:0`;
         document.body.appendChild(probe);
@@ -220,4 +265,3 @@ export class BottomSheet {
         return null;
     }
 }
-

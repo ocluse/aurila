@@ -7,7 +7,7 @@ public static class ConfigureServices
 {
     public static IServiceCollection AddAurila(this IServiceCollection services)
     {
-        services.AddSingleton<AurilaJSInterop>();
+        services.AddScoped<AurilaJSInterop>();
         services.AddSingleton<IBackInterceptor, BackInterceptor>();
         services.AddSingleton<ModalHostService>();
         services.AddScoped<IImageLoader, DefaultImageLoader>();

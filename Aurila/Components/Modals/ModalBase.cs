@@ -1,113 +1,147 @@
-﻿using Aurila.Contracts.Components;
+using Aurila.Contracts.Components;
 using Aurila.Contracts.Navigation;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Modals;
+
 public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver, IDisposable
     where TControl : ModalBase<TControl>
 {
     [Inject]
-    public AurilaJSInterop JSInterop { get; set; } = null!;
+    IBackInterceptor BackInterceptor { get; set; } = null!;
 
     [Inject]
-    IBackInterceptor BackInterceptor { get; set; } = null!;
+    ModalHostService HostService { get; set; } = null!;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// Controls whether the modal is visible. Use @bind-Open for two-way binding.
+    /// When the user attempts to dismiss the modal (backdrop click, back button, etc.),
+    /// OpenChanged is invoked with false. The parent decides whether to actually close
+    /// by updating — or not updating — their bound state variable.
+    /// </summary>
     [Parameter]
-    public Func<Task<bool>>? OnDismissingFunc { get; set; }
+    public bool Open { get; set; }
 
-    private bool _isVisible = false;
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
     private bool _isClosing = false;
-    private ElementReference _dialogElement;
+    private bool _prevOpen = false;
     private bool _disposed;
+    private ModalRegistration? _registration;
 
-    public async Task ShowAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if (_isVisible) return;
+        bool opening = Open && !_prevOpen;
+        bool closing = !Open && _prevOpen;
 
-        _isVisible = true;
-        _isClosing = false;
-
-        BackInterceptor.RegisterBackReceiver(this);
-
-        await InvokeAsync(async () =>
+        if (opening)
         {
-            StateHasChanged();
-            await JSInterop.ShowDialogAsync(_dialogElement);
-        });
+            _isClosing = false;
+            _prevOpen = true;
+            BackInterceptor.RegisterBackReceiver(this);
+            // Register our overlay fragment with the host — BuildOverlay closes over
+            // 'this' so re-renders of the host always get fresh state from this instance.
+            _registration = HostService.Register(BuildOverlay);
+        }
+        else if (_prevOpen && !closing)
+        {
+            // Already open, not transitioning — a parameter changed (e.g. ChildContent
+            // updated by the parent). Notify the host so it re-invokes the fragment and
+            // the overlay reflects the new state.
+            HostService.NotifyChanged();
+        }
+        else if (closing)
+        {
+            await RunCloseAnimation();
+            _prevOpen = false;
+        }
     }
 
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    // ModalBase emits nothing at its declaration site — all rendering happens inside
+    // ModalHost via the registered fragment.
+    protected override void BuildRenderTree(RenderTreeBuilder builder) { }
+
+    // Builds the actual overlay markup. Called by ModalHost each time it re-renders,
+    // via the RenderFragment registered in ModalHostService.
+    private void BuildOverlay(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "dialog");
+        builder.OpenElement(0, "div");
         {
             builder.AddMultipleAttributes(1, GetAppliedAttributes());
-            builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, HideAsync));
-            builder.AddAttribute(3, "onclose", EventCallback.Factory.Create(this, HandleDialogClose));
-            builder.AddElementReferenceCapture(4, element => _dialogElement = element);
-            if (_isVisible)
+            builder.AddAttribute(2, "role", "dialog");
+            builder.AddAttribute(3, "aria-modal", "true");
+
+            // Scrim — the semi-transparent backdrop. Clicking it requests dismissal.
+            builder.OpenElement(4, "div");
             {
-                builder.OpenElement(5, "div");
-                {
-                    //TODO: Look at this implementation, it might not be correct
-                    builder.AddAttribute(6, "class", "au-dialog__content-area");
-                    builder.AddEventStopPropagationAttribute(7, "onclick", true);
-                    builder.AddContent(8, ChildContent);
-                }
-                builder.CloseElement();
+                builder.AddAttribute(5, "class", "au-modal__scrim");
+                builder.AddAttribute(6, "onclick", EventCallback.Factory.Create(this, RequestDismiss));
             }
+            builder.CloseElement();
+
+            // Content area — stop propagation so clicks inside don't bubble to the scrim.
+            builder.OpenElement(7, "div");
+            {
+                builder.AddAttribute(8, "class", "au-modal__content-area");
+                builder.AddEventStopPropagationAttribute(9, "onclick", true);
+                builder.AddContent(10, ChildContent);
+            }
+            builder.CloseElement();
         }
         builder.CloseElement();
     }
+
+    /// <summary>
+    /// Requests the modal to open by invoking OpenChanged with true.
+    /// The modal opens only if the parent updates the bound Open parameter.
+    /// </summary>
+    public async Task ShowAsync()
+    {
+        if (Open) return;
+        await OpenChanged.InvokeAsync(true);
+    }
+
+    /// <summary>
+    /// Requests the modal to close by invoking OpenChanged with false.
+    /// The modal closes only if the parent updates the bound Open parameter.
+    /// </summary>
     public async Task HideAsync()
     {
-        // Prevent hiding if already closing or not visible
-        if (_isClosing || !_isVisible) return;
-
-        if (OnDismissingFunc != null)
-        {
-            bool cancel = await OnDismissingFunc();
-            if (cancel)
-            {
-                return;
-            }
-        }
-
-        _isClosing = true; // Start the closing process
-
-        await InvokeAsync(StateHasChanged);
-
-        // Wait for the CSS animation to complete
-        await Task.Delay(300);
-
-        await JSInterop.CloseDialogAsync(_dialogElement);
-
-       BackInterceptor.UnregisterBackReceiver(this);
-
-        _isVisible = false;
-        _isClosing = false;
-
-        await InvokeAsync(StateHasChanged);
+        if (!Open || _isClosing) return;
+        await OpenChanged.InvokeAsync(false);
     }
 
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
         builder.Add("au-modal");
-        builder.AddIf(_isVisible, "visible")
-            .AddIf(_isClosing, "closing");
+        builder.AddIf(_isClosing, "au-modal--closing");
     }
 
-    private async Task HandleDialogClose()
-    {
-        if (_isVisible && !_isClosing)
-        {
-            _isVisible = false;
-            _isClosing = false;
+    private Task RequestDismiss() => HideAsync();
 
-            await InvokeAsync(StateHasChanged);
+    // Plays the CSS exit animation then removes the overlay from the host.
+    // Called from OnParametersSetAsync when Open transitions true → false.
+    private async Task RunCloseAnimation()
+    {
+        _isClosing = true;
+        // Notify the host to re-render — the fragment re-runs BuildOverlay with
+        // _isClosing=true, applying the au-modal--closing class for the CSS animation.
+        HostService.NotifyChanged();
+
+        await Task.Delay(300);
+
+        BackInterceptor.UnregisterBackReceiver(this);
+        _isClosing = false;
+
+        if (_registration != null)
+        {
+            HostService.Unregister(_registration);
+            _registration = null;
         }
     }
 
@@ -124,6 +158,13 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
             if (disposing)
             {
                 BackInterceptor.UnregisterBackReceiver(this);
+                // If disposed while open (e.g. page navigation), remove from host immediately
+                // without animation so the overlay doesn't linger.
+                if (_registration != null)
+                {
+                    HostService.Unregister(_registration);
+                    _registration = null;
+                }
             }
             _disposed = true;
         }
@@ -131,7 +172,6 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
 
     public void Dispose()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }

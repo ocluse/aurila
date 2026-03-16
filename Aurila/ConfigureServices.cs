@@ -9,6 +9,7 @@ public static class ConfigureServices
     {
         services.AddSingleton<AurilaJSInterop>();
         services.AddSingleton<IBackInterceptor, BackInterceptor>();
+        services.AddSingleton<ModalHostService>();
         services.AddScoped<IImageLoader, DefaultImageLoader>();
         return services;
     }

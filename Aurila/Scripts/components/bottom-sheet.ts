@@ -20,6 +20,7 @@ export class BottomSheet {
     private state: SheetState = 'default';
 
     private isDragging    = false;
+    private dragConfirmed = false; // true once moved past slop threshold — real drag, not a tap
     private dragStartY    = 0;
     private dragStartTime = 0;
     private currentDeltaY = 0;
@@ -74,6 +75,7 @@ export class BottomSheet {
         if (this.state === 'default' && scrollable && scrollable.scrollTop > 0) return;
 
         this.isDragging    = true;
+        this.dragConfirmed = false;
         this.dragStartY    = clientY;
         this.dragStartTime = performance.now();
         this.currentDeltaY = 0;
@@ -83,10 +85,21 @@ export class BottomSheet {
         this.clearTransition();
     }
 
-    private moveDrag(clientY: number): void {
-        if (!this.isDragging) return;
+    // Returns true if the move should be handled (drag confirmed), false if it looks like a tap.
+    private moveDrag(clientY: number, canPreventDefault: boolean, originalEvent?: TouchEvent): boolean {
+        if (!this.isDragging) return false;
 
         const deltaY = clientY - this.dragStartY;
+
+        // Confirm the drag once the finger has moved more than 6px vertically.
+        // Until then do nothing — let the tap/click proceed uninterrupted.
+        if (!this.dragConfirmed) {
+            if (Math.abs(deltaY) < 6) return false;
+            this.dragConfirmed = true;
+        }
+
+        // Now we know it's a real drag — prevent scroll.
+        if (canPreventDefault && originalEvent) originalEvent.preventDefault();
 
         if (deltaY > 0) {
             this.contentArea.style.height = `${this.startHeight}px`;
@@ -98,11 +111,13 @@ export class BottomSheet {
         }
 
         this.currentDeltaY = deltaY;
+        return true;
     }
 
     private endDrag(): void {
         if (!this.isDragging) return;
-        this.isDragging = false;
+        this.isDragging    = false;
+        this.dragConfirmed = false;
 
         const elapsed      = performance.now() - this.dragStartTime;
         const velocity     = elapsed > 0 ? this.currentDeltaY / elapsed : 0;
@@ -142,16 +157,14 @@ export class BottomSheet {
     private handleTouchStart(e: TouchEvent): void {
         if (e.touches.length !== 1) return;
         this.touchActive = true;
-        // Prevent scroll and suppress the synthetic pointer events the browser
-        // fires after touch events, which would cause double-handling.
-        e.preventDefault();
+        // Do NOT preventDefault here — that would swallow clicks on child elements.
+        // We only prevent default in touchmove once the drag is confirmed.
         this.startDrag(e.touches[0].clientY);
     }
 
     private handleTouchMove(e: TouchEvent): void {
         if (!this.isDragging || e.touches.length !== 1) return;
-        e.preventDefault();
-        this.moveDrag(e.touches[0].clientY);
+        this.moveDrag(e.touches[0].clientY, true, e);
     }
 
     private handleTouchEnd(e: TouchEvent): void {
@@ -178,7 +191,7 @@ export class BottomSheet {
 
     private handleDocPointerMove(e: PointerEvent): void {
         if (!e.isPrimary) return;
-        this.moveDrag(e.clientY);
+        this.moveDrag(e.clientY, false);
     }
 
     private handleDocPointerUp(e: PointerEvent): void {

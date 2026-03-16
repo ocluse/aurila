@@ -29,13 +29,13 @@ public abstract class InputBase<TControl, TValue> : ControlBase<TControl>, IVali
     public Func<TValue?, Task<ValidationResult>>? Validate { get; set; }
 
     [Parameter]
-    public IDataFlow<TValue>? ValueFlow { get; set; }
+    public IMutableDataFlow<TValue?>? ValueFlow { get; set; }
 
     [Parameter]
-    public IDataFlow<TValue>? UnmanagedValueFlow { get; set; }
+    public IMutableDataFlow<TValue?>? UnmanagedValueFlow { get; set; }
 
     [Parameter]
-    public IDataFlow<TValue>? ValidatedValueFlow { get; set; }
+    public IMutableDataFlow<TValue?>? ValidatedValueFlow { get; set; }
 
     [Parameter]
     public bool Disabled { get; set; }

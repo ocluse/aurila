@@ -20,15 +20,15 @@ public class TextField : FieldBase<TextField, string>
         builder.OpenElement(0, "textarea");
         {
             builder.AddAttribute(1, "rows", 1);
-            builder.AddElementReferenceCapture(2, reference => _textAreaElement = reference);
             if(Placeholder.IsNotEmpty())
             {
-                builder.AddAttribute(3, "placeholder", Placeholder);
+                builder.AddAttribute(2, "placeholder", Placeholder);
             }
-            builder.AddAttribute(4, "oninput", HandleOnChange);
-            builder.AddAttribute(5, "bind", _value);
+            builder.AddAttribute(3, "oninput", HandleOnChange);
+            builder.AddAttribute(4, "bind", _value);
+            builder.AddElementReferenceCapture(5, reference => _textAreaElement = reference);
         }
-        builder.CloseElement();
+        builder.CloseElement(); //textarea
     }
 
     private async Task HandleOnChange(ChangeEventArgs args)

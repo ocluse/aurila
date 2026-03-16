@@ -3,6 +3,7 @@ import { ScrollOrientation } from "./enums";
 import { ScrollBox } from "./components/scroll-box";
 import { TextField } from "./components/text-field"; 
 import { PullToRefreshBox } from "./components/pull-to-refresh-box";
+import { BottomSheet } from "./components/bottom-sheet";
 
 export function createScrollBox(
     element: HTMLElement,
@@ -18,6 +19,14 @@ export function createPullToRefreshBox(
     dotNetObject: DotNetObject,
 ): PullToRefreshBox {
     return new PullToRefreshBox(contentElement, dotNetObject);
+}
+
+export function createBottomSheet(
+    contentArea: HTMLElement,
+    dotNetObject: DotNetObject,
+    maxHeight: string,
+): BottomSheet {
+    return new BottomSheet(contentArea, dotNetObject, maxHeight);
 }
 
 export function createTextField(

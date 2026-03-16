@@ -371,10 +371,22 @@
 }
 .au-modal-bottom-sheet .au-modal__content-area {
   width: 100%;
-  animation: au-bottom-sheet-in 300ms cubic-bezier(0.2, 0, 0, 1) forwards;
+  border-radius: 16px 16px 0 0;
+  animation: none;
+}
+.au-modal-bottom-sheet .au-modal__content-area::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  margin: 8px auto 0;
+  flex-shrink: 0;
+  pointer-events: none;
 }
 .au-modal-bottom-sheet.au-modal--closing .au-modal__content-area {
-  animation: au-bottom-sheet-out 250ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: none;
 }
 
 @keyframes au-modal-scrim-in {
@@ -411,22 +423,6 @@
   to {
     opacity: 0;
     transform: scale(0.92);
-  }
-}
-@keyframes au-bottom-sheet-in {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-@keyframes au-bottom-sheet-out {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
   }
 }
 .au-pull-to-refresh-box {

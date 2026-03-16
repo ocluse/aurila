@@ -88,12 +88,20 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
             {
                 builder.AddAttribute(8, "class", "au-modal__content-area");
                 builder.AddEventStopPropagationAttribute(9, "onclick", true);
-                builder.AddContent(10, ChildContent);
+                // Allow subclasses to inject extra attributes / element-ref captures (seq 20+).
+                BuildContentAreaExtras(builder, 20);
+                builder.AddContent(30, ChildContent);
             }
             builder.CloseElement();
         }
         builder.CloseElement();
     }
+
+    /// <summary>
+    /// Override to add extra attributes or capture an ElementReference on the content-area div.
+    /// Sequence numbers must start at <paramref name="seqStart"/> and must not exceed 29.
+    /// </summary>
+    protected virtual void BuildContentAreaExtras(RenderTreeBuilder builder, int seqStart) { }
 
     /// <summary>
     /// Requests the modal to open by invoking OpenChanged with true.
@@ -124,6 +132,13 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
 
     private Task RequestDismiss() => HideAsync();
 
+    /// <summary>
+    /// Plays the exit animation. The default waits 300 ms for CSS keyframe animations
+    /// to complete. Override to drive the animation differently (e.g. via JS).
+    /// The closing CSS class is applied before this is called.
+    /// </summary>
+    protected virtual async Task PlayCloseAnimation() => await Task.Delay(300);
+
     // Plays the CSS exit animation then removes the overlay from the host.
     // Called from OnParametersSetAsync when Open transitions true → false.
     private async Task RunCloseAnimation()
@@ -133,7 +148,7 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
         // _isClosing=true, applying the au-modal--closing class for the CSS animation.
         HostService.NotifyChanged();
 
-        await Task.Delay(300);
+        await PlayCloseAnimation();
 
         BackInterceptor.UnregisterBackReceiver(this);
         _isClosing = false;

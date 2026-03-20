@@ -8,12 +8,21 @@ public class TextField : FieldBase<TextField, string>
 
     private ElementReference _textAreaElement;
     private IJSObjectReference? _jsInstance;
+    private DotNetObjectReference<TextField>? _dotNetRef;
+    private bool _isFocused;
+    private bool _isComposing;
+    private string? _pendingExternalValue;
+    private long _pendingExternalVersion;
+    private long _externalVersion;
 
     [Inject]
     private AurilaJSInterop JSInterop { get; set; } = null!;
 
     [Parameter]
     public int MaxLines { get; set; } = 4;
+
+    [Parameter]
+    public bool DeferExternalUpdatesWhileFocused { get; set; } = true;
 
     protected override void BuildInput(RenderTreeBuilder builder)
     {
@@ -24,18 +33,44 @@ public class TextField : FieldBase<TextField, string>
             {
                 builder.AddAttribute(2, "placeholder", Placeholder);
             }
-            builder.AddAttribute(3, "oninput", HandleOnChange);
-            builder.AddAttribute(4, "bind", _value);
+            if (Disabled)
+            {
+                builder.AddAttribute(3, "disabled");
+            }
+            if (ReadOnly)
+            {
+                builder.AddAttribute(4, "readonly");
+            }
             builder.AddElementReferenceCapture(5, reference => _textAreaElement = reference);
         }
         builder.CloseElement(); //textarea
     }
 
-    private async Task HandleOnChange(ChangeEventArgs args)
+    [JSInvokable]
+    public async Task HandleInputFromJS(string value, int? selectionStart, int? selectionEnd, bool isComposing)
     {
-        _value = args.Value?.ToString();
+        _value = value;
+        _isComposing = isComposing;
+
+        _ = selectionStart;
+        _ = selectionEnd;
 
         await NotifyValueChange(_value);
+    }
+
+    [JSInvokable]
+    public Task HandleFocusFromJS()
+    {
+        _isFocused = true;
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public Task HandleBlurFromJS()
+    {
+        _isFocused = false;
+        _isComposing = false;
+        return FlushPendingExternalValueAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -43,11 +78,14 @@ public class TextField : FieldBase<TextField, string>
         base.OnAfterRender(firstRender);
         if (firstRender)
         {
-            _jsInstance = await JSInterop.CreateObjectAsync("TextField", _textAreaElement, MaxLines);
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _jsInstance = await JSInterop.CreateObjectAsync("TextField", _textAreaElement, MaxLines, _dotNetRef, _value ?? string.Empty);
+            await FlushPendingExternalValueAsync();
         }
         else if(_jsInstance != null)
         {
             await _jsInstance.InvokeVoidAsync("adjustHeight");
+            await FlushPendingExternalValueAsync();
         }
     }
 
@@ -56,8 +94,26 @@ public class TextField : FieldBase<TextField, string>
         if (_value != Value)
         {
             _value = Value;
+            _pendingExternalValue = _value ?? string.Empty;
+            _pendingExternalVersion = ++_externalVersion;
         }
         base.OnParametersSet();
+    }
+
+    private async Task FlushPendingExternalValueAsync()
+    {
+        if (_jsInstance is null || _pendingExternalValue is null)
+        {
+            return;
+        }
+
+        if (DeferExternalUpdatesWhileFocused && (_isFocused || _isComposing))
+        {
+            return;
+        }
+
+        await _jsInstance.InvokeVoidAsync("applyExternalValue", _pendingExternalValue, _pendingExternalVersion);
+        _pendingExternalValue = null;
     }
 
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -83,5 +139,8 @@ public class TextField : FieldBase<TextField, string>
             await _jsInstance.DisposeAsync();
             _jsInstance = null;
         }
+
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
     }
 }

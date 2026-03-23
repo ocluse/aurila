@@ -7,4 +7,6 @@ public interface IAurilaHost
     object? GetLaunchIntent();
 
     void RequestExit();
+
+    Task OpenLinkAsync(Uri link);
 }

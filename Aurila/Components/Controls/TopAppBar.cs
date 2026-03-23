@@ -22,9 +22,25 @@ public class TopAppBar : ControlBase<TopAppBar>
         builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAppliedAttributes());
-            builder.AddContent(3, NavigationIcon);
-            builder.AddContent(4, Title);
-            builder.AddContent(5, Actions);
+            builder.OpenElement(3, "div");
+            builder.AddAttribute(4, "class", "au-top-app-bar__navigation-icon");
+            {
+                builder.AddContent(5, NavigationIcon);
+            }
+            builder.CloseElement();
+            builder.OpenElement(6, "div");
+            {
+                builder.AddAttribute(7, "class", "au-top-app-bar__title");
+                builder.AddContent(8, Title);
+            }
+            builder.CloseElement();
+
+            builder.OpenElement(9, "div");
+            {
+                builder.AddAttribute(10, "class", "au-top-app-bar__actions");
+                builder.AddContent(11, Actions);
+            }
+            builder.CloseElement();
         }
         builder.CloseElement();
     }

@@ -8,8 +8,8 @@ public class BottomSheet : ModalBase<BottomSheet>
     AurilaJSInterop JSInterop { get; set; } = null!;
 
     private IJSObjectReference? _jsObject;
-    private bool _jsInitialized;
-    //private DotNetObjectReference<ModalBottomSheet>? _dotNetRef;
+
+    private DotNetObjectReference<BottomSheet>? _dotNetRef;
 
     protected override void BuildClass(ClassBuilder builder)
     {
@@ -23,11 +23,11 @@ public class BottomSheet : ModalBase<BottomSheet>
 
         if (firstRender)
         {
-            _jsInitialized = true;
-            //_dotNetRef = DotNetObjectReference.Create(this);
+            _dotNetRef = DotNetObjectReference.Create(this);
             _jsObject = await JSInterop.CreateObjectAsync(
                 "BottomSheet",
-                _dialogRef);
+                _dialogRef,
+                _dotNetRef);
         }
     }
 
@@ -52,19 +52,18 @@ public class BottomSheet : ModalBase<BottomSheet>
     }
 
     [JSInvokable]
-    public Task HandleDismissedAsync() => HideAsync();
+    public Task RequestClose() => HideAsync();
 
     private async ValueTask DisposeJSObjectAsync()
     {
-        _jsInitialized = false;
         if (_jsObject != null)
         {
             try { await _jsObject.InvokeVoidAsync("dispose"); } catch { /* ignore if already torn down */ }
             await _jsObject.DisposeAsync();
             _jsObject = null;
         }
-        //_dotNetRef?.Dispose();
-        //_dotNetRef = null;
+        _dotNetRef?.Dispose();
+        _dotNetRef = null;
     }
 
     protected override async ValueTask DisposeAsyncCore()

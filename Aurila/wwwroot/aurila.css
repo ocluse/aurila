@@ -350,6 +350,7 @@
   left: 0;
   border: none;
   background: none;
+  z-index: 1000;
 }
 .au-modal:open {
   display: flex;

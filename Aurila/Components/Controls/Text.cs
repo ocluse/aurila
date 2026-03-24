@@ -8,7 +8,7 @@ public class TextBlock : ControlBase<TextBlock>
     public ITextStyle? TextStyle { get; set; }
 
     [Parameter]
-    public IColor? Color { get; set; }
+    public string? Color { get; set; }
 
     [Parameter]
     public TextAlign? Align { get; set; }
@@ -44,6 +44,11 @@ public class TextBlock : ControlBase<TextBlock>
         {
             string fontWeightValue = ((int)FontWeight.Value).ToString();
             builder.Add("font-weight", fontWeightValue);
+        }
+
+        if(Color.IsNotWhiteSpace())
+        {
+            builder.Add("color", Color);
         }
     }
 

@@ -27,14 +27,14 @@ public class Column : ControlBase<Column>, ILayoutParent
         base.BuildClass(builder);
         builder.Add("au-column");
         builder.AddIf(Wrap, "au-column--wrap");
-        VerticalArrangement?.BuildClass(this, builder);
+        VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
         HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
-        VerticalArrangement?.BuildStyle(this, builder);
+        VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
         HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
     }
 }

@@ -28,13 +28,13 @@ public class Row : ControlBase<Row>, ILayoutParent
         builder.Add("au-row");
         builder.AddIf(Wrap, "au-row--wrap");
         VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
-        HorizontalArrangement?.BuildClass(this, builder);
+        HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
         VerticalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
-        HorizontalArrangement?.BuildStyle(this, builder);
+        HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
     }
 }

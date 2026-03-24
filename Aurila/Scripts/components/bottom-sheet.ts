@@ -18,6 +18,11 @@ export class BottomSheet {
     private dragStartY: number = 0;
     private dragStartTranslate: number = 0;
     private isDragging: boolean = false;
+    private isTouchGesture: boolean = false;
+    private gestureMode: 'undecided' | 'sheet' | 'content' = 'undecided';
+    private activeScrollable: HTMLElement | null = null;
+
+    private static readonly DRAG_DECISION_THRESHOLD_PX = 6;
 
     // Bound event handler references for cleanup
     private onDragStart: (e: MouseEvent | TouchEvent) => void;
@@ -64,11 +69,17 @@ export class BottomSheet {
 
     private handleDragStart(e: MouseEvent | TouchEvent) {
         this.isDragging = true;
+        this.isTouchGesture = e instanceof TouchEvent;
         this.dragStartY = this.getClientY(e);
         this.dragStartTranslate = this.getCurrentTranslatePercent();
+        this.gestureMode = this.isTouchGesture ? 'undecided' : 'sheet';
+        this.activeScrollable = this.isTouchGesture
+            ? this.findScrollableAncestor(e.target)
+            : null;
 
-        // Disable transition during drag for immediate feedback
-        this.sheet.style.transition = 'none';
+        if (this.gestureMode === 'sheet') {
+            this.sheet.style.transition = 'none';
+        }
 
         document.addEventListener('mousemove', this.onDragMove);
         document.addEventListener('touchmove', this.onDragMove, { passive: false });
@@ -79,9 +90,20 @@ export class BottomSheet {
     private handleDragMove(e: MouseEvent | TouchEvent) {
         if (!this.isDragging) return;
 
-        if (e.type === 'touchmove') e.preventDefault();
+        const currentY = this.getClientY(e);
+        const deltaY = currentY - this.dragStartY;
 
-        const deltaY = this.getClientY(e) - this.dragStartY;
+        if (this.isTouchGesture) {
+            this.resolveTouchGestureMode(deltaY, currentY);
+            if (this.gestureMode !== 'sheet') {
+                return;
+            }
+        }
+
+        if (e.type === 'touchmove') {
+            e.preventDefault();
+        }
+
         const windowHeight = window.innerHeight;
         const deltaPercent = (deltaY / windowHeight) * 100;
 
@@ -98,7 +120,14 @@ export class BottomSheet {
         document.removeEventListener('mouseup', this.onDragEnd);
         document.removeEventListener('touchend', this.onDragEnd);
 
-        // Re-enable transition for snap
+        this.activeScrollable = null;
+
+        if (this.gestureMode !== 'sheet') {
+            this.gestureMode = 'undecided';
+            return;
+        }
+
+        this.gestureMode = 'undecided';
         this.sheet.style.transition = '';
 
         const current = this.getCurrentTranslatePercent();
@@ -123,6 +152,85 @@ export class BottomSheet {
             this.sheet.style.transition = '';
         }
         this.sheet.style.setProperty('--translate-y', `${percent}%`);
+    }
+
+    private resolveTouchGestureMode(deltaY: number, currentY: number): void {
+        if (this.gestureMode === 'sheet') {
+            return;
+        }
+
+        if (Math.abs(deltaY) < BottomSheet.DRAG_DECISION_THRESHOLD_PX) {
+            return;
+        }
+
+        if (this.gestureMode === 'content') {
+            if (deltaY > 0 && this.isScrollableAtTop(this.activeScrollable)) {
+                this.switchToSheetMode(currentY);
+            }
+            return;
+        }
+
+        if (deltaY < 0) {
+            if (this.getCurrentTranslatePercent() > 0) {
+                this.switchToSheetMode(currentY);
+            } else {
+                this.gestureMode = 'content';
+            }
+            return;
+        }
+
+        if (this.canScrollUp(this.activeScrollable)) {
+            this.gestureMode = 'content';
+            return;
+        }
+
+        this.switchToSheetMode(currentY);
+    }
+
+    private switchToSheetMode(currentY: number): void {
+        this.gestureMode = 'sheet';
+        this.dragStartY = currentY;
+        this.dragStartTranslate = this.getCurrentTranslatePercent();
+        this.sheet.style.transition = 'none';
+    }
+
+    private findScrollableAncestor(target: EventTarget | null): HTMLElement | null {
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+
+        let element: HTMLElement | null = target;
+        while (element && element !== this.sheet) {
+            if (this.isVerticallyScrollable(element)) {
+                return element;
+            }
+            element = element.parentElement;
+        }
+
+        return null;
+    }
+
+    private isVerticallyScrollable(element: HTMLElement): boolean {
+        if (element.scrollHeight <= element.clientHeight + 1) {
+            return false;
+        }
+
+        const overflowY = window.getComputedStyle(element).overflowY;
+        return overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay';
+    }
+
+    private canScrollUp(element: HTMLElement | null): boolean {
+        if (!element) {
+            return false;
+        }
+        return element.scrollTop > 0;
+    }
+
+    private isScrollableAtTop(element: HTMLElement | null): boolean {
+        if (!element) {
+            return true;
+        }
+        return element.scrollTop <= 0;
     }
 
     private getCurrentTranslatePercent(): number {

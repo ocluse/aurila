@@ -94,13 +94,16 @@ export class BottomSheet {
         const deltaY = currentY - this.dragStartY;
 
         if (this.isTouchGesture) {
-            this.resolveTouchGestureMode(deltaY, currentY);
+            this.resolveTouchGestureMode(e, deltaY, currentY);
             if (this.gestureMode !== 'sheet') {
                 return;
             }
         }
 
         if (e.type === 'touchmove') {
+            if (!e.cancelable) {
+                return;
+            }
             e.preventDefault();
         }
 
@@ -154,7 +157,7 @@ export class BottomSheet {
         this.sheet.style.setProperty('--translate-y', `${percent}%`);
     }
 
-    private resolveTouchGestureMode(deltaY: number, currentY: number): void {
+    private resolveTouchGestureMode(e: MouseEvent | TouchEvent, deltaY: number, currentY: number): void {
         if (this.gestureMode === 'sheet') {
             return;
         }
@@ -164,7 +167,9 @@ export class BottomSheet {
         }
 
         if (this.gestureMode === 'content') {
-            if (deltaY > 0 && this.isScrollableAtTop(this.activeScrollable)) {
+            if (deltaY > 0
+                && this.isScrollableAtTop(this.activeScrollable)
+                && this.canTakeOverTouchGesture(e)) {
                 this.switchToSheetMode(currentY);
             }
             return;
@@ -184,7 +189,16 @@ export class BottomSheet {
             return;
         }
 
+        if (!this.canTakeOverTouchGesture(e)) {
+            this.gestureMode = 'content';
+            return;
+        }
+
         this.switchToSheetMode(currentY);
+    }
+
+    private canTakeOverTouchGesture(e: MouseEvent | TouchEvent): boolean {
+        return !(e instanceof TouchEvent) || e.cancelable;
     }
 
     private switchToSheetMode(currentY: number): void {

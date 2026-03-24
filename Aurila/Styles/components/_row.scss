@@ -1,3 +1,7 @@
 .au-row {
     display: flex;
+
+    &--wrap {
+        flex-wrap: wrap;
+    }
 }

@@ -12,6 +12,9 @@ public class TextBlock : ControlBase<TextBlock>
 
     [Parameter]
     public TextAlign? Align { get; set; }
+    
+    [Parameter]
+    public FontWeight? FontWeight { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {
@@ -35,6 +38,12 @@ public class TextBlock : ControlBase<TextBlock>
             };
 
             builder.Add("text-align", alignValue);
+        }
+
+        if(FontWeight.HasValue)
+        {
+            string fontWeightValue = ((int)FontWeight.Value).ToString();
+            builder.Add("font-weight", fontWeightValue);
         }
     }
 

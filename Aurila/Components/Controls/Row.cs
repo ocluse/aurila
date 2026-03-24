@@ -14,6 +14,9 @@ public class Row : ControlBase<Row>, ILayoutParent
     [Parameter]
     public IAlignment? VerticalAlignment { get; set; }
 
+    [Parameter]
+    public bool Wrap { get; set; }
+
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         LayoutRenderingUtility.Render(this, builder);
@@ -23,6 +26,7 @@ public class Row : ControlBase<Row>, ILayoutParent
     {
         base.BuildClass(builder);
         builder.Add("au-row");
+        builder.AddIf(Wrap, "au-row--wrap");
         VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
         HorizontalArrangement?.BuildClass(this, builder);
     }

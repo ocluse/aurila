@@ -14,6 +14,9 @@ public class Column : ControlBase<Column>, ILayoutParent
     [Parameter]
     public IAlignment? HorizontalAlignment { get; set; }
 
+    [Parameter]
+    public bool Wrap { get; set; }
+
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         LayoutRenderingUtility.Render(this, builder);
@@ -23,6 +26,7 @@ public class Column : ControlBase<Column>, ILayoutParent
     {
         base.BuildClass(builder);
         builder.Add("au-column");
+        builder.AddIf(Wrap, "au-column--wrap");
         VerticalArrangement?.BuildClass(this, builder);
         HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
     }

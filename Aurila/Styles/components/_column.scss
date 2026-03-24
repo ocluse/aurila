@@ -1,4 +1,8 @@
 .au-column {
     display: flex;
     flex-direction: column;
+
+    &--wrap {
+        flex-wrap: wrap;
+    }
 }

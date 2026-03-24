@@ -13,7 +13,7 @@ public class Icon : ControlBase<Icon>
     public string? Color { get; set; }
 
     [Parameter]
-    public double? Size { get; set; }
+    public CssLength Size { get; set; } = 24;
 
     [Parameter]
     public double? StrokeWidth { get; set; }
@@ -48,7 +48,7 @@ public class Icon : ControlBase<Icon>
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);
-        string iconSize = (Size ?? 24).ToCssValue(SizeUnit);
+        string iconSize = Size.ToString();
         string strokeWidth = (StrokeWidth ?? 2).ToCssValue(StrokeWidthUnit);
 
         attributes["height"] = iconSize;

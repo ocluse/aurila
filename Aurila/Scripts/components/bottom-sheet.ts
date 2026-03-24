@@ -10,6 +10,9 @@ const EASING_OPEN = 'cubic-bezier(0.2, 0, 0, 1)';
 const EASING_CLOSE = 'cubic-bezier(0.4, 0, 1, 1)';
 const EASING_SNAP = 'cubic-bezier(0.2, 0, 0, 1)';
 
+const MIN_VISIBLE_PERCENT = 15;  // Minimum 15% visible height on open
+const MAX_VISIBLE_PERCENT = 50;  // Maximum 50% visible height on open (content above this opens to 50%)
+
 type SheetState = 'default' | 'expanded';
 
 export class BottomSheet {
@@ -21,6 +24,7 @@ export class BottomSheet {
     private isTouchGesture: boolean = false;
     private gestureMode: 'undecided' | 'sheet' | 'content' = 'undecided';
     private activeScrollable: HTMLElement | null = null;
+    private contentSnapPoint: number = 50;  // Calculated on each open based on content height
 
     private static readonly DRAG_DECISION_THRESHOLD_PX = 6;
 
@@ -45,9 +49,62 @@ export class BottomSheet {
     public open() {
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                this.setTranslate(50, true);
+                // Calculate snap point after layout has occurred
+                this.contentSnapPoint = this.calculateSnapPoint();
+                this.setTranslate(this.contentSnapPoint, true);
             });
         });
+    }
+
+    private calculateSnapPoint(): number {
+        const viewportHeight = window.innerHeight;
+
+        // Safeguard: ensure viewport height is valid
+        if (viewportHeight <= 0) {
+            return 100 - MAX_VISIBLE_PERCENT; // Default to 50% visible
+        }
+
+        // Measure actual content height by summing all direct children
+        // (the sheet itself has height: 100%, so we need to measure its contents)
+        const contentHeight = this.measureContentHeight();
+
+        // Safeguard: ensure content height is valid and reasonable
+        if (contentHeight <= 0 || !Number.isFinite(contentHeight)) {
+            return 100 - MAX_VISIBLE_PERCENT; // Default to 50% visible
+        }
+
+        // Calculate what percentage of viewport the content needs
+        const contentPercent = (contentHeight / viewportHeight) * 100;
+
+        // Clamp between MIN_VISIBLE_PERCENT (15%) and MAX_VISIBLE_PERCENT (50%)
+        const visiblePercent = Math.max(
+            MIN_VISIBLE_PERCENT,
+            Math.min(MAX_VISIBLE_PERCENT, contentPercent)
+        );
+
+        // Convert to translateY percentage (100 - visible = translate)
+        return 100 - visiblePercent;
+    }
+
+    private measureContentHeight(): number {
+        const children = this.sheet.children;
+        
+        if (children.length === 0) {
+            return 0;
+        }
+
+        let totalHeight = 0;
+        for (let i = 0; i < children.length; i++) {
+            const child = children[i] as HTMLElement;
+            totalHeight += child.offsetHeight;
+        }
+
+        // Include padding of the content area
+        const computedStyle = window.getComputedStyle(this.sheet);
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
+
+        return totalHeight + paddingTop + paddingBottom;
     }
 
     public close() {
@@ -135,14 +192,20 @@ export class BottomSheet {
 
         const current = this.getCurrentTranslatePercent();
 
-        if (current < 25) {
-            // Top quarter — snap fully open
+        // Calculate dynamic thresholds based on contentSnapPoint
+        // Midpoint between fully-open (0%) and content snap point
+        const upperThreshold = this.contentSnapPoint / 2;
+        // Midpoint between content snap point and closed (100%)
+        const lowerThreshold = this.contentSnapPoint + (100 - this.contentSnapPoint) / 2;
+
+        if (current < upperThreshold) {
+            // Snap fully open
             this.setTranslate(0, true);
-        } else if (current < 75) {
-            // Middle zone — snap to half-open
-            this.setTranslate(50, true);
+        } else if (current < lowerThreshold) {
+            // Snap to content height
+            this.setTranslate(this.contentSnapPoint, true);
         } else {
-            // Bottom quarter — close
+            // Close
             this.setTranslate(100, true);
             this.requestClose();
         }

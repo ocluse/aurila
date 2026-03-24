@@ -32,10 +32,11 @@ export function createBottomSheet(
 export function createTextField(
     element: HTMLTextAreaElement,
     maxLines: number,
+    minLines: number,
     dotNetObject: DotNetObject,
     initialValue: string
 ): TextField {
-    return new TextField(element, maxLines, dotNetObject, initialValue);
+    return new TextField(element, maxLines, minLines, dotNetObject, initialValue);
 }
 
 export function showDialog(dialog: HTMLDialogElement) {

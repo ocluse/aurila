@@ -8,7 +8,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     private TaskCompletionSource? _tcsRender;
     private bool _shouldWaitForRender;
 
-    private bool _isNavigating, _isBusy;
+    private bool _isNavigating;
 
     [Inject]
     public IBackInterceptor BackInterceptor { get; set; } = null!;
@@ -261,7 +261,6 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         }
 
         _isNavigating = false;
-        SetBusy(false);
 
         //notify the page we have arrived:
         toPage.EnsuredInstance.OnNavigatedTo(navigationToArgs);
@@ -321,21 +320,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     {
         BackInterceptor.UnregisterBackReceiver(this);
 
-        if (Host != null)
-        {
-            Host.IntentReceived -= OnIntentReceived;
-        }
-    }
-
-    public void SetBusy(bool state)
-    {
-        if (_isBusy == state)
-        {
-            return;
-        }
-
-        _isBusy = state;
-        InvokeAsync(StateHasChanged);
+        Host?.IntentReceived -= OnIntentReceived;
     }
 
     public bool HandleBackPressed()

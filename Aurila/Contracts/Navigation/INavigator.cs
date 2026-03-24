@@ -10,7 +10,5 @@ public interface INavigator
 
     void Replace(Type pageType, object? data = null);
 
-    void SetBusy(bool state);
-
     void GoBack();
 }

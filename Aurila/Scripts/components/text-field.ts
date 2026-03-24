@@ -2,6 +2,7 @@ import { DotNetObject } from "../common";
 
 export class TextField {
     private element: HTMLTextAreaElement | null;
+    private minLines: number;
     private maxLines: number;
     private boundAdjustHeight: () => void;
     private dotNetObjRef: DotNetObject | null;
@@ -13,8 +14,9 @@ export class TextField {
     private boundCompositionStartHandler: () => void;
     private boundCompositionEndHandler: () => void;
 
-    constructor(element: HTMLTextAreaElement, maxLines: number, dotNetObjRef: DotNetObject, initialValue: string) {
+    constructor(element: HTMLTextAreaElement, maxLines: number, minLines: number, dotNetObjRef: DotNetObject, initialValue: string) {
         this.element = element;
+        this.minLines = minLines;
         this.maxLines = maxLines;
         this.dotNetObjRef = dotNetObjRef;
 
@@ -69,16 +71,18 @@ export class TextField {
     private adjustHeight(): void {
         if (!this.element) return;
 
+        const minHeight = this.getLineHeight() * this.minLines;
         const maxHeight = this.getLineHeight() * this.maxLines;
 
         this.element.style.height = 'auto';
-        const newHeight = Math.min(this.element.scrollHeight, maxHeight);
+        const newHeight = Math.max(minHeight, Math.min(this.element.scrollHeight, maxHeight));
 
         this.element.style.height = `${newHeight}px`;
-        this.element.style.overflowY = newHeight >= maxHeight ? 'auto' : 'hidden';
+        this.element.style.overflowY = newHeight >= maxHeight && this.element.scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
 
-    public setMaxLines(maxLines: number): void {
+    public setLineBounds(minLines: number, maxLines: number): void {
+        this.minLines = minLines;
         this.maxLines = maxLines;
         this.adjustHeight();
     }

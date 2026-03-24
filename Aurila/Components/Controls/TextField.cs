@@ -22,13 +22,24 @@ public class TextField : FieldBase<TextField, string>
     public int MaxLines { get; set; } = 4;
 
     [Parameter]
+    public int MinLines { get; set; } = 1;
+
+    [Parameter]
     public bool DeferExternalUpdatesWhileFocused { get; set; } = true;
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("au-text-field");
+    }
 
     protected override void BuildInput(RenderTreeBuilder builder)
     {
+        (int minLines, _) = GetLineBounds();
+
         builder.OpenElement(0, "textarea");
         {
-            builder.AddAttribute(1, "rows", 1);
+            builder.AddAttribute(1, "rows", minLines);
             if(Placeholder.IsNotEmpty())
             {
                 builder.AddAttribute(2, "placeholder", Placeholder);
@@ -78,8 +89,10 @@ public class TextField : FieldBase<TextField, string>
         base.OnAfterRender(firstRender);
         if (firstRender)
         {
+            (int minLines, int maxLines) = GetLineBounds();
+
             _dotNetRef = DotNetObjectReference.Create(this);
-            _jsInstance = await JSInterop.CreateObjectAsync("TextField", _textAreaElement, MaxLines, _dotNetRef, _value ?? string.Empty);
+            _jsInstance = await JSInterop.CreateObjectAsync("TextField", _textAreaElement, maxLines, minLines, _dotNetRef, _value ?? string.Empty);
             await FlushPendingExternalValueAsync();
         }
         else if(_jsInstance != null)
@@ -119,16 +132,25 @@ public class TextField : FieldBase<TextField, string>
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         bool maxLinesChanged = parameters.TryGetValue(nameof(MaxLines), out int maxLines) && maxLines != MaxLines;
+        bool minLinesChanged = parameters.TryGetValue(nameof(MinLines), out int minLines) && minLines != MinLines;
 
         await base.SetParametersAsync(parameters);
 
-        if (maxLinesChanged)
+        if (maxLinesChanged || minLinesChanged)
         {
             if (_jsInstance is not null)
             {
-                await _jsInstance.InvokeVoidAsync("setMaxLines", maxLines);
+                (int nextMinLines, int nextMaxLines) = GetLineBounds();
+                await _jsInstance.InvokeVoidAsync("setLineBounds", nextMinLines, nextMaxLines);
             }
         }
+    }
+
+    private (int MinLines, int MaxLines) GetLineBounds()
+    {
+        int minLines = Math.Max(1, MinLines);
+        int maxLines = Math.Max(minLines, MaxLines);
+        return (minLines, maxLines);
     }
 
     public async ValueTask DisposeAsync()

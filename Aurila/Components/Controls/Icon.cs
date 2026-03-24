@@ -24,6 +24,9 @@ public class Icon : ControlBase<Icon>
     [Parameter]
     public CssUnit StrokeWidthUnit { get; set; } = CssUnit.Pixels;
 
+    [Parameter]
+    public bool Fill { get; set; }
+
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
@@ -57,7 +60,11 @@ public class Icon : ControlBase<Icon>
         attributes["viewBox"] = "0 0 24 24";
         attributes["stroke-width"] = strokeWidth;
         attributes["stroke"] = Color ?? "currentColor";
-        attributes["fill"] = "none";
+
+        if (!Fill)
+        {
+            attributes["fill"] = "none";
+        }
 
         var effectivePainter = Painter ?? AppearanceProvider?.IconPainter;
 

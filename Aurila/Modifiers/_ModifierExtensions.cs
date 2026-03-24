@@ -90,4 +90,9 @@ public static class ModifierExtensions
     {
         return builder.Add(new WeightModifier(weight));
     }
+
+    public static ModifiersBuilder Color(this ModifiersBuilder builder, string color)
+    {
+        return builder.Add(new ColorModifier(color));
+    }
 }

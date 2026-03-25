@@ -7,7 +7,6 @@ internal class WeightModifier(double weight) : IAttributeModifier
 {
     public void BuildAttributes(ComponentBase component, IDictionary<string, object> attributes)
     {
-        string percent = (weight * 100).ToString("0.##", CultureInfo.InvariantCulture);
-        attributes["style"] = $"flex: {percent}%";
+        attributes["style"] = $"flex: {weight}";
     }
 }

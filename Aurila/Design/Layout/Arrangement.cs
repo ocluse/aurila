@@ -18,4 +18,7 @@ public static class Arrangement
     public static IArrangement EqualWeight { get; } = new EqualWeightArrangement();
 
     public static IArrangement SpacedBy(CssLength spacing) => new SpacedByArrangement(spacing);
+
+    public static IArrangement SpacedBy(CssLength spacing, MainAxisAlignment alignment)
+        => new SpacedByArrangement(spacing, alignment);
 }

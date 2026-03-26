@@ -16,7 +16,7 @@ internal sealed class EndAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Column)
+            if (component is Column or FlowColumn)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -24,7 +24,7 @@ internal sealed class EndAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Column)
+            if (parent is Column or FlowColumn)
             {
                 builder.Add("align-self", "flex-end");
             }

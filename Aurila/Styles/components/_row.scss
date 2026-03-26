@@ -1,7 +1,8 @@
 .au-row {
     display: flex;
+}
 
-    &--wrap {
-        flex-wrap: wrap;
-    }
+.au-flow-row {
+    display: flex;
+    flex-wrap: wrap;
 }

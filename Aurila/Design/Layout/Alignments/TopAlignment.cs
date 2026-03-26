@@ -31,7 +31,7 @@ internal sealed class TopAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row)
+            if (component is Row or FlowRow)
             {
                 builder.Add("align-items", "flex-start");
             }
@@ -40,7 +40,7 @@ internal sealed class TopAlignment : IAlignment
         {
             var parent = layoutChild.Parent;
 
-            if (parent is Row)
+            if (parent is Row or FlowRow)
             {
                 builder.Add("align-self", "flex-start");
             }

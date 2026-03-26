@@ -7,8 +7,16 @@ internal sealed class RoundedShape(
     CssLength? topLeft,
     CssLength? topRight,
     CssLength? bottomRight,
-    CssLength? bottomLeft) : IShape
+    CssLength? bottomLeft) : IRoundedShape
 {
+    public CssLength? TopLeft => topLeft;
+
+    public CssLength? TopRight => topRight;
+
+    public CssLength? BottomRight => bottomRight;
+
+    public CssLength? BottomLeft => bottomLeft;
+
     public void BuildClass(ComponentBase component, ClassBuilder builder) { }
 
     public void BuildStyle(ComponentBase component, StyleBuilder builder)

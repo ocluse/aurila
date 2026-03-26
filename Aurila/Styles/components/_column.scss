@@ -1,8 +1,10 @@
 .au-column {
     display: flex;
     flex-direction: column;
+}
 
-    &--wrap {
-        flex-wrap: wrap;
-    }
+.au-flow-column {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
 }

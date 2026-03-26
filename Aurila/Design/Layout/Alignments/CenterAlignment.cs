@@ -31,7 +31,7 @@ internal sealed class CenterAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or Column)
+            if (component is Row or Column or FlowRow or FlowColumn)
             {
                 builder.Add("align-items", "center");
             }
@@ -39,7 +39,7 @@ internal sealed class CenterAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row or Column)
+            if (parent is Row or Column or FlowRow or FlowColumn)
             {
                 builder.Add("align-self", "center");
             }

@@ -29,7 +29,7 @@ internal sealed class BottomAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row)
+            if (component is Row or FlowRow)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -37,7 +37,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row)
+            if (parent is Row or FlowRow)
             {
                 builder.Add("align-self", "flex-end");
             }

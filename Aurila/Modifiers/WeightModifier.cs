@@ -1,12 +1,13 @@
-﻿using Aurila.Contracts.Modifiers;
+﻿using Aurila.Components;
+using Aurila.Contracts.Modifiers;
 using System.Globalization;
 
 namespace Aurila.Modifiers;
 
-internal class WeightModifier(double weight) : IAttributeModifier
+internal class WeightModifier(double weight) : IStyleModifier
 {
-    public void BuildAttributes(ComponentBase component, IDictionary<string, object> attributes)
+    public void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
-        attributes["style"] = $"flex: {weight}";
+        builder.Add("flex", weight.ToString(CultureInfo.InvariantCulture));
     }
 }

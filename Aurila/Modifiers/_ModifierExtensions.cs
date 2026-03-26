@@ -6,6 +6,8 @@ public static class ModifierExtensions
 {
     public static ModifiersBuilder Modifier => new();
 
+    public static ModifiersBuilder Modify() => new();
+
     public static ModifiersBuilder FillMaxSize(this ModifiersBuilder builder)
     {
         return builder.Add(new FillMaxSizeModifier());
@@ -94,5 +96,10 @@ public static class ModifierExtensions
     public static ModifiersBuilder Color(this ModifiersBuilder builder, string color)
     {
         return builder.Add(new ColorModifier(color));
+    }
+
+    public static ModifiersBuilder Opacity(this ModifiersBuilder builder, double opacity)
+    {
+        return builder.Add(new OpacityModifier(opacity));
     }
 }

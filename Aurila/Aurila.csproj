@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
-    <PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview6.5" />
+    <PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview7.2" />
   </ItemGroup>
 
   <Target Name="BundleTypeScript" BeforeTargets="Build">

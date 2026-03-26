@@ -8,7 +8,7 @@ public sealed class LazyList<TKey, TItem> : ComponentBase, IDisposable where TKe
 {
     [Parameter]
     [EditorRequired]
-    public Pager<TKey, TItem> Pager { get; set; } = null!;
+    public IPager<TKey, TItem> Pager { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
@@ -34,20 +34,14 @@ public sealed class LazyList<TKey, TItem> : ComponentBase, IDisposable where TKe
     {
         Pager.CollectionChanged += OnPagerDataChanged;
         Pager.StateChanged += PagerStateChanged;
-        if (ScrollController != null)
-        {
-            ScrollController.ScrollChanged += OnScrollChanged;
-        }
+        ScrollController?.ScrollChanged += OnScrollChanged;
     }
 
     public void Dispose()
     {
         Pager.CollectionChanged -= OnPagerDataChanged;
 
-        if (ScrollController != null)
-        {
-            ScrollController.ScrollChanged -= OnScrollChanged;
-        }
+        ScrollController?.ScrollChanged -= OnScrollChanged;
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)

@@ -48,6 +48,15 @@ public class Icon : ControlBase<Icon>
         }
     }
 
+    protected override void BuildStyle(StyleBuilder builder)
+    {
+        base.BuildStyle(builder);
+        if (Color.IsNotEmpty())
+        {
+            builder.Add("color", Color);
+        }
+    }
+
     protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
         base.BuildAttributes(attributes);

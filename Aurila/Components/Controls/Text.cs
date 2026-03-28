@@ -16,6 +16,9 @@ public class TextBlock : ControlBase<TextBlock>
     [Parameter]
     public FontWeight? FontWeight { get; set; }
 
+    [Parameter]
+    public TextTransform? TextTransform { get; set; }
+
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
@@ -49,6 +52,20 @@ public class TextBlock : ControlBase<TextBlock>
         if(Color.IsNotWhiteSpace())
         {
             builder.Add("color", Color);
+        }
+        
+        if(TextTransform.HasValue)
+        {
+            string textTransformValue = TextTransform.Value switch
+            {
+                Enums.TextTransform.None => "none",
+                Enums.TextTransform.Uppercase => "uppercase",
+                Enums.TextTransform.Lowercase => "lowercase",
+                Enums.TextTransform.Capitalize => "capitalize",
+                _ => throw new InvalidOperationException($"Unsupported TextTransform value: {TextTransform.Value}")
+            };
+
+            builder.Add("text-transform", textTransformValue);
         }
     }
 

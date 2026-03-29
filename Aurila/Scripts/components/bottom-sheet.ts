@@ -30,6 +30,7 @@ export class BottomSheet {
     private suppressClickUntilTimestamp: number = 0;
     private wheelSnapLockUntilTimestamp: number = 0;
     private recomputeRafId: number | null = null;
+    private animationFrameId: number | null = null;
 
     private resizeObserver: ResizeObserver | null = null;
     private mutationObserver: MutationObserver | null = null;
@@ -51,6 +52,8 @@ export class BottomSheet {
     constructor(dialog: HTMLElement, dotNetRef: DotNetObject) {
         this.sheet = dialog.getElementsByClassName("au-modal__content-area")[0] as HTMLElement;
         this.sheet.style.setProperty('--translate-y', '100%');
+        this.sheet.style.transform = 'translateY(100%)';
+        this.sheet.style.transition = 'none';
         this.dotNetRef = dotNetRef;
 
         this.onDragStart = this.handleDragStart.bind(this);
@@ -74,7 +77,14 @@ export class BottomSheet {
             requestAnimationFrame(() => {
                 // Calculate snap point after layout has occurred
                 this.recomputeSnapPoints();
-                this.setTranslate(this.initialSnapPoint, true);
+
+                // Force a stable closed starting point, then animate to initial snap.
+                this.setTranslate(100, false);
+
+                // Force style flush so the next transform change transitions reliably.
+                void this.sheet.offsetHeight;
+
+                this.setTranslate(this.initialSnapPoint, true, 'open');
             });
         });
     }
@@ -164,7 +174,7 @@ export class BottomSheet {
     }
 
     public close() {
-        this.setTranslate(100, true);
+        this.setTranslate(100, true, 'close');
     }
 
     public dispose() {
@@ -187,6 +197,8 @@ export class BottomSheet {
         this.resizeObserver = null;
         this.mutationObserver?.disconnect();
         this.mutationObserver = null;
+
+        this.cancelAnimation();
     }
 
     private requestClose() {
@@ -200,6 +212,7 @@ export class BottomSheet {
 
         this.isDragging = true;
         this.hasDraggedBeyondClickThreshold = false;
+        this.cancelAnimation();
         this.isTouchGesture = e instanceof TouchEvent;
         this.dragStartY = this.getClientY(e);
         const dragStartX = this.getClientX(e);
@@ -212,7 +225,7 @@ export class BottomSheet {
             : null;
 
         if (this.gestureMode === 'sheet') {
-            this.sheet.style.transition = 'none';
+            this.cancelAnimation();
         }
 
         document.addEventListener('mousemove', this.onDragMove);
@@ -276,7 +289,6 @@ export class BottomSheet {
         }
 
         this.gestureMode = 'undecided';
-        this.sheet.style.transition = '';
 
         const current = this.getCurrentTranslatePercent();
 
@@ -287,26 +299,27 @@ export class BottomSheet {
 
         if (current < upperThreshold) {
             // Snap maximally expanded for current content
-            this.setTranslate(this.maxExpandSnapPoint, true);
+            this.setTranslate(this.maxExpandSnapPoint, true, 'snap');
         } else if (current < lowerThreshold) {
             // Snap to content height
-            this.setTranslate(this.initialSnapPoint, true);
+            this.setTranslate(this.initialSnapPoint, true, 'snap');
         } else {
             // Close
-            this.setTranslate(100, true);
+            this.setTranslate(100, true, 'close');
             this.requestClose();
         }
     }
 
-    private setTranslate(percent: number, animated: boolean) {
-        percent = Math.min(100, Math.max(this.maxExpandSnapPoint, percent));
+    private setTranslate(percent: number, animated: boolean, mode: 'open' | 'close' | 'snap' = 'snap') {
+        const clampedPercent = Math.min(100, Math.max(this.maxExpandSnapPoint, percent));
 
         if (!animated) {
-            this.sheet.style.transition = 'none';
-        } else {
-            this.sheet.style.transition = '';
+            this.cancelAnimation();
+            this.applyTranslate(clampedPercent);
+            return;
         }
-        this.sheet.style.setProperty('--translate-y', `${percent}%`);
+
+        this.animateTranslateTo(clampedPercent, this.getAnimationDuration(mode));
     }
 
     private handleClickCapture(e: MouseEvent): void {
@@ -348,7 +361,7 @@ export class BottomSheet {
 
         e.preventDefault();
         this.wheelSnapLockUntilTimestamp = performance.now() + BottomSheet.WHEEL_SNAP_LOCK_MS;
-        this.setTranslate(nextStage, true);
+        this.setTranslate(nextStage, true, 'snap');
     }
 
     private getNextExpandStage(currentTranslate: number): number | null {
@@ -410,7 +423,7 @@ export class BottomSheet {
             }
 
             if (current < this.maxExpandSnapPoint - BottomSheet.TRANSLATE_EPSILON) {
-                this.setTranslate(this.maxExpandSnapPoint, true);
+                this.setTranslate(this.maxExpandSnapPoint, true, 'snap');
                 return;
             }
 
@@ -468,7 +481,7 @@ export class BottomSheet {
         this.gestureMode = 'sheet';
         this.dragStartY = currentY;
         this.dragStartTranslate = this.getCurrentTranslatePercent();
-        this.sheet.style.transition = 'none';
+        this.cancelAnimation();
     }
 
     private findScrollableAncestor(target: EventTarget | null): HTMLElement | null {
@@ -513,6 +526,65 @@ export class BottomSheet {
     private getCurrentTranslatePercent(): number {
         const raw = this.sheet.style.getPropertyValue('--translate-y');
         return parseFloat(raw) || 0;
+    }
+
+    private animateTranslateTo(targetPercent: number, durationMs: number): void {
+        this.cancelAnimation();
+
+        const startPercent = this.getCurrentTranslatePercent();
+        if (Math.abs(targetPercent - startPercent) <= BottomSheet.TRANSLATE_EPSILON) {
+            this.applyTranslate(targetPercent);
+            return;
+        }
+
+        const startTime = performance.now();
+
+        const tick = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, Math.max(0, elapsed / durationMs));
+            const easedProgress = this.easeOutCubic(progress);
+            const value = startPercent + (targetPercent - startPercent) * easedProgress;
+
+            this.applyTranslate(value);
+
+            if (progress < 1) {
+                this.animationFrameId = requestAnimationFrame(tick);
+            } else {
+                this.animationFrameId = null;
+                this.applyTranslate(targetPercent);
+            }
+        };
+
+        this.animationFrameId = requestAnimationFrame(tick);
+    }
+
+    private applyTranslate(percent: number): void {
+        this.sheet.style.setProperty('--translate-y', `${percent}%`);
+        this.sheet.style.transform = `translateY(${percent}%)`;
+    }
+
+    private cancelAnimation(): void {
+        if (this.animationFrameId !== null) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+    }
+
+    private easeOutCubic(t: number): number {
+        const p = 1 - t;
+        return 1 - (p * p * p);
+    }
+
+    private getAnimationDuration(mode: 'open' | 'close' | 'snap'): number {
+        switch (mode) {
+            case 'open':
+                return OPEN_DURATION;
+            case 'close':
+                return CLOSE_DURATION;
+            case 'snap':
+            default:
+                return SNAP_DURATION;
+        }
     }
 
     private dragStartX: number = 0;

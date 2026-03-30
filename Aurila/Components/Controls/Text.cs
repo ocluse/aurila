@@ -1,4 +1,5 @@
 ﻿namespace Aurila.Components.Controls;
+
 public class TextBlock : ControlBase<TextBlock>
 {
     [Parameter]
@@ -12,12 +13,15 @@ public class TextBlock : ControlBase<TextBlock>
 
     [Parameter]
     public TextAlign? Align { get; set; }
-    
+
     [Parameter]
     public FontWeight? FontWeight { get; set; }
 
     [Parameter]
     public TextTransform? TextTransform { get; set; }
+
+    [Parameter]
+    public int? MaxLines { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {
@@ -43,18 +47,18 @@ public class TextBlock : ControlBase<TextBlock>
             builder.Add("text-align", alignValue);
         }
 
-        if(FontWeight.HasValue)
+        if (FontWeight.HasValue)
         {
             string fontWeightValue = ((int)FontWeight.Value).ToString();
             builder.Add("font-weight", fontWeightValue);
         }
 
-        if(Color.IsNotWhiteSpace())
+        if (Color.IsNotWhiteSpace())
         {
             builder.Add("color", Color);
         }
-        
-        if(TextTransform.HasValue)
+
+        if (TextTransform.HasValue)
         {
             string textTransformValue = TextTransform.Value switch
             {
@@ -66,6 +70,14 @@ public class TextBlock : ControlBase<TextBlock>
             };
 
             builder.Add("text-transform", textTransformValue);
+        }
+
+        if (MaxLines.HasValue && MaxLines.Value > 0)
+        {
+            builder.Add("display", "-webkit-box");
+            builder.Add("-webkit-box-orient", "vertical");
+            builder.Add("-webkit-line-clamp", MaxLines.Value.ToString());
+            builder.Add("overflow", "hidden");
         }
     }
 

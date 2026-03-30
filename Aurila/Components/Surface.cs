@@ -1,4 +1,5 @@
 ﻿using Aurila.Contracts.Design;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components;
 
@@ -7,10 +8,14 @@ public class Surface : ControlBase<Surface>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [Parameter] public string? Background { get; set; }
+    
     [Parameter] public string? Color { get; set; }
+    
     [Parameter] public string? Border { get; set; }
 
     [Parameter] public IShape? Shape { get; set; }
+
+    [Parameter] public EventCallback Clicked { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {
@@ -39,7 +44,18 @@ public class Surface : ControlBase<Surface>
     {
         builder.OpenElement(0, "div");
         builder.AddMultipleAttributes(1, GetAppliedAttributes());
-        builder.AddContent(2, ChildContent);
+
+        if(Clicked.HasDelegate)
+        {
+            builder.AddAttribute(2, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, OnClickedAsync));
+        }
+
+        builder.AddContent(3, ChildContent);
         builder.CloseElement();
+    }
+
+    private async Task OnClickedAsync()
+    {
+        await Clicked.InvokeAsync();
     }
 }

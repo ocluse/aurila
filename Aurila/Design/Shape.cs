@@ -7,7 +7,7 @@ public static class Shape
 {
     public static IShape None { get; } = new NoneShape();
 
-    public static IShape Rounded(CssLength all)
+    public static IRoundedShape Rounded(CssLength all)
        => new RoundedShape(all, all, all, all);
 
     public static IShape Rounded(CssLength? vertical = null, CssLength? horizontal = null)

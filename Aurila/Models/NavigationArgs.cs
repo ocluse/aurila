@@ -8,7 +8,7 @@ public class NavigationArgs
 
 public class NavigationFromEventArgs : NavigationArgs
 {
-    private bool _cancelled;
+    private volatile bool _cancelled;
 
     public bool Cancelled => _cancelled;
 

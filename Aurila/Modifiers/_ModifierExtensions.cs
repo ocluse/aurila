@@ -8,9 +8,19 @@ public static class ModifierExtensions
 
     public static ModifiersBuilder Modify() => new();
 
-    public static ModifiersBuilder FillMaxSize(this ModifiersBuilder builder)
+    public static ModifiersBuilder FillMaxSize(this ModifiersBuilder builder, double fraction = 1)
     {
-        return builder.Add(new FillMaxSizeModifier());
+        return builder.Add(new FillMaxSizeModifier(fraction));
+    }
+
+    public static ModifiersBuilder FillMaxWidth(this ModifiersBuilder builder, double fraction = 1)
+    {
+        return builder.Add(new FillMaxWidthModifier(fraction));
+    }
+
+    public static ModifiersBuilder FillMaxHeight(this ModifiersBuilder builder, double fraction = 1)
+    {
+        return builder.Add(new FillMaxHeightModifier(fraction));
     }
 
     public static ModifiersBuilder Padding(this ModifiersBuilder builder, CssLength all)

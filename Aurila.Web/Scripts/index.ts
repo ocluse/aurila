@@ -74,6 +74,14 @@ export function historyReapplyCurrentEntry(): void {
     window.history.pushState(state, document.title, window.location.href);
 }
 
+export function openLinkInNewTab(url: string): void {
+    if (!url || url.trim().length === 0) {
+        return;
+    }
+
+    window.open(url, "_blank");
+}
+
 export function disposeWebHistoryBridge(): void {
     if (!isInitialized) {
         return;

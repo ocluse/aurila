@@ -177,7 +177,6 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
             var toPage = _pages[^2];
 
             var fromPage = _pages[^1];
-
             await PerformNavigation(NavigationType.Pop, fromPage, toPage);
         }
     }
@@ -329,7 +328,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         {
             return false;
         }
-        else if (_pages.Count == 1 && _pages[0].GetType() == StartPage)
+        else if (_pages.Count == 1 && _pages[0].PageType == StartPage)
         {
             //only the default initial page should make us handle it as usual
             return false;

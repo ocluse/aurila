@@ -43,3 +43,19 @@ I will be expanding further on the project and documentation on how to create yo
 ## Finally
 
 This project is still in its very early stages. A lot of things will change and improve over time as we at Ocluse continue to employ it in our projects and work on it. Therefore, there is not much in the way of information on how to use it, but all that will be provided in the future.
+
+## Platform-specific packages
+
+Aurila keeps navigation and back interception logic in the core package, while platform integrations live in separate packages.
+
+- `Aurila`: core controls, navigation stack, and back interception contracts
+- `Aurila.Web`: browser history integration so registered `IBackReceiver` instances are invoked from browser back
+
+When targeting web, register both:
+
+```csharp
+services.AddAurila();
+services.AddAurilaWeb();
+```
+
+On non-web hosts (for example MAUI), only `AddAurila()` is required unless a platform package is added.

@@ -125,6 +125,7 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
         {
             _ctsClosingAnimation = new();
             _isClosing = true;
+
             await InvokeAsync(StateHasChanged);
             await PlayCloseAnimationAsync(_ctsClosingAnimation.Token);
             _isClosing = false;

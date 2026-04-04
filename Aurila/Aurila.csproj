@@ -5,6 +5,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <RootNamespace>Aurila</RootNamespace>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <Version>0.0.1-preview0.1</Version>
+	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
+	  <PackageOutputPath>..\build</PackageOutputPath>
+	  <Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>
+	  <RepositoryUrl>https://github.com/ocluse/aurila</RepositoryUrl>
+	  <Copyright>© Ocluse</Copyright>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

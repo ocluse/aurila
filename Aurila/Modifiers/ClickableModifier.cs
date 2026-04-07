@@ -1,8 +1,9 @@
-﻿using Aurila.Contracts.Modifiers;
+﻿using Aurila.Components;
+using Aurila.Contracts.Modifiers;
 
 namespace Aurila.Modifiers;
 
-internal class ClickableModifier : IAttributeModifier
+internal class ClickableModifier : IAttributeModifier, IClassModifier
 {
     private readonly Func<Task>? _executeAsync;
     private readonly Action? _execute;
@@ -26,6 +27,12 @@ internal class ClickableModifier : IAttributeModifier
     public void BuildAttributes(ComponentBase component, IDictionary<string, object> attributes)
     {
         attributes.Add("onclick", EventCallback.Factory.Create(component, OnClickAsync));
+    }
+
+    public void BuildClass(ComponentBase component, ClassBuilder builder)
+    {
+        builder.Add("au-clickable")
+            .Add("au-clickable-modifier");
     }
 
     private async Task OnClickAsync()

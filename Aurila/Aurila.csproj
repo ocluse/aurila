@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	  <RootNamespace>Aurila</RootNamespace>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <Version>0.0.1-preview0.2</Version>
+	  <Version>0.0.1-preview0.3</Version>
 	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
 	  <PackageOutputPath>..\build</PackageOutputPath>
 	  <Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>

@@ -29,44 +29,21 @@ public class Calendar : InputBase<Calendar, DateOnly?>
     [Parameter]
     public Action<ClassBuilder, CalendarState, DateOnly>? BuildDayClassFunc { get; set; }
 
-    /// <summary>
-    /// Full override for day label rendering. Takes priority over <see cref="LabelFormat"/>.
-    /// </summary>
     [Parameter]
     public RenderFragment<DayOfWeek>? DayLabelContent { get; set; }
 
-    /// <summary>
-    /// Format for day labels when <see cref="DayLabelContent"/> is not supplied.
-    /// Defaults to Abbreviated ("Mon", "Tue", ...).
-    /// </summary>
     [Parameter]
     public DayLabelFormat LabelFormat { get; set; } = DayLabelFormat.Abbreviated;
 
-    /// <summary>
-    /// Full override for day cell rendering. Takes priority over <see cref="DayDateFormat"/>.
-    /// Falls back to rendering the day number.
-    /// </summary>
     [Parameter]
     public RenderFragment<DateOnly>? DayContent { get; set; }
 
-    /// <summary>
-    /// DateOnly format string for day cells, e.g. "dd", "d MMM".
-    /// Used when <see cref="DayContent"/> is not supplied. Falls back to day number.
-    /// </summary>
     [Parameter]
     public string? DayDateFormat { get; set; }
 
-    /// <summary>
-    /// Determines what happens when the user clicks an already-selected date.
-    /// Toggle = deselect (null), Refire = call NotifyValueChanged again, Ignore = do nothing.
-    /// </summary>
     [Parameter]
     public SameDateClickBehavior SameDateClick { get; set; } = SameDateClickBehavior.Toggle;
 
-    /// <summary>
-    /// Optional predicate to disable arbitrary dates, e.g. weekends or holidays.
-    /// Runs in addition to Min/Max checks. Disabled dates are not clickable.
-    /// </summary>
     [Parameter] 
     public Func<DateOnly, bool>? IsDateDisabled { get; set; }
 
@@ -269,11 +246,19 @@ public class Calendar : InputBase<Calendar, DateOnly?>
         DateOnly monthEnd = new(year, month, DateTime.DaysInMonth(year, month));
 
         int startDiff = ((int)monthStart.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
-        DateOnly calStart = monthStart.AddDays(-startDiff);
+
+        // Prevent underflow if the date is January, Year 1
+        DateOnly calStart = (year == 1 && month == 1)
+            ? DateOnly.MinValue
+            : monthStart.AddDays(-startDiff);
 
         int lastDayOfWeek = ((int)firstDayOfWeek + 6) % 7;
         int endDiff = (lastDayOfWeek - (int)monthEnd.DayOfWeek + 7) % 7;
-        DateOnly calEnd = monthEnd.AddDays(endDiff);
+
+        // Prevent overflow if the date is December, Year 9999
+        DateOnly calEnd = (year == 9999 && month == 12)
+            ? DateOnly.MaxValue
+            : monthEnd.AddDays(endDiff);
 
         int totalWeeks = (calStart.DayNumber - calEnd.DayNumber) / -7 + 1;
 

@@ -19,6 +19,10 @@ public abstract class TextBoxBase<TControl, TValue> : FieldBase<TControl, TValue
 
     protected abstract TValue? GetValue(object? value);
 
+    private ElementReference _inputElement;
+    
+    protected override ElementReference? FocusElement => _inputElement;
+
     protected override void BuildInput(RenderTreeBuilder builder)
     {
         builder.OpenElement(1, "input");
@@ -43,6 +47,8 @@ public abstract class TextBoxBase<TControl, TValue> : FieldBase<TControl, TValue
             {
                 builder.AddAttribute(10, "readonly");
             }
+
+            builder.AddElementReferenceCapture(11, __inputReference => _inputElement = __inputReference);
         }
         builder.CloseElement();
     }

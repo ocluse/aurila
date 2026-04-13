@@ -28,6 +28,10 @@ public class ChipSelect<TValue> : InputBase<ChipSelect<TValue>, TValue>, ICollec
     [Parameter]
     public SelectionMode SelectionMode { get; set; }
 
+    private ElementReference _chipSelectElement;
+
+    protected override ElementReference? FocusElement => _chipSelectElement;
+
     protected override void BuildClass(ClassBuilder builder)
     {
         builder.Add("au-chip-select")
@@ -42,6 +46,7 @@ public class ChipSelect<TValue> : InputBase<ChipSelect<TValue>, TValue>, ICollec
         builder.OpenElement(1, "div");
         {
             builder.AddMultipleAttributes(2, GetAppliedAttributes());
+            builder.AddElementReferenceCapture(11, reference => _chipSelectElement = reference);
 
             if (Items != null && Items.Any())
             {

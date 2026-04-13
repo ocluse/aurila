@@ -5,6 +5,10 @@ public class CheckBox : InputBase<CheckBox, bool>
     [Parameter]
     public RenderFragment<bool>? ChildContent { get; set; }
 
+    private ElementReference _inputElement;
+
+    protected override ElementReference? FocusElement => _inputElement;
+
     private async Task HandleInputChange(ChangeEventArgs e)
     {
         if (!bool.TryParse(e.Value?.ToString(), out bool newValue))
@@ -55,6 +59,7 @@ public class CheckBox : InputBase<CheckBox, bool>
                     builder.AddAttribute(11, "type", "checkbox");
                     builder.AddAttribute(12, "onchange", EventCallback.Factory.Create(this, HandleInputChange));
                     builder.AddAttribute(13, "checked", Value);
+                    builder.AddElementReferenceCapture(14, reference => _inputElement = reference);
                 }
                 builder.CloseElement();
 

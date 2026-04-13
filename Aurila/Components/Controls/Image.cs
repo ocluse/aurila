@@ -31,6 +31,9 @@ public class Image : ControlBase<Image>, IDisposable
     [Parameter]
     public EventCallback Loaded { get; set; }
 
+    [Parameter]
+    public EventCallback Error { get; set; }
+
     [Inject]
     private IImageLoader DefaultImageLoader { get; set; } = null!;
 
@@ -143,18 +146,19 @@ public class Image : ControlBase<Image>, IDisposable
                         {
                             builder.AddAttribute(4, "alt", Description);
                         }
-                        builder.AddAttribute(5, "onload", Loaded);
+                        builder.AddAttribute(5, "onload", EventCallback.Factory.Create(this, OnLoadedAsync));
+                        builder.AddAttribute(6, "onerror", EventCallback.Factory.Create(this, OnErrorAsync));
                     }
                     builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
-                    builder.AddContent(6, PlaceholderContent);
+                    builder.AddContent(7, PlaceholderContent);
                 }
                 else if (PlaceholderSrc != null)
                 {
-                    builder.OpenElement(7, "img");
-                    builder.AddAttribute(8, "src", PlaceholderSrc);
+                    builder.OpenElement(8, "img");
+                    builder.AddAttribute(9, "src", PlaceholderSrc);
                     builder.CloseElement(); // img
                 }
             }
@@ -162,16 +166,16 @@ public class Image : ControlBase<Image>, IDisposable
             {
                 if (LoadingContent != null)
                 {
-                    builder.AddContent(9, LoadingContent);
+                    builder.AddContent(100, LoadingContent);
                 }
                 else if (PlaceholderContent != null)
                 {
-                    builder.AddContent(10, PlaceholderContent);
+                    builder.AddContent(101, PlaceholderContent);
                 }
                 else if (PlaceholderSrc.IsNotEmpty())
                 {
-                    builder.OpenElement(11, "img");
-                    builder.AddAttribute(12, "src", PlaceholderSrc);
+                    builder.OpenElement(102, "img");
+                    builder.AddAttribute(103, "src", PlaceholderSrc);
                     builder.CloseElement(); // img
                 }
             }
@@ -179,27 +183,47 @@ public class Image : ControlBase<Image>, IDisposable
             {
                 if (ErrorContent != null)
                 {
-                    builder.AddContent(13, ErrorContent);
+                    builder.AddContent(200, ErrorContent);
                 }
                 else if (ErrorSrc.IsNotEmpty())
                 {
-                    builder.OpenElement(14, "img");
-                    builder.AddAttribute(15, "src", ErrorSrc);
+                    builder.OpenElement(201, "img");
+                    builder.AddAttribute(202, "src", ErrorSrc);
                     builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
-                    builder.AddContent(16, PlaceholderContent);
+                    builder.AddContent(203, PlaceholderContent);
                 }
                 else if (PlaceholderSrc.IsNotEmpty())
                 {
-                    builder.OpenElement(17, "img");
-                    builder.AddAttribute(18, "src", PlaceholderSrc);
+                    builder.OpenElement(204, "img");
+                    builder.AddAttribute(205, "src", PlaceholderSrc);
                     builder.CloseElement(); // img
                 }
             }
         }
         builder.CloseElement(); // div
+    }
+
+
+    private async Task OnLoadedAsync()
+    {
+        if (Loaded.HasDelegate)
+        {
+            await Loaded.InvokeAsync(null);
+        }
+    }
+
+    private async Task OnErrorAsync()
+    {
+        _loadState = LoadState.Error;
+        await InvokeAsync(StateHasChanged);
+
+        if (Error.HasDelegate)
+        {
+            await Error.InvokeAsync(null);
+        }
     }
 
     protected virtual void Dispose(bool disposing)

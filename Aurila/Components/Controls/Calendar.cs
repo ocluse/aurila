@@ -47,6 +47,10 @@ public class Calendar : InputBase<Calendar, DateOnly?>
     [Parameter] 
     public Func<DateOnly, bool>? IsDateDisabled { get; set; }
 
+    private ElementReference _calendarElement;
+
+    protected override ElementReference? FocusElement => _calendarElement;
+
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var now = DateTime.Now;
@@ -70,6 +74,7 @@ public class Calendar : InputBase<Calendar, DateOnly?>
         builder.OpenElement(1, "div");
         builder.AddMultipleAttributes(2, GetAppliedAttributes());
         builder.AddAttribute(3, "role", "application");
+        builder.AddElementReferenceCapture(40, reference => _calendarElement = reference);
         {
             builder.OpenElement(4, "div");
             builder.AddAttribute(5, "class", "au-calendar__view");

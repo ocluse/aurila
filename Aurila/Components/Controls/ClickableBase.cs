@@ -1,10 +1,32 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+﻿using Aurila.Contracts.Components;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace Aurila.Components.Controls;
 
-public abstract class ClickableBase<TControl> : FormControlBase<TControl>
+public abstract class ClickableBase<TControl> : FormControlBase<TControl>, IFocusable
     where TControl : ClickableBase<TControl>
 {
+    [Inject]
+    protected IJSRuntime JSRuntime { get; set; } = default!;
+
+    public virtual async Task FocusAsync()
+    {
+        if (FocusElement.HasValue)
+        {
+            await FocusElement.Value.FocusAsync();
+        }
+    }
+
+    public virtual async Task BlurAsync()
+    {
+        if (FocusElement.HasValue)
+        {
+            await JSRuntime.InvokeVoidAsync("HTMLElement.prototype.blur.call", FocusElement.Value);
+        }
+    }
+
     [Parameter]
     public EventCallback<MouseEventArgs> Clicked { get; set; }
 
@@ -42,11 +64,16 @@ public abstract class ClickableBase<TControl> : FormControlBase<TControl>
         attributes["role"] = "button";
     }
 
+    private ElementReference _buttonElement;
+
+    protected virtual ElementReference? FocusElement => _buttonElement;
+
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         builder.OpenElement(0, "button");
         {
             builder.AddMultipleAttributes(1, GetAppliedAttributes());
+            builder.AddElementReferenceCapture(2, __buttonRef => _buttonElement = __buttonRef);
             if (StopPropagation)
             {
                 builder.AddEventStopPropagationAttribute(3, "onclick", true);

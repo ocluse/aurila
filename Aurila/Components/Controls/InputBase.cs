@@ -1,14 +1,37 @@
 ﻿using Aurila.Contracts.Components;
+using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Ocluse.LiquidSnow.Data;
 using Ocluse.LiquidSnow.Validations;
 
 namespace Aurila.Components.Controls;
 
-public abstract class InputBase<TControl, TValue> : ControlBase<TControl>, IValidatable, IFormControl, IDisposable, IInputComponent
+public abstract class InputBase<TControl, TValue> : ControlBase<TControl>, IValidatable, IFormControl, IDisposable, IInputComponent, IFocusable
     where TControl : InputBase<TControl, TValue>
 {
     private bool _valueHasChanged;
     private bool _disposed;
+
+    [Inject]
+    protected IJSRuntime JSRuntime { get; set; } = default!;
+
+    protected virtual ElementReference? FocusElement { get; }
+
+    public virtual async Task FocusAsync()
+    {
+        if (FocusElement.HasValue)
+        {
+            await FocusElement.Value.FocusAsync();
+        }
+    }
+
+    public virtual async Task BlurAsync()
+    {
+        if (FocusElement.HasValue)
+        {
+            await JSRuntime.InvokeVoidAsync("HTMLElement.prototype.blur.call", FocusElement.Value);
+        }
+    }
 
     [Parameter]
     public RenderFragment<ValidationResult?>? ValidationLabel { get; set; }

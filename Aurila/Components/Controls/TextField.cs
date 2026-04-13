@@ -7,6 +7,8 @@ public class TextField : FieldBase<TextField, string>
     private string? _value;
 
     private ElementReference _textAreaElement;
+    protected override ElementReference? FocusElement => _textAreaElement;
+
     private IJSObjectReference? _jsInstance;
     private DotNetObjectReference<TextField>? _dotNetRef;
     private bool _isFocused;

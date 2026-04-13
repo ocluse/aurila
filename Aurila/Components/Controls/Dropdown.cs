@@ -8,6 +8,9 @@ public class Dropdown<TValue> : FieldBase<Dropdown<TValue>, TValue>, ICollection
     private readonly string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
 
     private ElementReference _popoverElement;
+    private ElementReference _inputElement;
+
+    protected override ElementReference? FocusElement => _inputElement;
 
     [Parameter]
     public IEnumerable<TValue>? Items { get; set; }
@@ -89,6 +92,7 @@ public class Dropdown<TValue> : FieldBase<Dropdown<TValue>, TValue>, ICollection
                     builder.CloseElement();
                 }
             }
+            builder.AddElementReferenceCapture(12, reference => _inputElement = reference);
         }
         builder.CloseElement();
     }

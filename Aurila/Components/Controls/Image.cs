@@ -116,15 +116,15 @@ public class Image : ControlBase<Image>, IDisposable
         switch (_loadState)
         {
             case LoadState.Loading:
-                builder.Add("au-image__loading");
+                builder.Add("au-image--loading");
                 break;
 
             case LoadState.Error:
-                builder.Add("au-image__error");
+                builder.Add("au-image--error");
                 break;
 
             case LoadState.NotLoading:
-                builder.Add("au-image__not-loading");
+                builder.Add("au-image--not-loading");
                 break;
         }
     }

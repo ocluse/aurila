@@ -1,0 +1,9 @@
+using Aurila.Models;
+
+namespace Aurila.Contracts.Navigation;
+
+public interface IRouteRegistry
+{
+    RouteMatch? Match(string path, string? serializedState);
+    RouteMatch? GetFallbackRoute();
+}

@@ -19,6 +19,32 @@ function createState(): Record<string, unknown> {
     };
 }
 
+export function getCurrentPath(): string {
+    return window.location.pathname;
+}
+
+export function getCurrentState(): string | null {
+    return sessionStorage.getItem(window.history.state?.__aurilaStateKey) || null;
+}
+
+export function pushState(stateData: string | null, path: string): void {
+    const key = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    if (stateData) {
+        sessionStorage.setItem(key, stateData);
+    }
+    const state = { ...createState(), __aurilaStateKey: key };
+    window.history.pushState(state, "", path);
+}
+
+export function replaceState(stateData: string | null, path: string): void {
+    const key = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    if (stateData) {
+        sessionStorage.setItem(key, stateData);
+    }
+    const state = { ...createState(), __aurilaStateKey: key };
+    window.history.replaceState(state, "", path);
+}
+
 function onPopState(): void {
     if (suppressNextPop) {
         suppressNextPop = false;
@@ -28,6 +54,9 @@ function onPopState(): void {
     if (!dotNetBridge || !interceptionActive) {
         return;
     }
+
+    dotNetBridge.invokeMethodAsync("OnLocationChanged", getCurrentPath(), getCurrentState())
+        .catch(() => {});
 
     dotNetBridge.invokeMethodAsync("OnHistoryBackRequested")
         .then((handled: boolean) => {

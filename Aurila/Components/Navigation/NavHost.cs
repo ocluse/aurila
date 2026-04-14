@@ -9,6 +9,10 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     private bool _shouldWaitForRender;
 
     private bool _isNavigating;
+    private readonly Queue<Func<Task>> _navigationQueue = new();
+
+    [Inject]
+    public INavigationBroker NavigationBroker { get; set; } = null!;
 
     [Inject]
     public IBackInterceptor BackInterceptor { get; set; } = null!;
@@ -30,6 +34,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
 
     protected override void OnInitialized()
     {
+        NavigationBroker.Navigator = this;
         BackInterceptor.RegisterBackReceiver(this);
 
         Host?.IntentReceived += OnIntentReceived;
@@ -185,9 +190,15 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
     {
         if (_isNavigating)
         {
+            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage));
             return;
         }
 
+        await PerformNavigationCore(type, fromPage, toPage);
+    }
+
+    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage)
+    {
         _isNavigating = true;
 
         NavigationFromEventArgs navigationFromArgs = new()
@@ -205,6 +216,12 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         if (navigationFromArgs.Cancelled)
         {
             _isNavigating = false;
+            
+            if (_navigationQueue.TryDequeue(out var cancelledNextNavigation))
+            {
+                _ = cancelledNextNavigation();
+            }
+            
             return;
         }
 
@@ -264,9 +281,22 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         //notify the page we have arrived:
         toPage.EnsuredInstance.OnNavigatedTo(navigationToArgs);
 
+        NavigationBroker.NotifyNavigated(this, new PageNavigatedEventArgs
+        {
+            PageType = toPage.PageType,
+            Data = toPage.Data,
+            NavigationType = type,
+            Instance = toPage.Instance
+        });
+
         if (navigationToArgs.DataConsumed)
         {
             toPage.Data = null;
+        }
+
+        if (_navigationQueue.TryDequeue(out var nextNavigation))
+        {
+            _ = nextNavigation();
         }
     }
 
@@ -317,6 +347,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
 
     void IDisposable.Dispose()
     {
+        NavigationBroker.Navigator = null;
         BackInterceptor.UnregisterBackReceiver(this);
 
         Host?.IntentReceived -= OnIntentReceived;

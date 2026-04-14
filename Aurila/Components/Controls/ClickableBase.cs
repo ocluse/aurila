@@ -73,16 +73,18 @@ public abstract class ClickableBase<TControl> : FormControlBase<TControl>, IFocu
         builder.OpenElement(0, "button");
         {
             builder.AddMultipleAttributes(1, GetAppliedAttributes());
-            builder.AddElementReferenceCapture(2, __buttonRef => _buttonElement = __buttonRef);
+            
             if (StopPropagation)
             {
-                builder.AddEventStopPropagationAttribute(3, "onclick", true);
+                builder.AddEventStopPropagationAttribute(2, "onclick", true);
             }
-            builder.OpenRegion(4);
+            builder.OpenRegion(3);
             {
                 BuildContent(builder);
             }
             builder.CloseRegion();
+
+            builder.AddElementReferenceCapture(4, __buttonRef => _buttonElement = __buttonRef);
         }
         builder.CloseElement();
     }

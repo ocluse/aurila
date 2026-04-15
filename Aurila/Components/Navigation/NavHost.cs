@@ -1,7 +1,12 @@
 ﻿using Aurila.Contracts.Navigation;
 
 namespace Aurila.Components.Navigation;
-public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBackReceiver
+
+public sealed class NavHost(
+    IAurilaHost host,
+    IBackInterceptor backInterceptor,
+    IRouteRegistry routeRegistry)
+    : ControlBase<NavHost>, IDisposable, INavigator, IBackReceiver
 {
     private readonly List<PageEntry> _pages = [];
 
@@ -10,15 +15,6 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
 
     private bool _isNavigating;
     private readonly Queue<Func<Task>> _navigationQueue = new();
-
-    [Inject]
-    public INavigationBroker NavigationBroker { get; set; } = null!;
-
-    [Inject]
-    public IBackInterceptor BackInterceptor { get; set; } = null!;
-
-    [Inject]
-    public IAurilaHost? Host { get; set; }
 
     [Parameter]
     [EditorRequired]
@@ -32,19 +28,35 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
 
     private PageEntry? CurrentPage => _pages.Count > 0 ? _pages[^1] : null;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        NavigationBroker.Navigator = this;
-        BackInterceptor.RegisterBackReceiver(this);
+        await base.OnInitializedAsync();
 
-        Host?.IntentReceived += OnIntentReceived;
+        await backInterceptor.RegisterBackReceiverAsync(this);
+
+        host.IntentReceived += OnIntentReceived;
 
         Type? actualStartPage = StartPage;
         object? actualStartData = StartData;
 
-        if (AutoConsumeIntent && Host != null)
+        var currentLocation = await backInterceptor.GetCurrentLocationAsync();
+
+        if (currentLocation.IsNotEmpty() && currentLocation != "/")
         {
-            var launchIntent = Host.GetLaunchIntent();
+            //try to find a page matching the current location:
+            var routeMatch = routeRegistry.Match(currentLocation, null)
+                ?? routeRegistry.GetFallbackRoute();
+            
+            if (routeMatch != null)
+            {
+                actualStartPage = routeMatch.PageType;
+                actualStartData = routeMatch.Data;
+            }
+        }
+
+        if (AutoConsumeIntent && host != null)
+        {
+            var launchIntent = host.GetLaunchIntent();
 
             if (launchIntent is INavigateToPageIntent intent)
             {
@@ -172,7 +184,7 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
                     }
                     else
                     {
-                        Host?.RequestExit();
+                        host?.RequestExit();
                     }
                 }
             }
@@ -216,12 +228,12 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         if (navigationFromArgs.Cancelled)
         {
             _isNavigating = false;
-            
+
             if (_navigationQueue.TryDequeue(out var cancelledNextNavigation))
             {
                 _ = cancelledNextNavigation();
             }
-            
+
             return;
         }
 
@@ -242,10 +254,17 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         toPage.NavigationType = type;
         if (fromPage != null)
         {
+            if (fromPage.Instance is INotifyRouteChanged fromNotifyRouteChanged)
+            {
+                fromNotifyRouteChanged.RouteInfoChanged -= OnRouteInfoChanged;
+            }
+
             fromPage.NavigationType = type;
             fromPage.State = PageState.NavigatingFrom;
         }
         await WaitForRenderAsync();
+
+        
 
         //notify the page we are heading to it:
         toPage.EnsuredInstance.OnNavigatingTo(navigationToArgs);
@@ -281,13 +300,16 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         //notify the page we have arrived:
         toPage.EnsuredInstance.OnNavigatedTo(navigationToArgs);
 
-        NavigationBroker.NotifyNavigated(this, new PageNavigatedEventArgs
+        if (toPage.Instance is IRoutablePage toRoutablePage)
         {
-            PageType = toPage.PageType,
-            Data = toPage.Data,
-            NavigationType = type,
-            Instance = toPage.Instance
-        });
+            var routeInfo = toRoutablePage.GetRouteInfo();
+            await UpdateRouteInfo(routeInfo);
+        }
+
+        if (toPage.Instance is INotifyRouteChanged toNotifyRouteChanged)
+        {
+            toNotifyRouteChanged.RouteInfoChanged += OnRouteInfoChanged;
+        }
 
         if (navigationToArgs.DataConsumed)
         {
@@ -298,6 +320,16 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
         {
             _ = nextNavigation();
         }
+    }
+
+    private async void OnRouteInfoChanged(object? sender, RouteInfo e)
+    {
+        await UpdateRouteInfo(e);
+    }
+
+    private async Task UpdateRouteInfo(RouteInfo routeInfo)
+    {
+        await backInterceptor.SetWindowLocationAsync(routeInfo.Route);
     }
 
     private async Task WaitForRenderAsync()
@@ -347,10 +379,14 @@ public sealed class NavHost : ControlBase<NavHost>, IDisposable, INavigator, IBa
 
     void IDisposable.Dispose()
     {
-        NavigationBroker.Navigator = null;
-        BackInterceptor.UnregisterBackReceiver(this);
+        if(CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
+        {
+            notifyRouteChanged.RouteInfoChanged -= OnRouteInfoChanged;
+        }
 
-        Host?.IntentReceived -= OnIntentReceived;
+        backInterceptor.UnregisterBackReceiver(this);
+
+        host?.IntentReceived -= OnIntentReceived;
     }
 
     public bool HandleBackPressed()

@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	  <RootNamespace>Aurila</RootNamespace>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <Version>0.0.1-preview1.0</Version>
+	  <Version>0.0.1-preview1.1</Version>
 	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
 	  <PackageOutputPath>..\build</PackageOutputPath>
 	  <Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>
@@ -33,7 +33,4 @@
     <PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview7.2" />
   </ItemGroup>
 
-  <Target Name="BundleTypeScript" BeforeTargets="Build">
-	<Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />
-  </Target>
 </Project>

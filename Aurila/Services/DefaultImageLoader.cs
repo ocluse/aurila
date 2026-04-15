@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Aurila.Services;
+﻿namespace Aurila.Services;
 
 public class DefaultImageLoader : IImageLoader
 {

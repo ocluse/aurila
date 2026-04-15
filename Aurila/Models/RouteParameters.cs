@@ -3,23 +3,16 @@ using System.Globalization;
 
 namespace Aurila.Models;
 
-public class RouteParameters
+public class RouteParameters(IReadOnlyDictionary<string, string> parameters, IReadOnlyDictionary<string, string> queryParameters)
 {
-    private readonly IReadOnlyDictionary<string, string> _parameters;
-
-    public RouteParameters(IReadOnlyDictionary<string, string> parameters)
-    {
-        _parameters = parameters;
-    }
-
     public string? Get(string name)
     {
-        return _parameters.TryGetValue(name, out var value) ? value : null;
+        return parameters.TryGetValue(name, out var value) ? value : queryParameters.TryGetValue(name, out value) ? value : null;
     }
 
     public T? Get<T>(string name)
     {
-        if (!_parameters.TryGetValue(name, out var value))
+        if (!parameters.TryGetValue(name, out var value) && !queryParameters.TryGetValue(name, out value))
         {
             throw new KeyNotFoundException($"Route parameter '{name}' was not found.");
         }

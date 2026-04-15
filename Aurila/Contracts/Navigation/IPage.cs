@@ -14,3 +14,13 @@ public interface IPage
 public interface ISingletonPage : IPage
 {
 }
+
+public interface IRoutablePage : IPage
+{
+    RouteInfo GetRouteInfo();
+}
+
+public interface INotifyRouteChanged
+{
+    event EventHandler<RouteInfo> RouteInfoChanged;
+}

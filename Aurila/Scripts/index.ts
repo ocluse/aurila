@@ -4,6 +4,7 @@ import { ScrollBox } from "./components/scroll-box";
 import { TextField } from "./components/text-field"; 
 import { PullToRefreshBox } from "./components/pull-to-refresh-box";
 import { BottomSheet } from "./components/bottom-sheet";
+import { BackInterceptor } from "./services/back-interceptor";
 
 export function createScrollBox(
     element: HTMLElement,
@@ -23,10 +24,9 @@ export function createPullToRefreshBox(
 
 export function createBottomSheet(
     contentArea: HTMLElement,
-    dotNetObject: DotNetObject,
-    maxHeight: string,
+    dotNetObject: DotNetObject
 ): BottomSheet {
-    return new BottomSheet(contentArea, dotNetObject, maxHeight);
+    return new BottomSheet(contentArea, dotNetObject);
 }
 
 export function createTextField(
@@ -37,6 +37,10 @@ export function createTextField(
     initialValue: string
 ): TextField {
     return new TextField(element, maxLines, minLines, dotNetObject, initialValue);
+}
+
+export function createBackInterceptor(dotNetObject: DotNetObject): BackInterceptor {
+    return new BackInterceptor(dotNetObject);
 }
 
 export function showDialog(dialog: HTMLDialogElement) {

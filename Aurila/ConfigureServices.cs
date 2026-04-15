@@ -12,9 +12,7 @@ public static class ConfigureServices
     {
         services.TryAddScoped<AurilaJSInterop>();
         services.TryAddScoped<IBackInterceptor, BackInterceptor>();
-        services.TryAddScoped<IBackNavigationBridge, NoOpBackNavigationBridge>();
         services.TryAddScoped<IImageLoader, DefaultImageLoader>();
-        services.TryAddScoped<INavigationBroker, NavigationBroker>();
         return services;
     }
 

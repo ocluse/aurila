@@ -88,7 +88,7 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
 
         try
         {
-            BackInterceptor.RegisterBackReceiver(this);
+            await BackInterceptor.RegisterBackReceiverAsync(this);
 
             _ctsOpeningAnimation = new();
 

@@ -20,29 +20,38 @@ function createState(): Record<string, unknown> {
 }
 
 export function getCurrentPath(): string {
-    return window.location.pathname;
+    return window.location.pathname + window.location.search;
+}
+
+export function getCurrentPageId(): string | null {
+    return window.history.state?.__aurilaPageId || null;
 }
 
 export function getCurrentState(): string | null {
     return sessionStorage.getItem(window.history.state?.__aurilaStateKey) || null;
 }
 
-export function pushState(stateData: string | null, path: string): void {
+export function pushState(pageId: string, stateData: string | null, path: string): void {
     const key = Date.now().toString(36) + Math.random().toString(36).slice(2);
     if (stateData) {
         sessionStorage.setItem(key, stateData);
     }
-    const state = { ...createState(), __aurilaStateKey: key };
+    const state = { ...createState(), __aurilaStateKey: key, __aurilaPageId: pageId };
     window.history.pushState(state, "", path);
 }
 
-export function replaceState(stateData: string | null, path: string): void {
+export function replaceState(pageId: string, stateData: string | null, path: string): void {
     const key = Date.now().toString(36) + Math.random().toString(36).slice(2);
     if (stateData) {
         sessionStorage.setItem(key, stateData);
     }
-    const state = { ...createState(), __aurilaStateKey: key };
+    const state = { ...createState(), __aurilaStateKey: key, __aurilaPageId: pageId };
     window.history.replaceState(state, "", path);
+}
+
+export function goBack(): void {
+    suppressNextPop = true;
+    window.history.back();
 }
 
 function onPopState(): void {
@@ -55,7 +64,7 @@ function onPopState(): void {
         return;
     }
 
-    dotNetBridge.invokeMethodAsync("OnLocationChanged", getCurrentPath(), getCurrentState())
+    dotNetBridge.invokeMethodAsync("OnLocationChanged", getCurrentPageId(), getCurrentPath(), getCurrentState())
         .catch(() => {});
 
     dotNetBridge.invokeMethodAsync("OnHistoryBackRequested")

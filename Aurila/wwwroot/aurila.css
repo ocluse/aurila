@@ -172,16 +172,6 @@
   grid-area: stack;
 }
 
-@property --au-cpi-len {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0.05;
-}
-@property --au-cpi-offset {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
 .au-circular-progress {
   display: inline-flex;
   align-items: center;
@@ -193,50 +183,31 @@
   overflow: visible;
   will-change: transform;
 }
-.au-circular-progress.au-circular-progress--indeterminate svg {
-  animation: au-cpi-spin 1.75s linear infinite;
-  transform-origin: center;
-}
-.au-circular-progress.au-circular-progress--indeterminate .au-cpi-arc {
-  animation: au-cpi-len-osc 1.333s cubic-bezier(0.45, 0, 0.55, 1) infinite, au-cpi-offset-fwd 1.333s cubic-bezier(0.4, 0, 0.8, 1) infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .au-circular-progress.au-circular-progress--indeterminate svg {
-    animation-duration: 4s;
-  }
-  .au-circular-progress.au-circular-progress--indeterminate svg circle {
-    transition: none;
-  }
-  .au-circular-progress.au-circular-progress--indeterminate .au-cpi-arc {
-    animation-duration: 4s;
-  }
-}
-.au-circular-progress.au-circular-progress--determinate svg circle {
+.au-circular-progress--determinate svg circle {
   transition: stroke-dashoffset 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke-dasharray 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.au-circular-progress--indeterminate .au-cpi-arc--indeterminate {
+  transform-origin: 50% 50%;
+  animation: au-cpi-dash 1400ms ease-in-out infinite, au-cpi-rotate 2000ms linear infinite;
+}
 
-@keyframes au-cpi-spin {
-  to {
+@keyframes au-cpi-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
   }
 }
-@keyframes au-cpi-len-osc {
+@keyframes au-cpi-dash {
   0% {
-    --au-cpi-len: 0.05;
+    stroke-dasharray: 0 0 calc(0.0055555556 * var(--au-cpi-circ)) calc(0.9944444444 * var(--au-cpi-circ));
   }
   50% {
-    --au-cpi-len: 0.72;
+    stroke-dasharray: 0 calc(0.0972222222 * var(--au-cpi-circ)) calc(0.8055555556 * var(--au-cpi-circ)) calc(0.0972222222 * var(--au-cpi-circ));
   }
   100% {
-    --au-cpi-len: 0.05;
-  }
-}
-@keyframes au-cpi-offset-fwd {
-  from {
-    --au-cpi-offset: 0;
-  }
-  to {
-    --au-cpi-offset: 1;
+    stroke-dasharray: 0 calc(0.9944444444 * var(--au-cpi-circ)) calc(0.0055555556 * var(--au-cpi-circ));
   }
 }
 .au-column {

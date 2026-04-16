@@ -67,10 +67,15 @@ public class CircularProgress : ControlBase<CircularProgress>
         var circ = Circumference;
         var c = Center;
 
-        var arcStyle = string.Join(";",
-            $"stroke-dasharray: calc(var(--au-cpi-len) * {circ:F3}) 9999",
-            $"stroke-dashoffset: calc({circ / 4.0:F3} - var(--au-cpi-offset) * {circ:F3})"
-        );
+        // Equivalent to CSS --1deg
+        var d = circ / 360.0;
+
+        // Calculate the dasharray values for the 3 keyframe states (0%, 50%, 100%)
+        // Format is always: dash, gap, dash, gap
+        string v0 = $"0 0 {2 * d:F3} {358 * d:F3}";
+        string v50 = $"0 {35 * d:F3} {290 * d:F3} {35 * d:F3}";
+        string v100 = $"0 {358 * d:F3} {2 * d:F3} 0";
+        string values = $"{v0}; {v50}; {v100}";
 
         b.OpenElement(10, "circle");
         b.AddAttribute(11, "cx", c);
@@ -78,10 +83,33 @@ public class CircularProgress : ControlBase<CircularProgress>
         b.AddAttribute(13, "r", Radius);
         b.AddAttribute(14, "stroke", arcColor);
         b.AddAttribute(15, "stroke-width", StrokeWidth);
-        b.AddAttribute(16, "stroke-linecap", RoundStrokeCap ? "round" : "butt");
+        //b.AddAttribute(16, "stroke-linecap", RoundStrokeCap ? "round" : "butt");
         b.AddAttribute(17, "class", "au-cpi-arc");
-        b.AddAttribute(18, "style", arcStyle);
-        b.CloseElement();
+
+        // 1. Dash Array Animation (Replaces 'dash-anim' keyframes)
+        b.OpenElement(18, "animate");
+        b.AddAttribute(19, "attributeName", "stroke-dasharray");
+        b.AddAttribute(20, "values", values);
+        b.AddAttribute(21, "keyTimes", "0; 0.5; 1");
+        // This cubic-bezier spline is the mathematical equivalent to CSS 'ease-in-out'
+        b.AddAttribute(22, "calcMode", "spline");
+        b.AddAttribute(23, "keySplines", "0.42 0 0.58 1; 0.42 0 0.58 1");
+        b.AddAttribute(24, "dur", "1.4s");
+        b.AddAttribute(25, "repeatCount", "indefinite");
+        b.CloseElement(); // animate
+
+        // 2. Full Rotation Animation (Replaces 'full-rotation-anim' keyframes)
+        b.OpenElement(26, "animateTransform");
+        b.AddAttribute(27, "attributeName", "transform");
+        b.AddAttribute(28, "type", "rotate");
+        // SVG rotation format is: "angle centerX centerY"
+        b.AddAttribute(29, "from", $"0 {c} {c}");
+        b.AddAttribute(30, "to", $"360 {c} {c}");
+        b.AddAttribute(31, "dur", "2s");
+        b.AddAttribute(32, "repeatCount", "indefinite");
+        b.CloseElement(); // animateTransform
+
+        b.CloseElement(); // circle
     }
 
     private void RenderDeterminate(RenderTreeBuilder b, string arcColor)

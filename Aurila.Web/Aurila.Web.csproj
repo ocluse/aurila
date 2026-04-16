@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Aurila.Web</RootNamespace>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <Version>0.0.1-preview0.5</Version>
+	  <Version>0.0.1-preview0.6</Version>
 	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
 	  <PackageOutputPath>..\build</PackageOutputPath>
 	  <Description>Web specific extensions used in WASM environments built using Aurila.</Description>

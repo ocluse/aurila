@@ -1,44 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Aurila.Web</RootNamespace>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <Version>0.0.1-preview2.0</Version>
-	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
-	  <PackageOutputPath>..\build</PackageOutputPath>
-	  <Description>Web specific extensions used in WASM environments built using Aurila.</Description>
-	  <RepositoryUrl>https://github.com/ocluse/aurila</RepositoryUrl>
-	  <Copyright>© Ocluse</Copyright>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Aurila.Web</RootNamespace>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Version>0.0.1-preview2.1</Version>
+		<Authors>Ocluse,Thismaker,PhyTensor</Authors>
+		<PackageOutputPath>..\build</PackageOutputPath>
+		<Description>Web specific extensions used in WASM environments built using Aurila.</Description>
+		<RepositoryUrl>https://github.com/ocluse/aurila</RepositoryUrl>
+		<Copyright>© Ocluse</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Remove="compilerconfig.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Remove="compilerconfig.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="compilerconfig.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="compilerconfig.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-	 <StaticWebAssetFingerprintPattern Include="JSModule" Pattern="*.js" Expression="#[.{fingerprint}]!" />
-	 <StaticWebAssetFingerprintPattern Include="CSSModule" Pattern="*.css" Expression="#[.{fingerprint}]!" />
-  </ItemGroup>
-	
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Aurila\Aurila.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Aurila\Aurila.csproj" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
+	</ItemGroup>
 
-  <Target Name="BundleTypeScript" BeforeTargets="Build">
-    <Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />
-  </Target>
+	<Target Name="BundleTypeScript" BeforeTargets="Build">
+		<Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />
+	</Target>
 
 </Project>

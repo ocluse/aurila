@@ -1,9 +1,4 @@
 .au-circular-progress {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
   svg {
     display: block;
     overflow: visible;
@@ -18,45 +13,43 @@
     }
   }
 
-  &--indeterminate{
-    .au-cpi-arc--indeterminate {
+  &--indeterminate {
+    circle {
+      --au-1deg: calc(2 * pi * var(--au-circular-progress-radius) / 360);
+      animation:
+        au-circular-progress-dash 1400ms ease-in-out infinite,
+        au-circular-progress-rotate 2000ms linear infinite;
       transform-origin: 50% 50%;
-      
-      animation: 
-        au-cpi-dash 1400ms ease-in-out infinite,
-        au-cpi-rotate 2000ms linear infinite;
     }
   }
 }
 
-@keyframes au-cpi-rotate {
+@keyframes au-circular-progress-rotate {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
 
-@keyframes au-cpi-dash {
+@keyframes au-circular-progress-dash {
   0% {
-    stroke-dasharray: 
-      0 
-      0 
-      calc(2 / 360 * var(--au-cpi-circ)) 
-      calc(358 / 360 * var(--au-cpi-circ));
+    stroke-dasharray: 0
+      0
+      calc(2 * var(--au-1deg))
+      calc(358 * var(--au-1deg));
   }
   50% {
-    stroke-dasharray: 
-      0 
-      calc(35 / 360 * var(--au-cpi-circ)) 
-      calc(290 / 360 * var(--au-cpi-circ)) 
-      calc(35 / 360 * var(--au-cpi-circ));
+    stroke-dasharray: 0
+      calc(35 * var(--au-1deg))
+      calc(290 * var(--au-1deg))
+      calc(35 * var(--au-1deg));
   }
   100% {
-    stroke-dasharray: 
-      0 
-      calc(358 / 360 * var(--au-cpi-circ)) 
-      calc(2 / 360 * var(--au-cpi-circ));
+    stroke-dasharray: 0
+      calc(358 * var(--au-1deg))
+      calc(2 * var(--au-1deg));
   }
 }

@@ -64,13 +64,7 @@ public class CircularProgress : ControlBase<CircularProgress>
 
     private void RenderIndeterminate(RenderTreeBuilder b, string arcColor)
     {
-        var circ = Circumference;
         var c = Center;
-
-        var arcStyle = string.Join(";",
-            $"stroke-dasharray: calc(var(--au-cpi-len) * {circ:F3}) 9999",
-            $"stroke-dashoffset: calc({circ / 4.0:F3} - var(--au-cpi-offset) * {circ:F3})"
-        );
 
         b.OpenElement(10, "circle");
         b.AddAttribute(11, "cx", c);
@@ -78,9 +72,8 @@ public class CircularProgress : ControlBase<CircularProgress>
         b.AddAttribute(13, "r", Radius);
         b.AddAttribute(14, "stroke", arcColor);
         b.AddAttribute(15, "stroke-width", StrokeWidth);
-        b.AddAttribute(16, "stroke-linecap", RoundStrokeCap ? "round" : "butt");
-        b.AddAttribute(17, "class", "au-cpi-arc");
-        b.AddAttribute(18, "style", arcStyle);
+        //b.AddAttribute(16, "stroke-linecap", RoundStrokeCap ? "round" : "butt");
+        b.AddAttribute(18, "style", $"--au-circular-progress-radius: {Radius}px;");
         b.CloseElement();
     }
 

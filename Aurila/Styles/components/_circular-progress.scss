@@ -1,92 +1,55 @@
-$cycle: 1.333s;
-
-@property --au-cpi-len {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0.05;
-}
-
-@property --au-cpi-offset {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
 .au-circular-progress {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
   svg {
     display: block;
     overflow: visible;
     will-change: transform;
   }
 
-  &.au-circular-progress--indeterminate {
-
-    svg {
-      animation: au-cpi-spin 1.75s linear infinite;
-      transform-origin: center;
-    }
-
-    .au-cpi-arc {
-      animation:
-        au-cpi-len-osc $cycle cubic-bezier(0.45, 0.0, 0.55, 1.0) infinite,
-        au-cpi-offset-fwd $cycle cubic-bezier(0.4, 0.0, 0.8, 1.0) infinite;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      svg {
-        animation-duration: 4s;
-
-        circle {
-          transition: none;
-        }
-      }
-
-      .au-cpi-arc {
-        animation-duration: 4s;
-      }
-    }
-  }
-
-  &.au-circular-progress--determinate {
+  &--determinate {
     svg circle {
       transition:
         stroke-dashoffset 0.3s cubic-bezier(0.4, 0.0, 0.2, 1),
         stroke-dasharray 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     }
   }
+
+  &--indeterminate {
+    circle {
+      --au-1deg: calc(2 * pi * var(--au-circular-progress-radius) / 360);
+      animation:
+        au-circular-progress-dash 1400ms ease-in-out infinite,
+        au-circular-progress-rotate 2000ms linear infinite;
+      transform-origin: 50% 50%;
+    }
+  }
 }
 
-@keyframes au-cpi-spin {
-  to {
+@keyframes au-circular-progress-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
     transform: rotate(360deg);
   }
 }
 
-@keyframes au-cpi-len-osc {
+@keyframes au-circular-progress-dash {
   0% {
-    --au-cpi-len: 0.05;
+    stroke-dasharray: 0
+      0
+      calc(2 * var(--au-1deg))
+      calc(358 * var(--au-1deg));
   }
-
   50% {
-    --au-cpi-len: 0.72;
+    stroke-dasharray: 0
+      calc(35 * var(--au-1deg))
+      calc(290 * var(--au-1deg))
+      calc(35 * var(--au-1deg));
   }
-
   100% {
-    --au-cpi-len: 0.05;
-  }
-}
-
-@keyframes au-cpi-offset-fwd {
-  from {
-    --au-cpi-offset: 0;
-  }
-
-  to {
-    --au-cpi-offset: 1;
+    stroke-dasharray: 0
+      calc(358 * var(--au-1deg))
+      calc(2 * var(--au-1deg));
   }
 }

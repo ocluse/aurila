@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	  <RootNamespace>Aurila</RootNamespace>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <Version>0.0.1-preview1.6</Version>
+	  <Version>0.0.1-preview2.0</Version>
 	  <Authors>Ocluse,Thismaker,PhyTensor</Authors>
 	  <PackageOutputPath>..\build</PackageOutputPath>
 	  <Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>
@@ -23,7 +23,11 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
 
-
+  <ItemGroup>
+    <StaticWebAssetFingerprintPattern Include="JSModule" Pattern="*.js" Expression="#[.{fingerprint}]!" />
+    <StaticWebAssetFingerprintPattern Include="CSSModule" Pattern="*.css" Expression="#[.{fingerprint}]!" />
+  </ItemGroup>
+	
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>

@@ -35,6 +35,16 @@ public abstract class ClickableBase<TControl> : FormControlBase<TControl>, IFocu
 
     protected virtual void BuildControlClass(ClassBuilder builder) { }
 
+    protected virtual Task OnClickedAsync(MouseEventArgs e)
+    {
+        if (Clicked.HasDelegate)
+        {
+            return Clicked.InvokeAsync(e);
+        }
+
+        return Task.CompletedTask;
+    }
+
     protected override sealed void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
@@ -51,16 +61,6 @@ public abstract class ClickableBase<TControl> : FormControlBase<TControl>, IFocu
     {
         base.BuildAttributes(attributes);
 
-        if (!Disabled && Clicked.HasDelegate)
-        {
-            attributes["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, Clicked);
-        }
-
-        if (Disabled)
-        {
-            attributes["disabled"] = true;
-        }
-
         attributes["role"] = "button";
     }
 
@@ -73,18 +73,29 @@ public abstract class ClickableBase<TControl> : FormControlBase<TControl>, IFocu
         builder.OpenElement(0, "button");
         {
             builder.AddMultipleAttributes(1, GetAppliedAttributes());
-            
+
+            if (!Disabled)
+            {
+                builder.AddAttribute(2, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, OnClickedAsync));
+            }
+
             if (StopPropagation)
             {
-                builder.AddEventStopPropagationAttribute(2, "onclick", true);
+                builder.AddEventStopPropagationAttribute(3, "onclick", true);
             }
-            builder.OpenRegion(3);
+
+            if (Disabled)
+            {
+                builder.AddAttribute(4, "disabled", true);
+            }
+
+            builder.OpenRegion(5);
             {
                 BuildContent(builder);
             }
             builder.CloseRegion();
 
-            builder.AddElementReferenceCapture(4, __buttonRef => _buttonElement = __buttonRef);
+            builder.AddElementReferenceCapture(6, __buttonRef => _buttonElement = __buttonRef);
         }
         builder.CloseElement();
     }

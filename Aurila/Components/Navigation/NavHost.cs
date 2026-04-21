@@ -1,4 +1,5 @@
-﻿using Aurila.Contracts.Navigation;
+﻿using Aurila.Components.Modals;
+using Aurila.Contracts.Navigation;
 
 namespace Aurila.Components.Navigation;
 
@@ -26,7 +27,14 @@ public sealed class NavHost(
     [Parameter]
     public bool AutoConsumeIntent { get; set; } = true;
 
+    [Parameter]
+    public RenderFragment<NavHostLayoutContext>? LayoutTemplate { get; set; }
+
     private PageEntry? CurrentPage => _pages.Count > 0 ? _pages[^1] : null;
+
+    private string? _currentRoute;
+
+    public event EventHandler<NavigatedEventArgs>? Navigated;
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,10 +51,12 @@ public sealed class NavHost(
 
         if (currentLocation.IsNotEmpty() && currentLocation != "/")
         {
+            _currentRoute = currentLocation;
+
             //try to find a page matching the current location:
             var routeMatch = routeRegistry.Match(currentLocation, null)
                 ?? routeRegistry.GetFallbackRoute();
-            
+
             if (routeMatch != null)
             {
                 actualStartPage = routeMatch.PageType;
@@ -198,18 +208,18 @@ public sealed class NavHost(
         }
     }
 
-    private async Task PerformNavigation(NavigationType type, PageEntry? fromPage, PageEntry toPage)
+    private async Task PerformNavigation(NavigationType type, PageEntry? fromPage, PageEntry toPage, string? route)
     {
-        if (_isNavigating)
+        if (_isNavigating || _navigationQueue.Count > 0)
         {
-            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage));
+            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage, route));
             return;
         }
 
-        await PerformNavigationCore(type, fromPage, toPage);
+        await PerformNavigationCore(type, fromPage, toPage, route);
     }
 
-    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage)
+    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage, string? route)
     {
         _isNavigating = true;
 
@@ -243,7 +253,7 @@ public sealed class NavHost(
             Type = type,
         };
 
-        //add the to page to the stack if this is a first time navigation:
+        //add to stack if we're navigating forward, or replacing.
         if (type is NavigationType.Push or NavigationType.Replace)
         {
             _pages.Add(toPage);
@@ -264,7 +274,7 @@ public sealed class NavHost(
         }
         await WaitForRenderAsync();
 
-        
+
 
         //notify the page we are heading to it:
         toPage.EnsuredInstance.OnNavigatingTo(navigationToArgs);
@@ -320,6 +330,8 @@ public sealed class NavHost(
         {
             _ = nextNavigation();
         }
+
+        Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, _currentRoute));
     }
 
     private async void OnRouteInfoChanged(object? sender, RouteInfo e)
@@ -329,6 +341,7 @@ public sealed class NavHost(
 
     private async Task UpdateRouteInfo(RouteInfo routeInfo)
     {
+        _currentRoute = routeInfo.Route;
         await backInterceptor.SetWindowLocationAsync(routeInfo.Route);
     }
 
@@ -352,15 +365,32 @@ public sealed class NavHost(
             builder.AddAttribute(2, nameof(CascadingValue<>.IsFixed), true);
             builder.AddAttribute(3, nameof(CascadingValue<>.ChildContent), (RenderFragment)(builder2 =>
             {
-                builder2.OpenRegion(4);
-                Render(builder2);
-                builder2.CloseRegion();
+                var content = (RenderFragment)RenderContent;
+
+                if (LayoutTemplate != null)
+                {
+                    var context = new NavHostLayoutContext(this, CurrentPage?.PageType, _currentRoute, content);
+
+                    builder2.OpenComponent<CascadingValue<NavHostLayoutContext>>(4);
+                    {
+                        builder2.AddAttribute(5, nameof(CascadingValue<>.Value), context);
+                        builder2.AddAttribute(6, nameof(CascadingValue<>.IsFixed), false);
+                        builder2.AddAttribute(7, nameof(CascadingValue<>.ChildContent), LayoutTemplate(context));
+                    }
+                    builder2.CloseComponent();
+                }
+                else
+                {
+                    builder2.OpenRegion(8);
+                    content(builder2);
+                    builder2.CloseRegion();
+                }
             }));
         }
         builder.CloseComponent();
     }
 
-    private void Render(RenderTreeBuilder builder)
+    private void RenderContent(RenderTreeBuilder builder)
     {
 
         builder.OpenElement(0, "div");
@@ -379,7 +409,7 @@ public sealed class NavHost(
 
     void IDisposable.Dispose()
     {
-        if(CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
+        if (CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
         {
             notifyRouteChanged.RouteInfoChanged -= OnRouteInfoChanged;
         }
@@ -404,6 +434,34 @@ public sealed class NavHost(
         {
             GoBack();
             return true;
+        }
+    }
+
+    public void Navigate(string route)
+    {
+        var routeMatch = routeRegistry.Match(route, null)
+            ?? routeRegistry.GetFallbackRoute();
+
+        if (routeMatch != null)
+        {
+            var pageType = routeMatch.PageType;
+            var data = routeMatch.Data;
+
+            Navigate(pageType, data);
+        }
+    }
+
+    public void Replace(string route)
+    {
+        var routeMatch = routeRegistry.Match(route, null)
+            ?? routeRegistry.GetFallbackRoute();
+
+        if (routeMatch != null)
+        {
+            var pageType = routeMatch.PageType;
+            var data = routeMatch.Data;
+
+            Replace(pageType, data);
         }
     }
 }

@@ -5,7 +5,7 @@ import { TextField } from "./components/text-field";
 import { PullToRefreshBox } from "./components/pull-to-refresh-box";
 import { BottomSheet } from "./components/bottom-sheet";
 import { BackInterceptor } from "./services/back-interceptor";
-
+import { AdaptiveNavigationLayoutObserver } from "./components/adaptive-navigation";
 export function createScrollBox(
     element: HTMLElement,
     dotNetObject: DotNetObject,
@@ -41,6 +41,13 @@ export function createTextField(
 
 export function createBackInterceptor(dotNetObject: DotNetObject): BackInterceptor {
     return new BackInterceptor(dotNetObject);
+}
+
+export function createAdaptiveNavigationLayoutObserver(
+    element: HTMLElement,
+    dotNetObject: DotNetObject
+): AdaptiveNavigationLayoutObserver {
+    return new AdaptiveNavigationLayoutObserver(element, dotNetObject);
 }
 
 export function showDialog(dialog: HTMLDialogElement) {

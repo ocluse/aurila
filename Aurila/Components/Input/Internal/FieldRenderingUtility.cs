@@ -1,4 +1,4 @@
-﻿using Aurila.Contracts.Appearance;
+﻿using Aurila.Contracts.Design.Appearance;
 using Aurila.Contracts.Input;
 using Aurila.Enums.Input;
 

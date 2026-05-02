@@ -10,7 +10,7 @@ internal sealed class BottomAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add("au-box-align-bottom-center");
             }
@@ -18,7 +18,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add("au-box-align-bottom-center");
             }
@@ -28,7 +28,7 @@ internal sealed class BottomAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or FlowRow)
+            if (component is AuRow or AuFlowRow)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -36,7 +36,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row or FlowRow)
+            if (parent is AuRow or AuFlowRow)
             {
                 builder.Add("align-self", "flex-end");
             }

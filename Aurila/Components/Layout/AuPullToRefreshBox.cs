@@ -1,0 +1,120 @@
+﻿using Aurila.Design;
+using Microsoft.JSInterop;
+
+namespace Aurila.Components.Layout;
+
+public sealed class AuPullToRefreshBox : AuControlBase<AuPullToRefreshBox>, IAsyncDisposable
+{
+    [Parameter]
+    public bool IsRefreshing { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? RefreshIndicatorContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? PeekContent { get; set; }
+
+    [Parameter]
+    public EventCallback RefreshRequested { get; set; }
+
+    [Inject]
+    public AurilaJSInterop JSInterop { get; set; } = null!;
+
+    private DotNetObjectReference<AuPullToRefreshBox>? _dotNetObjRef;
+    private IJSObjectReference? _jsObjectRef;
+    private AuScrollBox? _scrollBox;
+    bool _created;
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        base.BuildRenderTree(builder);
+        builder.OpenElement(1, "div");
+        {
+            builder.AddMultipleAttributes(2, GetAppliedAttributes());
+            builder.OpenElement(3, "div");
+            {
+                builder.AddAttribute(4, "class", "au-pull-to-refresh-box__peek-content");
+                builder.AddContent(5, PeekContent);
+            }
+            builder.CloseElement();
+            builder.OpenComponent<AuScrollBox>(6);
+            {
+                builder.AddComponentParameter(7, nameof(AuScrollBox.Class), "au-pull-to-refresh-box__content");
+                builder.AddComponentParameter(8, nameof(AuScrollBox.ChildContent), (RenderFragment)BuildContent);
+                builder.AddComponentReferenceCapture(9, component => _scrollBox = (AuScrollBox)component);
+
+            }
+            builder.CloseComponent();
+        }
+        builder.CloseElement();
+    }
+
+    private void BuildContent(RenderTreeBuilder builder)
+    {
+        if (IsRefreshing)
+        {
+            builder.OpenElement(1, "div");
+            {
+                builder.AddAttribute(2, "class", "au-pull-to-refresh-box__content__refresh-indicator");
+                builder.AddContent(3, RefreshIndicatorContent);
+            }
+            builder.CloseElement();
+        }
+        builder.AddContent(4, ChildContent);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_created)
+        {
+            if (_scrollBox != null && _jsObjectRef != null && _scrollBox.ScrollElement.Context != null)
+            {
+                await _jsObjectRef.InvokeVoidAsync("setElement", _scrollBox.ScrollElement);
+            }
+        }
+        else
+        {
+            if (_scrollBox != null && _scrollBox.ScrollElement.Context != null)
+            {
+                try
+                {
+                    _dotNetObjRef = DotNetObjectReference.Create(this);
+                    _jsObjectRef = await JSInterop.CreateObjectAsync("PullToRefreshBox", _scrollBox.ScrollElement, _dotNetObjRef);
+                    _created = true;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // The component was disposed before the JS interop call completed/could be made.
+                    return;
+                }
+
+            }
+        }
+    }
+
+    protected override void BuildClass(ClassBuilder builder)
+    {
+        base.BuildClass(builder);
+        builder.Add("au-pull-to-refresh-box");
+    }
+
+    [JSInvokable]
+    public async Task HandleRefresh()
+    {
+        await InvokeAsync(RefreshRequested.InvokeAsync);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsObjectRef is not null)
+        {
+            await _jsObjectRef.InvokeVoidAsync("dispose");
+            await _jsObjectRef.DisposeAsync();
+        }
+
+        _dotNetObjRef?.Dispose();
+    }
+}

@@ -14,7 +14,7 @@ internal sealed class StartAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Column or FlowColumn)
+            if (component is AuColumn or AuFlowColumn)
             {
                 builder.Add("align-items", "flex-start");
             }
@@ -22,7 +22,7 @@ internal sealed class StartAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Column or FlowColumn)
+            if (parent is AuColumn or AuFlowColumn)
             {
                 builder.Add("align-self", "flex-start");
             }

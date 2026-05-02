@@ -10,7 +10,7 @@ internal sealed class TopAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add("au-box-align-top-center");
             }
@@ -19,7 +19,7 @@ internal sealed class TopAlignment : IAlignment
         {
             var parent = layoutChild.Parent;
 
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add("au-box-item-top-center");
             }
@@ -30,7 +30,7 @@ internal sealed class TopAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or FlowRow)
+            if (component is AuRow or AuFlowRow)
             {
                 builder.Add("align-items", "flex-start");
             }
@@ -39,7 +39,7 @@ internal sealed class TopAlignment : IAlignment
         {
             var parent = layoutChild.Parent;
 
-            if (parent is Row or FlowRow)
+            if (parent is AuRow or AuFlowRow)
             {
                 builder.Add("align-self", "flex-start");
             }

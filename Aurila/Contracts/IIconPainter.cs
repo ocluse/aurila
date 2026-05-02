@@ -3,5 +3,5 @@
 namespace Aurila.Contracts;
 public interface IIconPainter
 {
-     void BuildAttributes(Icon icon, IDictionary<string, object> attributes);
+     void BuildAttributes(AuIcon icon, IDictionary<string, object> attributes);
 }

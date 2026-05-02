@@ -1,4 +1,6 @@
-﻿namespace Aurila.Contracts;
+﻿using Aurila.Contracts.Design;
+
+namespace Aurila.Contracts;
 
 public interface IHasPadding
 {

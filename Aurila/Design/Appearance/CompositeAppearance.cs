@@ -1,10 +1,10 @@
 ﻿using Aurila.Components;
-using Aurila.Contracts.Appearance;
+using Aurila.Contracts.Design.Appearance;
 
 namespace Aurila.Design.Appearance;
 
 public class CompositeAppearance<T> : IBuildingAppearance<T>
-    where T : ControlBase<T>
+    where T : AuControlBase<T>
 {
     private readonly List<IAppearance<T>> _appearances = [];
 

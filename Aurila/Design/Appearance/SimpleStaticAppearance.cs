@@ -1,10 +1,10 @@
 ﻿using Aurila.Components;
-using Aurila.Contracts.Appearance;
+using Aurila.Contracts.Design.Appearance;
 
 namespace Aurila.Design.Appearance;
 
 public class SimpleStaticAppearance<T>(string? style, string? classNames) : IStaticAppearance<T>
-    where T : ControlBase<T>
+    where T : AuControlBase<T>
 {
     public string? Class => classNames;
 

@@ -10,7 +10,7 @@ internal sealed class CenterAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add("au-box-align-center");
             }
@@ -19,7 +19,7 @@ internal sealed class CenterAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add("au-box-item-center");
             }
@@ -30,7 +30,7 @@ internal sealed class CenterAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or Column or FlowRow or FlowColumn)
+            if (component is AuRow or AuColumn or AuFlowRow or AuFlowColumn)
             {
                 builder.Add("align-items", "center");
             }
@@ -38,7 +38,7 @@ internal sealed class CenterAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row or Column or FlowRow or FlowColumn)
+            if (parent is AuRow or AuColumn or AuFlowRow or AuFlowColumn)
             {
                 builder.Add("align-self", "center");
             }

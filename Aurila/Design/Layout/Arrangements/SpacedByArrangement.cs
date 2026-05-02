@@ -26,12 +26,12 @@ internal class SpacedByArrangement(CssLength spacing, MainAxisAlignment? alignme
 
     private static string ResolveAlignmentProperty(ComponentBase component, Axis axis)
     {
-        if (component is FlowRow)
+        if (component is AuFlowRow)
         {
             return axis is Axis.Horizontal ? "justify-content" : "align-content";
         }
 
-        if (component is FlowColumn)
+        if (component is AuFlowColumn)
         {
             return axis is Axis.Vertical ? "justify-content" : "align-content";
         }

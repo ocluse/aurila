@@ -13,7 +13,7 @@ internal class BoxAlignment(string vertical, string horizontal) : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add(_parentClass);
             }
@@ -21,7 +21,7 @@ internal class BoxAlignment(string vertical, string horizontal) : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add(_childClass);
             }

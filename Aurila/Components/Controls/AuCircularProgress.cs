@@ -2,7 +2,7 @@
 
 namespace Aurila.Components.Controls;
 
-public class AuCircularProgress : AuControlBase<AuCircularProgress>
+public class AuCircularProgress : AuControlBase<AuCircularProgress>, IHasMargin
 {
     private const double SvgCanvas = 48;
     private const double DefaultStrokeWidth = 4;
@@ -30,6 +30,27 @@ public class AuCircularProgress : AuControlBase<AuCircularProgress>
 
     [Parameter]
     public bool RoundStrokeCap { get; set; } = true;
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     private double Radius => (SvgCanvas - StrokeWidth) / 2.0;
     private double Circumference => 2.0 * Math.PI * Radius;

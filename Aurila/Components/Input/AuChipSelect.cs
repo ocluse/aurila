@@ -4,7 +4,7 @@ using Aurila.Enums.Input;
 
 namespace Aurila.Components.Input;
 
-public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, ICollectionView<TValue>
+public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, ICollectionView<TValue>, IHasMargin
 {
     [Parameter]
     public IEnumerable<TValue>? Items { get; set; }
@@ -29,6 +29,27 @@ public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, I
 
     [Parameter]
     public SelectionMode SelectionMode { get; set; }
+    
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     private ElementReference _chipSelectElement;
 

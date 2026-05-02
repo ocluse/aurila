@@ -3,7 +3,7 @@ using Aurila.Design;
 
 namespace Aurila.Components.Controls;
 
-public class AuText : AuControlBase<AuText>
+public class AuText : AuControlBase<AuText>, IHasMargin
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -34,6 +34,20 @@ public class AuText : AuControlBase<AuText>
 
     [Parameter]
     public int? MaxLines { get; set; }
+
+    public CssLength? Margin { get; set; }
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {

@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 
 namespace Aurila.Components.Input;
-public class AuTextField : AuFieldBase<AuTextField, string>
+public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
 {
     private string? _value;
 
@@ -29,6 +29,27 @@ public class AuTextField : AuFieldBase<AuTextField, string>
 
     [Parameter]
     public bool DeferExternalUpdatesWhileFocused { get; set; } = true;
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {

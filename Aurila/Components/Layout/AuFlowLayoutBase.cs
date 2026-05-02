@@ -4,7 +4,7 @@ using Aurila.Design;
 
 namespace Aurila.Components.Layout;
 
-public abstract class AuFlowLayoutBase<T> : AuControlBase<T>, ILayoutParent
+public abstract class AuFlowLayoutBase<T> : AuControlBase<T>, ILayoutParent, IHasMargin, IHasPadding
     where T : AuFlowLayoutBase<T>
 {
     [Parameter]
@@ -18,6 +18,48 @@ public abstract class AuFlowLayoutBase<T> : AuControlBase<T>, ILayoutParent
 
     [Parameter]
     public IAlignment? ItemAlignment { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
+
+    [Parameter]
+    public CssLength? Padding { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingVertical { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingTop { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingBottom { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingRight { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingLeft { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

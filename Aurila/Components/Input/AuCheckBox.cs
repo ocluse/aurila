@@ -2,10 +2,31 @@
 
 namespace Aurila.Components.Input;
 
-public class AuCheckBox : AuInputBase<AuCheckBox, bool>
+public class AuCheckBox : AuInputBase<AuCheckBox, bool>, IHasMargin
 {
     [Parameter]
     public RenderFragment<bool>? ChildContent { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     private ElementReference _inputElement;
 

@@ -2,7 +2,7 @@
 
 namespace Aurila.Components.Controls;
 
-public class AuChip : AuControlBase<AuChip>
+public class AuChip : AuControlBase<AuChip>, IHasMargin
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -12,6 +12,27 @@ public class AuChip : AuControlBase<AuChip>
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected override void BuildClass(ClassBuilder builder)
     {

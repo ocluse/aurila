@@ -1,11 +1,32 @@
 ﻿namespace Aurila.Components.Layout;
-public class AuGroupBox : AuControlBase<AuGroupBox>
+public class AuGroupBox : AuControlBase<AuGroupBox>, IHasMargin
 {
     [Parameter]
     public RenderFragment? Header { get; set; }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

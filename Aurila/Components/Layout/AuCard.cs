@@ -2,7 +2,7 @@
 
 namespace Aurila.Components.Layout;
 
-public class AuCard : AuControlBase<AuCard>
+public class AuCard : AuControlBase<AuCard>, IHasMargin
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -18,6 +18,27 @@ public class AuCard : AuControlBase<AuCard>
 
     [Parameter]
     public string? FooterClass { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected override void BuildClass(ClassBuilder classBuilder)
     {

@@ -3,7 +3,7 @@ using Ocluse.LiquidSnow.Data;
 
 namespace Aurila.Components.Controls;
 
-public class AuImage : AuControlBase<AuImage>, IDisposable
+public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
 {
     [Parameter]
     public ImageSource? Source { get; set; }
@@ -35,8 +35,49 @@ public class AuImage : AuControlBase<AuImage>, IDisposable
     [Parameter]
     public EventCallback Error { get; set; }
 
+    [Parameter]
+    public CssLength? Margin { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+    
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
+    
+    [Parameter]
+    public CssLength? Width { get; set; }
+    
+    [Parameter]
+    public CssLength? Height { get; set; }
+    
+    [Parameter]
+    public CssLength? MinWidth { get; set; }
+    
+    [Parameter]
+    public CssLength? MaxWidth { get; set; }
+    
+    [Parameter]
+    public CssLength? MinHeight { get; set; }
+    
+    [Parameter]
+    public CssLength? MaxHeight { get; set; }
+
     [Inject]
     private IImageLoader DefaultImageLoader { get; set; } = null!;
+
+   
 
     private LoadState _loadState = LoadState.NotLoading;
 

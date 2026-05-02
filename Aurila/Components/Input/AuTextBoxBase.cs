@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Input;
 
-public abstract class AuTextBoxBase<TControl, TValue> : AuFieldBase<TControl, TValue>
+public abstract class AuTextBoxBase<TControl, TValue> : AuFieldBase<TControl, TValue>, IHasMargin
     where TControl : AuTextBoxBase<TControl, TValue>
 {
     [Parameter]
@@ -16,6 +16,27 @@ public abstract class AuTextBoxBase<TControl, TValue> : AuFieldBase<TControl, TV
 
     [Parameter]
     public EventCallback OnReturn { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     protected abstract string GetInputType();
 

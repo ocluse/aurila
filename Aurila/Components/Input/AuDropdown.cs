@@ -5,7 +5,7 @@ using Ocluse.LiquidSnow.Utils;
 
 namespace Aurila.Components.Input;
 
-public class AuDropdown<TValue> : AuFieldBase<AuDropdown<TValue>, TValue>, ICollectionView<TValue>, IAuxiliaryContentFieldComponent
+public class AuDropdown<TValue> : AuFieldBase<AuDropdown<TValue>, TValue>, ICollectionView<TValue>, IAuxiliaryContentFieldComponent, IHasMargin
 {
     private readonly string _anchorName = "--" + IdGenerator.GenerateId(IdKind.Standard, 6).ToLowerInvariant();
 
@@ -43,6 +43,27 @@ public class AuDropdown<TValue> : AuFieldBase<AuDropdown<TValue>, TValue>, IColl
 
     [Parameter]
     public Func<TValue?, string>? ToStringFunc { get; set; }
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
 
     [Inject]
     private AurilaJSInterop JSInterop { get; set; } = default!;

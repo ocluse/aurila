@@ -24,12 +24,29 @@ public interface IHasMargin
     CssLength? MarginBottom { get; }
 }
 
-public interface IHasBackgroundColor
+public interface IHasSize
 {
-    string? BackgroundColor { get; }
+    CssLength? Width { get; }
+    CssLength? Height { get; }
+    CssLength? MinWidth { get; }
+    CssLength? MaxWidth { get; }
+    CssLength? MinHeight { get; }
+    CssLength? MaxHeight { get; }
 }
 
-public interface IHasForegroundColor
+public interface IHasBorder
+{
+    string? Border { get; }
+    string? BorderColor { get; }
+    CssLength? BorderWidth { get; }
+}
+
+public interface IHasBackground
+{
+    string? Background { get; }
+}
+
+public interface IHasColor
 {
     string? Color { get; }
 }

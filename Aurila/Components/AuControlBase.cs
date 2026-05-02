@@ -65,6 +65,9 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
             classBuilder.Add(staticAppearance.Class);
         }
 
+        //Style Util:
+        StylingUtility.BuildClass(this, classBuilder);
+
         // Apply modifiers
         Modifier?.BuildClass(this, classBuilder);
 
@@ -80,12 +83,6 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
     {
         var styleBuilder = new StyleBuilder();
         BuildStyle(styleBuilder);
-
-        //Apply modifiers:
-        Modifier?.BuildStyle(this, styleBuilder);
-
-        //Apply custom builder:
-        StyleBuilder?.Invoke(styleBuilder);
 
         string builtStyle = styleBuilder.ToString();
 
@@ -108,6 +105,15 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
             }
         }
 
+
+        StylingUtility.BuildStyle(this, styleBuilder);
+
+        //Apply modifiers:
+        Modifier?.BuildStyle(this, styleBuilder);
+
+        //Apply custom builder:
+        StyleBuilder?.Invoke(styleBuilder);
+
         if (!string.IsNullOrWhiteSpace(Style))
         {
             if (builtStyle.Length > 0 && !builtStyle.EndsWith(';'))
@@ -116,8 +122,6 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
             }
             builtStyle += Style;
         }
-
-
 
         return builtStyle.TrimEnd(';');
     }

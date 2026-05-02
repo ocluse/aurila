@@ -1,4 +1,5 @@
 ﻿using Aurila.Contracts.Navigation;
+using Aurila.Models.Navigation;
 
 namespace Aurila.Components.Navigation;
 

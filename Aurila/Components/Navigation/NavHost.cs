@@ -1,14 +1,15 @@
-﻿using Aurila.Components.Modals;
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Contracts.Navigation;
+using Aurila.Enums.Navigation;
+using Aurila.Models.Navigation;
 
 namespace Aurila.Components.Navigation;
 
 public sealed class NavHost(
-    IAurilaHost host,
-    IBackInterceptor backInterceptor,
     IRouteRegistry routeRegistry)
-    : ControlBase<NavHost>, IDisposable, INavigator, IBackReceiver
+    : ControlBase<NavHost>, IAsyncDisposable, INavigator, INavigationInterceptor
 {
+    public const int NavigationAnimationDuration = 300;
+
     private readonly List<PageEntry> _pages = [];
 
     private TaskCompletionSource? _tcsRender;
@@ -25,14 +26,14 @@ public sealed class NavHost(
     public object? StartData { get; set; } = null;
 
     [Parameter]
-    public bool AutoConsumeIntent { get; set; } = true;
-
-    [Parameter]
     public RenderFragment<NavHostLayoutContext>? LayoutTemplate { get; set; }
+
+    [CascadingParameter]
+    IAurilaNavigationContext AurilaContext { get; set; } = null!;
 
     private PageEntry? CurrentPage => _pages.Count > 0 ? _pages[^1] : null;
 
-    private string? _currentRoute;
+    Type? INavigator.CurrentPageType => CurrentPage?.PageType;
 
     public event EventHandler<NavigatedEventArgs>? Navigated;
 
@@ -40,19 +41,15 @@ public sealed class NavHost(
     {
         await base.OnInitializedAsync();
 
-        await backInterceptor.RegisterBackReceiverAsync(this);
-
-        host.IntentReceived += OnIntentReceived;
-
         Type? actualStartPage = StartPage;
         object? actualStartData = StartData;
 
-        var currentLocation = await backInterceptor.GetCurrentLocationAsync();
+        await AurilaContext.RegisterInterceptorAsync(this);
+
+        var currentLocation = AurilaContext.CurrentRoute.Value;
 
         if (currentLocation.IsNotEmpty() && currentLocation != "/")
         {
-            _currentRoute = currentLocation;
-
             //try to find a page matching the current location:
             var routeMatch = routeRegistry.Match(currentLocation, null)
                 ?? routeRegistry.GetFallbackRoute();
@@ -64,17 +61,6 @@ public sealed class NavHost(
             }
         }
 
-        if (AutoConsumeIntent && host != null)
-        {
-            var launchIntent = host.GetLaunchIntent();
-
-            if (launchIntent is INavigateToPageIntent intent)
-            {
-                actualStartPage = intent.Page;
-                actualStartData = intent.Data;
-            }
-        }
-
         if (actualStartPage != null)
         {
             if (typeof(IPage).IsAssignableFrom(actualStartPage) == false)
@@ -82,30 +68,11 @@ public sealed class NavHost(
                 throw new InvalidOperationException("The provided initial page does not implement IPage.");
             }
 
-            Navigate(actualStartPage, actualStartData);
+            _ = NavigateAsync(actualStartPage, actualStartData);
         }
         else
         {
             throw new InvalidOperationException("InitialPage must be set.");
-        }
-    }
-
-    private void OnIntentReceived(object? intent)
-    {
-        if (intent is INavigateToPageIntent navigateIntent)
-        {
-            if (navigateIntent.Replace)
-            {
-                Replace(navigateIntent.Page, navigateIntent.Data);
-            }
-            else
-            {
-                Navigate(navigateIntent.Page, navigateIntent.Data);
-            }
-        }
-        else if (intent is INavigateBackIntent)
-        {
-            GoBack();
         }
     }
 
@@ -119,24 +86,24 @@ public sealed class NavHost(
         }
     }
 
-    public void Navigate<TPage>(object? data = null) where TPage : IPage
+    void INavigator.Navigate<TPage>(object? data)
     {
-        Navigate(typeof(TPage), data);
+        _ = NavigateAsync(typeof(TPage), data);
     }
 
-    public void Navigate(Type pageType, object? data = null)
+    void INavigator.Navigate(Type pageType, object? data)
     {
         _ = NavigateAsync(pageType, data);
     }
 
-    public void Replace<TPage>(object? data = null) where TPage : IPage
+    void INavigator.Replace<TPage>(object? data)
     {
-        _ = ReplaceAsync(typeof(TPage), data);
+        _ = ReplaceAsync(typeof(TPage), data, null);
     }
 
-    public void Replace(Type pageType, object? data = null)
+    void INavigator.Replace(Type pageType, object? data)
     {
-        _ = ReplaceAsync(pageType, data);
+        _ = ReplaceAsync(pageType, data, null);
     }
 
     public void GoBack()
@@ -144,27 +111,20 @@ public sealed class NavHost(
         _ = GoBackAsync();
     }
 
-    private async Task NavigateAsync(Type pageType, object? data = null)
+    private async Task NavigateAsync(Type pageType, object? data)
     {
-        PageEntry toPage = PageEntry.Create(pageType, data);
+        PageEntry toPage = PageEntry.Create(pageType, data, null);
         PageEntry? fromPage = CurrentPage;
 
         await PerformNavigation(NavigationType.Push, fromPage, toPage);
     }
 
-    private async Task ReplaceAsync(Type pageType, object? data = null)
+    private async Task ReplaceAsync(Type pageType, object? data, string? route)
     {
-        PageEntry toPage = PageEntry.Create(pageType, data);
+        PageEntry toPage = PageEntry.Create(pageType, data, route);
         PageEntry? fromPage = CurrentPage;
-
-        if (fromPage != null)
-        {
-            await PerformNavigation(NavigationType.Replace, fromPage, toPage);
-        }
-        else
-        {
-            await PerformNavigation(NavigationType.Push, null, toPage);
-        }
+        NavigationType type = fromPage != null ? NavigationType.Replace : NavigationType.Push;
+        await PerformNavigation(type, fromPage, toPage);
     }
 
     private async Task GoBackAsync()
@@ -194,7 +154,7 @@ public sealed class NavHost(
                     }
                     else
                     {
-                        host?.RequestExit();
+                        //TODO: implement
                     }
                 }
             }
@@ -208,18 +168,18 @@ public sealed class NavHost(
         }
     }
 
-    private async Task PerformNavigation(NavigationType type, PageEntry? fromPage, PageEntry toPage, string? route)
+    private async Task PerformNavigation(NavigationType type, PageEntry? fromPage, PageEntry toPage)
     {
         if (_isNavigating || _navigationQueue.Count > 0)
         {
-            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage, route));
+            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage));
             return;
         }
 
-        await PerformNavigationCore(type, fromPage, toPage, route);
+        await PerformNavigationCore(type, fromPage, toPage);
     }
 
-    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage, string? route)
+    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage)
     {
         _isNavigating = true;
 
@@ -266,22 +226,20 @@ public sealed class NavHost(
         {
             if (fromPage.Instance is INotifyRouteChanged fromNotifyRouteChanged)
             {
-                fromNotifyRouteChanged.RouteInfoChanged -= OnRouteInfoChanged;
+                fromNotifyRouteChanged.RouteChanged -= OnRouteChanged;
             }
 
             fromPage.NavigationType = type;
             fromPage.State = PageState.NavigatingFrom;
         }
+
         await WaitForRenderAsync();
-
-
 
         //notify the page we are heading to it:
         toPage.EnsuredInstance.OnNavigatingTo(navigationToArgs);
 
         //delay for the animation to finish:
-        const int delay = 300;
-        await Task.Delay(delay);
+        await Task.Delay(NavigationAnimationDuration);
 
         //apply navigated states and modify stack:
         toPage.State = PageState.NavigatedTo;
@@ -310,15 +268,11 @@ public sealed class NavHost(
         //notify the page we have arrived:
         toPage.EnsuredInstance.OnNavigatedTo(navigationToArgs);
 
-        if (toPage.Instance is IRoutablePage toRoutablePage)
-        {
-            var routeInfo = toRoutablePage.GetRouteInfo();
-            await UpdateRouteInfo(routeInfo);
-        }
+        await CompleteNavigationAsync(toPage, type);
 
         if (toPage.Instance is INotifyRouteChanged toNotifyRouteChanged)
         {
-            toNotifyRouteChanged.RouteInfoChanged += OnRouteInfoChanged;
+            toNotifyRouteChanged.RouteChanged += OnRouteChanged;
         }
 
         if (navigationToArgs.DataConsumed)
@@ -331,18 +285,47 @@ public sealed class NavHost(
             _ = nextNavigation();
         }
 
-        Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, _currentRoute));
+        Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, AurilaContext.CurrentRoute.Value));
     }
 
-    private async void OnRouteInfoChanged(object? sender, RouteInfo e)
+    private async Task CompleteNavigationAsync(PageEntry page, NavigationType navigationType)
     {
-        await UpdateRouteInfo(e);
+        RouteInfo routeInfo;
+
+        if (page.Instance is IRoutablePage routablePage)
+        {
+            routeInfo = routablePage.GetRouteInfo();
+        }
+        else if (page.Route != null)
+        {
+            routeInfo = new(page.Route, null);
+        }
+        else
+        {
+            var routeTemplate = routeRegistry.GetRouteTemplate(page.PageType);
+
+            if (routeTemplate != null && !routeTemplate.HasTemplates)
+            {
+                routeInfo = new(routeTemplate.Template, null);
+            }
+            else
+            {
+                routeInfo = new(AurilaContext.CurrentRoute.Value, null);
+            }
+        }
+
+        page.Route = routeInfo.Url;
+
+        await AurilaContext.CompleteNavigationAsync(routeInfo, navigationType);
     }
 
-    private async Task UpdateRouteInfo(RouteInfo routeInfo)
+    private async void OnRouteChanged(object? sender, RouteInfoChangedEventArgs e)
     {
-        _currentRoute = routeInfo.Route;
-        await backInterceptor.SetWindowLocationAsync(routeInfo.Route);
+        if (sender == CurrentPage?.Instance)
+        {
+            CurrentPage?.Route = e.Info.Url;
+            await AurilaContext.CompleteNavigationAsync(e.Info, NavigationType.Replace);
+        }
     }
 
     private async Task WaitForRenderAsync()
@@ -369,7 +352,7 @@ public sealed class NavHost(
 
                 if (LayoutTemplate != null)
                 {
-                    var context = new NavHostLayoutContext(this, CurrentPage?.PageType, _currentRoute, content);
+                    var context = new NavHostLayoutContext(this, CurrentPage?.PageType, AurilaContext.CurrentRoute.Value, content);
 
                     builder2.OpenComponent<CascadingValue<NavHostLayoutContext>>(4);
                     {
@@ -392,7 +375,6 @@ public sealed class NavHost(
 
     private void RenderContent(RenderTreeBuilder builder)
     {
-
         builder.OpenElement(0, "div");
         {
             builder.AddAttribute(1, "class", "nav-host");
@@ -407,33 +389,20 @@ public sealed class NavHost(
         builder.CloseElement();
     }
 
-    void IDisposable.Dispose()
-    {
-        if (CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
-        {
-            notifyRouteChanged.RouteInfoChanged -= OnRouteInfoChanged;
-        }
-
-        backInterceptor.UnregisterBackReceiver(this);
-
-        host?.IntentReceived -= OnIntentReceived;
-    }
-
-    public bool HandleBackPressed()
+    public async Task<InterceptionResult> HandleAsync()
     {
         if (_pages.Count == 0)
         {
-            return false;
+            return InterceptionResult.NotHandled;
         }
         else if (_pages.Count == 1 && _pages[0].PageType == StartPage)
         {
-            //only the default initial page should make us handle it as usual
-            return false;
+            return InterceptionResult.NotHandled;
         }
         else
         {
-            GoBack();
-            return true;
+            await GoBackAsync();
+            return InterceptionResult.Navigating;
         }
     }
 
@@ -447,7 +416,7 @@ public sealed class NavHost(
             var pageType = routeMatch.PageType;
             var data = routeMatch.Data;
 
-            Navigate(pageType, data);
+            _ = NavigateAsync(pageType, data);
         }
     }
 
@@ -461,8 +430,18 @@ public sealed class NavHost(
             var pageType = routeMatch.PageType;
             var data = routeMatch.Data;
 
-            Replace(pageType, data);
+            _ = ReplaceAsync(pageType, data, route);
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
+        {
+            notifyRouteChanged.RouteChanged -= OnRouteChanged;
+        }
+
+        await AurilaContext.UnregisterReceiverAsync(this);
     }
 }
 

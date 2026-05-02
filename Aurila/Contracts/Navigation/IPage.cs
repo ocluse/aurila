@@ -1,4 +1,6 @@
-﻿namespace Aurila.Contracts.Navigation;
+﻿using Aurila.Models.Navigation;
+
+namespace Aurila.Contracts.Navigation;
 
 public interface IPage
 {
@@ -22,5 +24,5 @@ public interface IRoutablePage : IPage
 
 public interface INotifyRouteChanged
 {
-    event EventHandler<RouteInfo> RouteInfoChanged;
+    event EventHandler<RouteInfoChangedEventArgs> RouteChanged;
 }

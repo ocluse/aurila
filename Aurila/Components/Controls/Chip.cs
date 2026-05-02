@@ -1,4 +1,6 @@
-﻿namespace Aurila.Components.Controls;
+﻿using Aurila.Design;
+
+namespace Aurila.Components.Controls;
 
 public class Chip : ControlBase<Chip>
 {

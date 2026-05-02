@@ -1,7 +1,4 @@
-﻿using Aurila.Components;
-using Aurila.Contracts.Design;
-
-namespace Aurila.Design.Shapes;
+﻿namespace Aurila.Design.Shapes;
 
 internal sealed class RoundedShape(
     CssLength? topLeft,

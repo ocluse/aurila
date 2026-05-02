@@ -1,10 +1,12 @@
-﻿using Aurila.Components.Modals;
+﻿using Aurila.Models.Navigation;
 
 namespace Aurila.Contracts.Navigation;
 
 public interface INavigator
 {
     event EventHandler<NavigatedEventArgs> Navigated;
+
+    Type? CurrentPageType { get; }
 
     void Navigate<TPage>(object? data = null) where TPage : IPage;
 

@@ -1,7 +1,4 @@
-﻿using Aurila.Components;
-using Aurila.Contracts.Design;
-
-namespace Aurila.Design.Shapes;
+﻿namespace Aurila.Design.Shapes;
 
 public sealed class CutCornerShape(CssLength size) : IShape
 {

@@ -1,7 +1,8 @@
-﻿using Aurila.Contracts.Components;
-using Aurila.Contracts.Modifiers;
-using Aurila.Modifiers;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using Aurila.Contracts.Appearance;
+using Aurila.Contracts.Input;
+using Aurila.Contracts.Layout;
+using Aurila.Design;
+using Aurila.Design.Modifiers;
 
 namespace Aurila.Components;
 
@@ -73,7 +74,7 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent, ILayoutCh
         // Apply custom builder:
         ClassBuilder?.Invoke(classBuilder);
 
-        return classBuilder.Build();
+        return classBuilder.ToString();
     }
 
     protected string GetAppliedStyle()
@@ -87,7 +88,7 @@ public class ControlBase<TControl> : ComponentBase, IControlComponent, ILayoutCh
         //Apply custom builder:
         StyleBuilder?.Invoke(styleBuilder);
 
-        string builtStyle = styleBuilder.Build();
+        string builtStyle = styleBuilder.ToString();
 
         var effectiveAppearance = GetEffectiveAppearance();
 

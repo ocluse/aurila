@@ -1,5 +1,5 @@
-﻿using Aurila.Contracts.Components;
-using Microsoft.AspNetCore.Components;
+﻿using Aurila.Components.Input;
+using Aurila.Design;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 

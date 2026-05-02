@@ -1,11 +1,18 @@
+import { AurilaApp } from "./aurila-app";
 import { DotNetObject, ScrollValues } from "./common";
 import { ScrollOrientation } from "./enums";
-import { ScrollBox } from "./components/scroll-box";
-import { TextField } from "./components/text-field"; 
-import { PullToRefreshBox } from "./components/pull-to-refresh-box";
-import { BottomSheet } from "./components/bottom-sheet";
-import { BackInterceptor } from "./services/back-interceptor";
-import { AdaptiveNavigationLayoutObserver } from "./components/adaptive-navigation";
+import { TextField } from "./input/text-field";
+import { PullToRefreshBox } from "./layout/pull-to-refresh-box";
+import { ScrollBox } from "./layout/scroll-box";
+import { BottomSheet } from "./modals/bottom-sheet";
+import { AdaptiveNavigationLayoutObserver } from "./navigation/adaptive-navigation";
+
+export function createAurilaApp(
+    dotNetObject: DotNetObject
+): AurilaApp {
+    return new AurilaApp(dotNetObject);
+}
+
 export function createScrollBox(
     element: HTMLElement,
     dotNetObject: DotNetObject,
@@ -37,10 +44,6 @@ export function createTextField(
     initialValue: string
 ): TextField {
     return new TextField(element, maxLines, minLines, dotNetObject, initialValue);
-}
-
-export function createBackInterceptor(dotNetObject: DotNetObject): BackInterceptor {
-    return new BackInterceptor(dotNetObject);
 }
 
 export function createAdaptiveNavigationLayoutObserver(

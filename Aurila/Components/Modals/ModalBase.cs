@@ -1,13 +1,15 @@
-using Aurila.Contracts.Components;
+using Aurila.Contracts.Modals;
 using Aurila.Contracts.Navigation;
+using Aurila.Design;
+using Aurila.Enums.Navigation;
 
 namespace Aurila.Components.Modals;
 
-public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver, IAsyncDisposable, IDisposable
+public class ModalBase<TControl> : ControlBase<TControl>, IModal, INavigationInterceptor, IAsyncDisposable
     where TControl : ModalBase<TControl>
 {
-    [Inject]
-    IBackInterceptor BackInterceptor { get; set; } = null!;
+    [CascadingParameter]
+    public IAurilaContext AurilaContext { get; set; } = null!;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -19,7 +21,6 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
     public EventCallback<bool> OpenChanged { get; set; }
 
     private bool _isClosing, _isOpening;
-    private bool _disposed;
     private bool _openAttribute;
     protected ElementReference _dialogRef;
     private CancellationTokenSource? _ctsClosingAnimation, _ctsOpeningAnimation;
@@ -88,7 +89,7 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
 
         try
         {
-            await BackInterceptor.RegisterBackReceiverAsync(this);
+            await AurilaContext.RegisterInterceptorAsync(this);
 
             _ctsOpeningAnimation = new();
 
@@ -132,7 +133,7 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
             _openAttribute = false;
 
             //remove from back interception:
-            BackInterceptor.UnregisterBackReceiver(this);
+            await AurilaContext.UnregisterReceiverAsync(this);
 
             await InvokeAsync(StateHasChanged);
         }
@@ -175,40 +176,20 @@ public class ModalBase<TControl> : ControlBase<TControl>, IModal, IBackReceiver,
     protected virtual async Task PlayOpenAnimationAsync(CancellationToken cancellationToken = default) 
         => await Task.Delay(300, cancellationToken);
 
-    public bool HandleBackPressed()
+    async Task<InterceptionResult> INavigationInterceptor.HandleAsync()
     {
-        _ = HideAsync();
-        return true;
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                BackInterceptor.UnregisterBackReceiver(this);
-            }
-            _disposed = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        await HideAsync();
+        return InterceptionResult.Handled;
     }
 
     protected virtual async ValueTask DisposeAsyncCore()
     {
-        Dispose(disposing: true);
-        Task.CompletedTask.Wait();
+        await AurilaContext.UnregisterReceiverAsync(this);
     }
 
     public async ValueTask DisposeAsync()
     {
         await DisposeAsyncCore().ConfigureAwait(false);
-        Dispose(disposing: false);
         GC.SuppressFinalize(this);
     }
 }

@@ -1,10 +1,4 @@
-﻿using Aurila.Components;
-using Aurila.Contracts.Design;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Aurila.Design.Shapes;
+﻿namespace Aurila.Design.Shapes;
 
 internal sealed class NoneShape : IShape
 {

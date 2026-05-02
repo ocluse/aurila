@@ -1,5 +1,6 @@
-﻿using Aurila.Contracts.Design;
-using Aurila.Models;
+﻿using Aurila.Contracts.Layout;
+using Aurila.Design.Layout.Arrangements;
+using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout;
 

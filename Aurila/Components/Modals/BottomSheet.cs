@@ -1,3 +1,4 @@
+using Aurila.Design;
 using Microsoft.JSInterop;
 
 namespace Aurila.Components.Modals;

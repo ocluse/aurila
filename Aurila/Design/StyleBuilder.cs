@@ -54,6 +54,13 @@ public class StyleBuilder
 
     public override string ToString()
     {
-        return string.Join("; ", _styles.Select(kvp => $"{kvp.Key}: {kvp.Value}")) + ";";
+        if(_styles.Count == 0)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return string.Join("; ", _styles.Select(kvp => $"{kvp.Key}: {kvp.Value}")) + ";";
+        }
     }
 }

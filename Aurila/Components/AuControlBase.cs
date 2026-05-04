@@ -52,8 +52,8 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
     protected string GetAppliedClass()
     {
         var classBuilder = new ClassBuilder();
-        BuildClass(classBuilder);
-
+        
+        //Applies classes from appearances:
         var effectiveAppearance = GetEffectiveAppearance();
 
         if (effectiveAppearance is IBuildingAppearance<TControl> buildingAppearance)
@@ -65,15 +65,15 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
             classBuilder.Add(staticAppearance.Class);
         }
 
-        //Style Util:
+        //Component:
+        BuildClass(classBuilder);
         StylingUtility.BuildClass(this, classBuilder);
 
         // Apply modifiers
         Modifier?.BuildClass(this, classBuilder);
 
+        // Customs:
         classBuilder.Add(Class);
-
-        // Apply custom builder:
         ClassBuilder?.Invoke(classBuilder);
 
         return classBuilder.ToString();
@@ -82,48 +82,46 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
     protected string GetAppliedStyle()
     {
         var styleBuilder = new StyleBuilder();
-        BuildStyle(styleBuilder);
 
-        string builtStyle = styleBuilder.ToString();
-
+        //Apply styles from appearances:
         var effectiveAppearance = GetEffectiveAppearance();
 
         if (effectiveAppearance is IBuildingAppearance<TControl> buildingAppearance)
         {
             buildingAppearance.BuildStyle((TControl)this, styleBuilder);
         }
-        else if (effectiveAppearance is IStaticAppearance<TControl> staticAppearance)
-        {
-            if (!string.IsNullOrWhiteSpace(staticAppearance.Style))
-            {
-                if (builtStyle.Length > 0 && !builtStyle.EndsWith(';'))
-                {
-                    builtStyle += "; ";
-                }
 
-                builtStyle += staticAppearance.Style;
+        if (effectiveAppearance is IStaticAppearance<TControl> staticAppearance)
+        {
+            var styles = StylingUtility.GetStyles(staticAppearance.Style);
+
+            foreach (var style in styles)
+            {
+                styleBuilder.Add(style.Key, style.Value);
             }
         }
 
-
+        // Apply styles from the component itself:
+        BuildStyle(styleBuilder);
         StylingUtility.BuildStyle(this, styleBuilder);
 
         //Apply modifiers:
         Modifier?.BuildStyle(this, styleBuilder);
 
-        //Apply custom builder:
-        StyleBuilder?.Invoke(styleBuilder);
-
+        //Apply custom styles:
         if (!string.IsNullOrWhiteSpace(Style))
         {
-            if (builtStyle.Length > 0 && !builtStyle.EndsWith(';'))
+            var styles = StylingUtility.GetStyles(Style);
+            foreach (var style in styles)
             {
-                builtStyle += "; ";
+                styleBuilder.Add(style.Key, style.Value);
             }
-            builtStyle += Style;
         }
 
-        return builtStyle.TrimEnd(';');
+        StyleBuilder?.Invoke(styleBuilder);
+
+        //Build style:
+        return styleBuilder.ToString();
     }
 
     IEnumerable<KeyValuePair<string, object>> IControlComponent.GetAppliedAttributes()
@@ -174,5 +172,15 @@ public class AuControlBase<TControl> : ComponentBase, IControlComponent, ILayout
             return Appearance;
         }
         return AppearanceProvider?.GetAppearance<TControl>();
+    }
+
+    public async Task CallStateHasChangedOnContextAsync()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void CallStateHasChanged()
+    {
+        StateHasChanged();
     }
 }

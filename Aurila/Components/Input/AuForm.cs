@@ -102,6 +102,8 @@ public class AuForm : ComponentBase, IForm
 
         Enabled = false;
 
+        await InvokeAsync(StateHasChanged);
+
         try
         {
             List<ValidationResult> validationResults = [];
@@ -109,6 +111,7 @@ public class AuForm : ComponentBase, IForm
             foreach(var validatable in _valItems)
             {
                 var validationResult = await validatable.InvokeValidate();
+                validationResults.Add(validationResult);
             }
 
             bool valid = validationResults.All(r => r.IsValid);
@@ -136,11 +139,20 @@ public class AuForm : ComponentBase, IForm
         }
         finally
         {
-            foreach (var input in _inputs)
+            await InvokeAsync(() =>
             {
-                input.Disabled = originalState[input];
-            }
-            Enabled = true;
+                Enabled = true;
+
+                foreach (var input in _inputs)
+                {
+                    input.Disabled = originalState[input];
+
+                    if (input is IControlComponent ctrl)
+                    {
+                        ctrl.CallStateHasChanged();
+                    }
+                }
+            });
         }
     }
 }

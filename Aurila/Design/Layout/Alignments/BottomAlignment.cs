@@ -4,7 +4,7 @@ using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;
 
-internal sealed class BottomAlignment : IAlignment
+internal sealed class BottomAlignment : IVerticalAlignment
 {
     public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
     {
@@ -28,7 +28,7 @@ internal sealed class BottomAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is AuRow or AuFlowRow)
+            if (component is IRow)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -36,7 +36,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is AuRow or AuFlowRow)
+            if (parent is IRow)
             {
                 builder.Add("align-self", "flex-end");
             }

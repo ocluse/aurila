@@ -9,3 +9,9 @@ public interface IAlignment
 
     void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder);
 }
+
+public interface IVerticalAlignment : IAlignment;
+
+public interface IHorizontalAlignment : IAlignment;
+
+public interface IBidirectionalAlignment : IVerticalAlignment, IHorizontalAlignment;

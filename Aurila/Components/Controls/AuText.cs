@@ -52,12 +52,17 @@ public class AuText : AuControlBase<AuText>, IHasMargin
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
+
+        TextStyle?.BuildClass(this, builder);
+
         builder.Add("au-text");
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
+
+        TextStyle?.BuildStyle(this, builder);
 
         if(FontFamily.IsNotWhiteSpace())
         {

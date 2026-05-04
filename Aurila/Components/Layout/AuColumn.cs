@@ -5,7 +5,7 @@ using Aurila.Enums.Layout;
 
 namespace Aurila.Components.Layout;
 
-public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IHasMargin, IHasPadding
+public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMargin, IHasPadding
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -14,7 +14,10 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IHasMargin, IHas
     public IArrangement? VerticalArrangement { get; set; }
 
     [Parameter]
-    public IAlignment? HorizontalAlignment { get; set; }
+    public IHorizontalAlignment? HorizontalAlignment { get; set; }
+
+    [Parameter]
+    public CssLength? Gap { get; set; }
 
     [Parameter]
     public CssLength? Margin { get; set; }
@@ -76,5 +79,9 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IHasMargin, IHas
         base.BuildStyle(builder);
         VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
         HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
+        if (Gap != null)
+        {
+            builder.Add("gap", Gap.ToString());
+        }
     }
 }

@@ -17,6 +17,15 @@ public abstract class AuFlowLayoutBase<T> : AuControlBase<T>, ILayoutParent, IHa
     public IArrangement? VerticalArrangement { get; set; }
 
     [Parameter]
+    public CssLength? Gap { get; set; }
+
+    [Parameter]
+    public CssLength? RowGap { get; set; }
+
+    [Parameter]
+    public CssLength? ColumnGap { get; set; }
+
+    [Parameter]
     public IAlignment? ItemAlignment { get; set; }
 
     [Parameter]
@@ -64,6 +73,30 @@ public abstract class AuFlowLayoutBase<T> : AuControlBase<T>, ILayoutParent, IHa
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         LayoutRenderingUtility.Render(this, builder);
+    }
+
+    protected override void BuildStyle(StyleBuilder builder)
+    {
+        base.BuildStyle(builder);
+
+        if (ColumnGap != null)
+        {
+            builder.Add("column-gap", ColumnGap.ToString());
+
+        }
+        else if (Gap != null)
+        {
+            builder.Add("column-gap", Gap.ToString());
+        }
+
+        if (RowGap != null)
+        {
+            builder.Add("row-gap", RowGap.ToString());
+        }
+        else if (Gap != null)
+        {
+            builder.Add("row-gap", Gap.ToString());
+        }
     }
 
     protected override void BuildClass(ClassBuilder builder)

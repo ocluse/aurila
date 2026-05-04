@@ -1,9 +1,10 @@
-﻿using Aurila.Design;
+﻿using Aurila.Contracts.Layout;
+using Aurila.Design;
 using Aurila.Enums.Layout;
 
 namespace Aurila.Components.Layout;
 
-public class AuFlowColumn : AuFlowLayoutBase<AuFlowColumn>
+public class AuFlowColumn : AuFlowLayoutBase<AuFlowColumn>, IColumn
 {
     protected override void BuildClass(ClassBuilder builder)
     {

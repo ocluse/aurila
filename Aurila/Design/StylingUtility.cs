@@ -2,7 +2,7 @@
 
 public static class StylingUtility
 {
-    public static void BuildClass(this ComponentBase component, ClassBuilder builder)
+    public static void BuildClass(ComponentBase component, ClassBuilder builder)
     {
         if(component is IHasShape hasShape && hasShape.Shape != null)
         {
@@ -10,7 +10,7 @@ public static class StylingUtility
         }
     }
 
-    public static void BuildStyle(this ComponentBase component, StyleBuilder builder)
+    public static void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
         if (component is IHasPadding hasPadding)
         {
@@ -141,5 +141,26 @@ public static class StylingUtility
         {
             hasShape.Shape.BuildStyle(component, builder);
         }
+    }
+
+    public static Dictionary<string, string> GetStyles(string? styleString)
+    {
+        var styles = new Dictionary<string, string>();
+        if (string.IsNullOrWhiteSpace(styleString))
+        {
+            return styles;
+        }
+        var stylePairs = styleString.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var pair in stylePairs)
+        {
+            var keyValue = pair.Split(':', 2);
+            if (keyValue.Length == 2)
+            {
+                var key = keyValue[0].Trim();
+                var value = keyValue[1].Trim();
+                styles[key] = value;
+            }
+        }
+        return styles;
     }
 }

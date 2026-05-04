@@ -2,6 +2,7 @@
 using Aurila.Contracts.Navigation;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
+using Microsoft.Extensions.Logging;
 
 namespace Aurila.Components.Navigation;
 

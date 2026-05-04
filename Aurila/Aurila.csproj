@@ -30,7 +30,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
-		<PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview8.1" />
+		<PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview8.2" />
 	</ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;
 
-internal class BoxAlignment(string vertical, string horizontal) : IAlignment
+internal class BoxAlignment(string vertical, string horizontal) : IBidirectionalAlignment
 {
     private readonly string _parentClass = $"au-box-align-{vertical}-{horizontal}";
     private readonly string _childClass = $"au-box-item-{vertical}-{horizontal}";

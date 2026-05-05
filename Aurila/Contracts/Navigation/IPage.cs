@@ -4,13 +4,13 @@ namespace Aurila.Contracts.Navigation;
 
 public interface IPage
 {
-    void OnNavigatedTo(NavigationToEventArgs e);
+    void OnNavigatedTo(NavigationToArgs args);
 
-    void OnNavigatingTo(NavigationToEventArgs e);
+    void OnNavigatingTo(NavigationToArgs args);
 
-    Task OnNavigatingFromAsync(NavigationFromEventArgs e);
+    Task OnNavigatingFromAsync(NavigationFromArgs args);
 
-    void OnNavigatedFrom(NavigationFromEventArgs e);
+    void OnNavigatedFrom(NavigationFromArgs args);
 }
 
 public interface ISingletonPage : IPage

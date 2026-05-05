@@ -29,7 +29,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Aurila\Aurila.csproj" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
 	</ItemGroup>
 
 	<Target Name="BundleTypeScript" BeforeTargets="Build">

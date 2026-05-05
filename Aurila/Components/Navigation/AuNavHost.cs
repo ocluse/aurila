@@ -2,7 +2,6 @@
 using Aurila.Contracts.Navigation;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
-using Microsoft.Extensions.Logging;
 
 namespace Aurila.Components.Navigation;
 
@@ -138,7 +137,7 @@ public sealed class AuNavHost(
 
             if (instance != null)
             {
-                var args = new NavigationFromEventArgs
+                var args = new NavigationFromArgs
                 {
                     Data = null,
                     Type = NavigationType.Pop,
@@ -185,7 +184,7 @@ public sealed class AuNavHost(
     {
         _isNavigating = true;
 
-        NavigationFromEventArgs navigationFromArgs = new()
+        NavigationFromArgs navigationFromArgs = new()
         {
             Data = toPage.Data,
             Destination = toPage.PageType,
@@ -209,7 +208,7 @@ public sealed class AuNavHost(
             return;
         }
 
-        NavigationToEventArgs navigationToArgs = new()
+        NavigationToArgs navigationToArgs = new()
         {
             Data = toPage.Data,
             Type = type,

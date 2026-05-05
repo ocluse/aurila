@@ -4,13 +4,55 @@ using Aurila.Enums.Layout;
 using Microsoft.JSInterop;
 
 namespace Aurila.Components.Layout;
-public sealed class AuScrollBox : AuControlBase<AuScrollBox>, IScrollController, IAsyncDisposable
+public sealed class AuScrollBox : AuControlBase<AuScrollBox>, IScrollController, IAsyncDisposable, IHasMargin, IHasPadding
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
     public ScrollOrientation Orientation { get; set; } = ScrollOrientation.Vertical;
+
+    [Parameter]
+    public CssLength? Margin { get; set; }
+
+    [Parameter]
+    public CssLength? MarginHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? MarginVertical { get; set; }
+
+    [Parameter]
+    public CssLength? MarginRight { get; set; }
+
+    [Parameter]
+    public CssLength? MarginLeft { get; set; }
+
+    [Parameter]
+    public CssLength? MarginTop { get; set; }
+
+    [Parameter]
+    public CssLength? MarginBottom { get; set; }
+
+    [Parameter]
+    public CssLength? Padding { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingVertical { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingTop { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingBottom { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingRight { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingLeft { get; set; }
 
     [Inject]
     public AurilaJSInterop JSInterop { get; set; } = null!;

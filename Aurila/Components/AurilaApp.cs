@@ -1,7 +1,6 @@
 ﻿using Aurila.Contracts.Navigation;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Ocluse.LiquidSnow.Data;
 

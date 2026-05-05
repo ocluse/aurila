@@ -1,4 +1,4 @@
-namespace Aurila.Web;
+﻿namespace Aurila.Contracts;
 
 public interface ILinkOpener
 {

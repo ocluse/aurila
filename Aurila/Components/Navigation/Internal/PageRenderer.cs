@@ -1,4 +1,5 @@
 ﻿using Aurila.Contracts.Navigation;
+using Aurila.Design;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
 
@@ -16,7 +17,7 @@ internal sealed class PageRenderer : ComponentBase, IDisposable
         {
             //open a div element:
             builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", $"page {GetStateClass()} {GetNavigationTypeClass()}");
+            builder.AddAttribute(1, "class", GetClass());
             builder.OpenComponent(2, Entry.PageType);
 
             //add ref:
@@ -29,25 +30,28 @@ internal sealed class PageRenderer : ComponentBase, IDisposable
         }
     }
 
-    private string GetStateClass()
+    private string GetClass()
     {
-        return Entry.State switch
+        string stateClass = Entry.State switch
         {
-            PageState.NavigatingTo => "entering",
-            PageState.NavigatingFrom => "exiting",
-            PageState.NavigatedTo => "active",
-            _ => "inactive"
+            PageState.NavigatingTo => "au-page--entering",
+            PageState.NavigatingFrom => "au-page--exiting",
+            PageState.NavigatedTo => "au-page--active",
+            _ => "au-page--inactive"
         };
-    }
 
-    private string GetNavigationTypeClass()
-    {
-        return Entry.NavigationType switch
+        string navigationTypeClass = Entry.NavigationType switch
         {
-            NavigationType.Push => "navigation-push",
-            NavigationType.Pop => "navigation-pop",
+            NavigationType.Push => "au-page--navigation-push",
+            NavigationType.Pop => "au-page--navigation-pop",
             _ => string.Empty
         };
+
+        return new ClassBuilder()
+            .Add("au-page")
+            .Add(stateClass)
+            .Add(navigationTypeClass)
+            .ToString();
     }
 
     public void Dispose()

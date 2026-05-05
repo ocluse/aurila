@@ -8,7 +8,7 @@ public class NavigationArgs
     public required NavigationType Type { get; init; }
 }
 
-public class NavigationFromEventArgs : NavigationArgs
+public class NavigationFromArgs : NavigationArgs
 {
     private volatile bool _cancelled;
 
@@ -22,7 +22,7 @@ public class NavigationFromEventArgs : NavigationArgs
     }
 }
 
-public class NavigationToEventArgs : NavigationArgs
+public class NavigationToArgs : NavigationArgs
 {
     private bool _dataConsumed;
 

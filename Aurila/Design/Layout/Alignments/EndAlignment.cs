@@ -1,5 +1,4 @@
-﻿using Aurila.Components.Layout;
-using Aurila.Contracts.Layout;
+﻿using Aurila.Contracts.Layout;
 using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;

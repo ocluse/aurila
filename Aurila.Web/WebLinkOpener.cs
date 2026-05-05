@@ -1,3 +1,4 @@
+using Aurila.Contracts;
 using Microsoft.JSInterop;
 
 namespace Aurila.Web;

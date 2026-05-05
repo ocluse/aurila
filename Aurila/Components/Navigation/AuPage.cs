@@ -15,19 +15,22 @@ public abstract class AuPage : ComponentBase, IPage, IDisposable
     [CascadingParameter]
     public INavigator Nav { get; set; } = null!;
 
-    void IPage.OnNavigatingTo(NavigationToEventArgs e)
+    [CascadingParameter]
+    public IAurilaContext AurilaContext { get; set; } = null!;
+
+    void IPage.OnNavigatingTo(NavigationToArgs args)
     {
         RenewNavigationCts();
-        OnNavigatingTo(e);
+        OnNavigatingTo(args);
     }
 
-    void IPage.OnNavigatedTo(NavigationToEventArgs e)
-        => OnNavigatedTo(e);
+    void IPage.OnNavigatedTo(NavigationToArgs args)
+        => OnNavigatedTo(args);
 
-    async Task IPage.OnNavigatingFromAsync(NavigationFromEventArgs e)
+    async Task IPage.OnNavigatingFromAsync(NavigationFromArgs args)
     {
-        await OnNavigatingFromAsync(e);
-        if (!e.Cancelled)
+        await OnNavigatingFromAsync(args);
+        if (!args.Cancelled)
         {
             try
             {
@@ -40,16 +43,16 @@ public abstract class AuPage : ComponentBase, IPage, IDisposable
         }
     }
 
-    void IPage.OnNavigatedFrom(NavigationFromEventArgs e)
-        => OnNavigatedFrom(e);
+    void IPage.OnNavigatedFrom(NavigationFromArgs args)
+        => OnNavigatedFrom(args);
 
-    protected virtual void OnNavigatingTo(NavigationToEventArgs e) { }
+    protected virtual void OnNavigatingTo(NavigationToArgs args) { }
 
-    protected virtual void OnNavigatedFrom(NavigationFromEventArgs e) { }
+    protected virtual void OnNavigatedFrom(NavigationFromArgs args) { }
 
-    protected virtual void OnNavigatedTo(NavigationToEventArgs e) { }
+    protected virtual void OnNavigatedTo(NavigationToArgs args) { }
 
-    protected virtual Task OnNavigatingFromAsync(NavigationFromEventArgs e)
+    protected virtual Task OnNavigatingFromAsync(NavigationFromArgs args)
         => Task.CompletedTask;
 
     private void RenewNavigationCts()

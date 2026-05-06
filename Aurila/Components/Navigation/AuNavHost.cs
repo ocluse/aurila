@@ -42,12 +42,86 @@ public sealed class AuNavHost(
     {
         await base.OnInitializedAsync();
 
-        Type? actualStartPage = StartPage;
-        object? actualStartData = StartData;
-
         await AurilaContext.RegisterInterceptorAsync(this);
 
         var currentLocation = AurilaContext.CurrentRoute.Value;
+        var navStack = await AurilaContext.GetNavStackAsync();
+
+        if (navStack != null && navStack.Count > 0)
+        {
+            // Hydrate from JS stack
+            foreach (var entry in navStack)
+            {
+                var match = routeRegistry.Match(entry.Url, null) ?? routeRegistry.GetFallbackRoute();
+                if (match != null)
+                {
+                    var pageEntry = PageEntry.Create(match.PageType, match.Data, entry.Url);
+                    pageEntry.IsRestored = true;
+                    if (Guid.TryParse(entry.Id, out var parsedId))
+                    {
+                        // Update Id via reflection since it's init-only, or we can just leave it as NewGuid.
+                        // Leaving it as NewGuid is probably fine, Blazor just uses it as a key.
+                    }
+                    _pages.Add(pageEntry);
+                }
+            }
+        }
+
+        if (_pages.Count > 0)
+        {
+            // We have a hydrated stack. Set states and trigger restore on the top page.
+            for (int i = 0; i < _pages.Count - 1; i++)
+            {
+                _pages[i].State = PageState.NavigatedFrom;
+            }
+
+            var topPage = _pages[^1];
+            topPage.State = PageState.NavigatingTo;
+            topPage.NavigationType = NavigationType.Restore;
+
+            _isNavigating = true;
+
+            // Render to create the instance
+            await WaitForRenderAsync();
+
+            var args = new NavigationToArgs
+            {
+                Data = topPage.Data,
+                Type = NavigationType.Restore
+            };
+
+            topPage.EnsuredInstance.OnNavigatingTo(args);
+
+            // simulate animation delay
+            await Task.Delay(NavigationAnimationDuration);
+
+            topPage.State = PageState.NavigatedTo;
+            topPage.NavigationType = null;
+            topPage.IsRestored = false; // It has now been visited
+
+            await WaitForRenderAsync();
+
+            _isNavigating = false;
+
+            topPage.EnsuredInstance.OnNavigatedTo(args);
+
+            if (topPage.Instance is INotifyRouteChanged toNotifyRouteChanged)
+            {
+                toNotifyRouteChanged.RouteChanged += OnRouteChanged;
+            }
+
+            if (args.DataConsumed)
+            {
+                topPage.Data = null;
+            }
+
+            Navigated?.Invoke(this, new NavigatedEventArgs(topPage.PageType, AurilaContext.CurrentRoute.Value));
+            return;
+        }
+
+        // Fallback to normal init
+        Type? actualStartPage = StartPage;
+        object? actualStartData = StartData;
 
         if (currentLocation.IsNotEmpty() && currentLocation != "/")
         {
@@ -208,10 +282,13 @@ public sealed class AuNavHost(
             return;
         }
 
+        var navToType = (type == NavigationType.Pop && toPage.IsRestored) ? NavigationType.Restore : type;
+        toPage.IsRestored = false;
+
         NavigationToArgs navigationToArgs = new()
         {
             Data = toPage.Data,
-            Type = type,
+            Type = navToType,
         };
 
         //add to stack if we're navigating forward, or replacing.
@@ -222,7 +299,7 @@ public sealed class AuNavHost(
 
         //apply navigating states:
         toPage.State = PageState.NavigatingTo;
-        toPage.NavigationType = type;
+        toPage.NavigationType = navToType;
         if (fromPage != null)
         {
             if (fromPage.Instance is INotifyRouteChanged fromNotifyRouteChanged)

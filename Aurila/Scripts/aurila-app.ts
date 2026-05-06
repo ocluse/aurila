@@ -15,7 +15,8 @@ enum NavigationType {
     Push = 0,
     Pop = 1,
     Replace = 2,
-    UpdateUrl = 3
+    UpdateUrl = 3,
+    Restore = 4
 }
 
 enum PopStatHandlingResult {

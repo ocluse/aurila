@@ -6,6 +6,8 @@ internal class PageEntry
 {
     public Guid Id { get; init; } = Guid.NewGuid();
 
+    public bool IsRestored { get; set; }
+
     public required Type PageType { get; init; }
 
     public required object? Data { get; set; }

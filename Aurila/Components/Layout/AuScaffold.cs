@@ -171,7 +171,12 @@ public class AuScaffold : AuControlBase<AuScaffold>
         builder.OpenElement(0, "div");
         {
             builder.AddAttribute(1, "class", fabClassBuilder.ToString());
-            builder.AddContent(2, FloatingActionButton);
+            builder.OpenElement(2, "div");
+            {
+                builder.AddAttribute(3, "class", "au-scaffold__fab__content");
+                builder.AddContent(2, FloatingActionButton);
+            }
+            builder.CloseElement();
         }
         builder.CloseElement(); //div
     }

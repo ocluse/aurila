@@ -20,5 +20,9 @@ public interface INavigator
 
     void Replace(string route);
 
+    void UpdateUrl(string route);
+
+    void UpdateQueryParameters(IReadOnlyDictionary<string, string?> parameters);
+
     void GoBack();
 }

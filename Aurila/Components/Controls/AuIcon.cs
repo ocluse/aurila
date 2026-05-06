@@ -92,6 +92,7 @@ public class AuIcon : AuControlBase<AuIcon>, IHasMargin
         attributes["viewBox"] = "0 0 24 24";
         attributes["stroke-width"] = strokeWidth;
         attributes["stroke"] = Color ?? "currentColor";
+        attributes["stroke-linecap"] = "round";
 
         if (!Fill)
         {

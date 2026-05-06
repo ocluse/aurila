@@ -124,6 +124,9 @@ public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigatio
 
         try
         {
+            //remove from back interception immediately to avoid swallowing rapid double-clicks:
+            await AurilaContext.UnregisterReceiverAsync(this);
+
             _ctsClosingAnimation = new();
             _isClosing = true;
 
@@ -131,9 +134,6 @@ public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigatio
             await PlayCloseAnimationAsync(_ctsClosingAnimation.Token);
             _isClosing = false;
             _openAttribute = false;
-
-            //remove from back interception:
-            await AurilaContext.UnregisterReceiverAsync(this);
 
             await InvokeAsync(StateHasChanged);
         }

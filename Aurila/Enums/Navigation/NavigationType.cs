@@ -5,4 +5,5 @@ public enum NavigationType
     Push,
     Pop,
     Replace,
+    UpdateUrl
 }

@@ -14,7 +14,8 @@ interface RouteInfo {
 enum NavigationType {
     Push = 0,
     Pop = 1,
-    Replace = 2
+    Replace = 2,
+    UpdateUrl = 3
 }
 
 enum PopStatHandlingResult {
@@ -126,6 +127,26 @@ export class AurilaApp {
             this.ensureSentinel();
             history.back();
 
+        } else if (navigationType === NavigationType.UpdateUrl) {
+            const navEntryToUpdate = this.navStack.length > 0
+                ? this.navStack[this.navStack.length - 1]
+                : null;
+
+            if (!navEntryToUpdate) {
+                throw new Error("Invalid UpdateUrl operation attempted.");
+            }
+
+            navEntryToUpdate.url = routeInfo.url;
+            if (routeInfo.serializedState !== undefined) {
+                navEntryToUpdate.serializedState = routeInfo.serializedState;
+            }
+
+            // Persist to session storage so refreshes retain the URL
+            sessionStorage.setItem("navStack", JSON.stringify(this.navStack));
+
+            // Update the address bar immediately. 
+            // We are currently on the sentinel, so we just replace its URL.
+            history.replaceState(history.state, "", routeInfo.url);
         } else if (navigationType === NavigationType.Pop) {
             if (this.navStack.length === 0) {
                 throw new Error("Invalid pop operation attempted: navStack is empty.");

@@ -325,7 +325,7 @@ public sealed class AuNavHost(
         if (sender == CurrentPage?.Instance)
         {
             CurrentPage?.Route = e.Info.Url;
-            await AurilaContext.CompleteNavigationAsync(e.Info, NavigationType.Replace);
+            await AurilaContext.CompleteNavigationAsync(e.Info, NavigationType.UpdateUrl);
         }
     }
 
@@ -433,6 +433,66 @@ public sealed class AuNavHost(
 
             _ = ReplaceAsync(pageType, data, route);
         }
+    }
+
+    public void UpdateUrl(string route)
+    {
+        if (CurrentPage != null)
+        {
+            CurrentPage.Route = route;
+            _ = AurilaContext.CompleteNavigationAsync(new RouteInfo(route, null), NavigationType.UpdateUrl);
+        }
+    }
+
+    public void UpdateQueryParameters(IReadOnlyDictionary<string, string?> parameters)
+    {
+        var currentRoute = AurilaContext.CurrentRoute.Value;
+        if (string.IsNullOrEmpty(currentRoute)) return;
+
+        var uri = new Uri("http://localhost" + (currentRoute.StartsWith("/") ? currentRoute : "/" + currentRoute));
+        var query = uri.Query;
+        
+        var queryParams = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(query))
+        {
+            var parts = query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                var kvp = part.Split('=', 2);
+                if (kvp.Length == 2)
+                {
+                    queryParams[Uri.UnescapeDataString(kvp[0])] = Uri.UnescapeDataString(kvp[1]);
+                }
+                else if (kvp.Length == 1)
+                {
+                    queryParams[Uri.UnescapeDataString(kvp[0])] = string.Empty;
+                }
+            }
+        }
+
+        foreach (var kvp in parameters)
+        {
+            if (kvp.Value == null)
+            {
+                queryParams.Remove(kvp.Key);
+            }
+            else
+            {
+                queryParams[kvp.Key] = kvp.Value;
+            }
+        }
+
+        var newRoute = uri.AbsolutePath;
+        if (queryParams.Count > 0)
+        {
+            var queryString = string.Join("&", queryParams.Select(kvp => 
+                $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+            newRoute += "?" + queryString;
+        }
+        
+        newRoute += uri.Fragment;
+
+        UpdateUrl(newRoute);
     }
 
     public async ValueTask DisposeAsync()

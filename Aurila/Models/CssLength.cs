@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Aurila.Models;
+﻿namespace Aurila.Models;
 
 public readonly struct CssLength
 {
@@ -35,7 +31,14 @@ public readonly struct CssLength
         if (Raw != null)
             return Raw;
 
-        return Value!.Value.ToCssValue(Unit!.Value);
+        if (Value.HasValue && Unit.HasValue)
+        {
+            return Value.Value.ToCssValue(Unit.Value);
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     public static implicit operator CssLength(double value)

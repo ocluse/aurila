@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>Aurila.Web</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>0.0.1-preview2.1</Version>
+		<Version>0.0.1-preview3.0</Version>
 		<Authors>Ocluse,Thismaker,PhyTensor</Authors>
 		<PackageOutputPath>..\build</PackageOutputPath>
 		<Description>Web specific extensions used in WASM environments built using Aurila.</Description>
@@ -29,7 +29,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Aurila\Aurila.csproj" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.5" />
 	</ItemGroup>
 
 	<Target Name="BundleTypeScript" BeforeTargets="Build">

@@ -1,17 +1,16 @@
-﻿using Aurila.Components;
-using Aurila.Components.Controls;
-using Aurila.Contracts.Components;
-using Aurila.Contracts.Design;
+﻿using Aurila.Components.Layout;
+using Aurila.Contracts.Layout;
+using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;
 
-internal sealed class BottomAlignment : IAlignment
+internal sealed class BottomAlignment : IVerticalAlignment
 {
     public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add("au-box-align-bottom-center");
             }
@@ -19,7 +18,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add("au-box-align-bottom-center");
             }
@@ -29,7 +28,7 @@ internal sealed class BottomAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or FlowRow)
+            if (component is IRow)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -37,7 +36,7 @@ internal sealed class BottomAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row or FlowRow)
+            if (parent is IRow)
             {
                 builder.Add("align-self", "flex-end");
             }

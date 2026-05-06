@@ -1,11 +1,10 @@
-﻿using Aurila.Components;
-using Aurila.Components.Controls;
-using Aurila.Contracts.Components;
-using Aurila.Contracts.Design;
+﻿using Aurila.Components.Layout;
+using Aurila.Contracts.Layout;
+using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;
 
-internal class BoxAlignment(string vertical, string horizontal) : IAlignment
+internal class BoxAlignment(string vertical, string horizontal) : IBidirectionalAlignment
 {
     private readonly string _parentClass = $"au-box-align-{vertical}-{horizontal}";
     private readonly string _childClass = $"au-box-item-{vertical}-{horizontal}";
@@ -14,7 +13,7 @@ internal class BoxAlignment(string vertical, string horizontal) : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add(_parentClass);
             }
@@ -22,7 +21,7 @@ internal class BoxAlignment(string vertical, string horizontal) : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add(_childClass);
             }

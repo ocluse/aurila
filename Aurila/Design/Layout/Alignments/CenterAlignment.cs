@@ -1,17 +1,16 @@
-﻿using Aurila.Components;
-using Aurila.Components.Controls;
-using Aurila.Contracts.Components;
-using Aurila.Contracts.Design;
+﻿using Aurila.Components.Layout;
+using Aurila.Contracts.Layout;
+using Aurila.Enums.Layout;
 
 namespace Aurila.Design.Layout.Alignments;
 
-internal sealed class CenterAlignment : IAlignment
+internal sealed class CenterAlignment : IBidirectionalAlignment
 {
     public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Box)
+            if (component is AuBox)
             {
                 builder.Add("au-box-align-center");
             }
@@ -20,7 +19,7 @@ internal sealed class CenterAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Box)
+            if (parent is AuBox)
             {
                 builder.Add("au-box-item-center");
             }
@@ -31,7 +30,7 @@ internal sealed class CenterAlignment : IAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is Row or Column or FlowRow or FlowColumn)
+            if (component is IColumn or IRow)
             {
                 builder.Add("align-items", "center");
             }
@@ -39,7 +38,7 @@ internal sealed class CenterAlignment : IAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is Row or Column or FlowRow or FlowColumn)
+            if (parent is IColumn or IRow)
             {
                 builder.Add("align-self", "center");
             }

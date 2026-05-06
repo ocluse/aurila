@@ -1,4 +1,30 @@
-﻿namespace Aurila;
+﻿using Aurila.Contracts.Navigation;
+using Aurila.Enums.Input;
+using Aurila.Models.Navigation;
+using Aurila.Services.Navigation;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace Aurila;
+
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddAurila(this IServiceCollection services)
+    {
+        services.TryAddScoped<AurilaJSInterop>();
+        services.TryAddScoped<IImageLoader, DefaultImageLoader>();
+        services.TryAddSingleton<IRouteRegistry, RouteRegistry>();
+        return services;
+    }
+
+    public static IServiceCollection AddAurilaRouting(this IServiceCollection services, Action<AurilaRoutingOptions> configureOptions)
+    {
+        services.Configure(configureOptions);
+
+        return services;
+    }
+}
+
 public static class Extensions
 {
     public static string? GetDisplayValue<T>(this T? value, Func<T?, string>? displayMemberFunc)
@@ -40,6 +66,48 @@ public static class Extensions
             CssUnit.DynamicViewHeight => $"{value}dvh",
             CssUnit.DynamicViewWidth => $"{value}dvw",
             _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, null)
+        };
+    }
+
+    public static string ToCssValue(this TextTransform value)
+    {
+        return value switch
+        {
+            TextTransform.None => "none",
+            TextTransform.Uppercase => "uppercase",
+            TextTransform.Lowercase => "lowercase",
+            TextTransform.Capitalize => "capitalize",
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+        };
+    }
+
+    public static string ToCssValue(this TextDecoration value)
+    {
+        return value switch
+        {
+            TextDecoration.None => "none",
+            TextDecoration.Underline => "underline",
+            TextDecoration.Overline => "overline",
+            TextDecoration.LineThrough => "line-through",
+            TextDecoration.Blink => "blink",
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+        };
+    }
+
+    public static string ToCssValue(this FontWeight value)
+    {
+        return ((int)value).ToString();
+    }
+
+    public static string ToCssValue(this TextAlign value)
+    {
+        return value switch
+        {
+            TextAlign.Start => "start",
+            TextAlign.End => "end",
+            TextAlign.Center => "center",
+            TextAlign.Justify => "justify",
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
         };
     }
 

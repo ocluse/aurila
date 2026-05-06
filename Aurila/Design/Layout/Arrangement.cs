@@ -1,5 +1,5 @@
-﻿using Aurila.Contracts.Design;
-using Aurila.Models;
+﻿using Aurila.Contracts.Layout;
+using Aurila.Design.Layout.Arrangements;
 
 namespace Aurila.Design.Layout;
 
@@ -17,8 +17,8 @@ public static class Arrangement
 
     public static IArrangement EqualWeight { get; } = new EqualWeightArrangement();
 
-    public static IArrangement SpacedBy(CssLength spacing) => new SpacedByArrangement(spacing);
+    //public static IArrangement SpacedBy(CssLength spacing) => new SpacedByArrangement(spacing);
 
-    public static IArrangement SpacedBy(CssLength spacing, MainAxisAlignment alignment)
-        => new SpacedByArrangement(spacing, alignment);
+    //public static IArrangement SpacedBy(CssLength spacing, MainAxisAlignment alignment)
+    //    => new SpacedByArrangement(spacing, alignment);
 }

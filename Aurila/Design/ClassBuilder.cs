@@ -1,0 +1,64 @@
+﻿namespace Aurila.Design;
+
+public class ClassBuilder
+{
+    private readonly List<string> _items = [];
+
+    public ClassBuilder Add(string? item)
+    {
+        if (!string.IsNullOrWhiteSpace(item) && !_items.Contains(item))
+        {
+            _items.Add(item);
+        }
+        return this;
+    }
+
+    public ClassBuilder AddIf(bool condition, string? item)
+    {
+        if (condition)
+        {
+            Add(item);
+        }
+        return this;
+    }
+
+    public ClassBuilder AddIfElse(bool condition, string? ifItem, string? elseItem)
+    {
+        if (condition)
+        {
+            Add(ifItem);
+        }
+        else
+        {
+            Add(elseItem);
+        }
+        return this;
+    }
+
+    public ClassBuilder AddIfNot(bool condition, string? item)
+    {
+        if (!condition)
+        {
+            Add(item);
+        }
+        return this;
+    }
+
+    public ClassBuilder AddRange(IEnumerable<string> items)
+    {
+        foreach (var item in items)
+        {
+            Add(item);
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// Returns a neatly formatted string of all the class names added to the builder.
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return string.Join(" ", _items);
+    }
+}

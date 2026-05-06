@@ -1,11 +1,20 @@
+//design
 @use "design/alignment";
 @use "design/arrangement";
 
-@use "components/box";
-@use "components/circular-progress";
-@use "components/column";
-@use "components/modal";
-@use "components/bottom-sheet";
-@use "components/pull-to-refresh-box";
-@use "components/row";
-@use "components/scroll-box";
+//controls
+@use "controls/circular-progress";
+
+//modals
+@use "modals/modal";
+
+//layout
+@use "layout/box";
+@use "layout/column";
+@use "layout/bottom-sheet";
+@use "layout/pull-to-refresh-box";
+@use "layout/row";
+@use "layout/scroll-box";
+
+//navigation
+@use "navigation/adaptive-navigation-layout";

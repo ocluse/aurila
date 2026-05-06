@@ -4,5 +4,4 @@ global using Aurila.Models;
 global using Aurila.Services;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Rendering;
-global using Aurila.Appearance;
 global using Ocluse.LiquidSnow.Extensions;

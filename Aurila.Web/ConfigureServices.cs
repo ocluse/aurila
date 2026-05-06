@@ -1,3 +1,5 @@
+using Aurila.Contracts;
+
 namespace Aurila.Web;
 
 public static class ConfigureServices

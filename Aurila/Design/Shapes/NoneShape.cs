@@ -1,8 +1,4 @@
-﻿using Aurila.Components;
-using Aurila.Contracts.Design;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Aurila.Contracts.Design;
 
 namespace Aurila.Design.Shapes;
 

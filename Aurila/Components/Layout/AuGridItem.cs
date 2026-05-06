@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Aurila.Components.Layout;
 
-public class AuGridItem : AuControlBase<AuGridItem>, ILayoutParent
+public class AuGridItem : AuControlBase<AuGridItem>, ILayoutParent, IHasPadding
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -34,6 +34,27 @@ public class AuGridItem : AuControlBase<AuGridItem>, ILayoutParent
 
     [Parameter]
     public int? RowSpan { get; set; }
+
+    [Parameter]
+    public CssLength? Padding { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingHorizontal { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingVertical { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingTop { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingBottom { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingRight { get; set; }
+
+    [Parameter]
+    public CssLength? PaddingLeft { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {

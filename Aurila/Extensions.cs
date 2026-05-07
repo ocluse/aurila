@@ -81,6 +81,19 @@ public static class Extensions
         };
     }
 
+    public static string ToCssValue(this ObjectFit value)
+    {
+        return value switch
+        {
+            ObjectFit.Fill => "fill",
+            ObjectFit.Contain => "contain",
+            ObjectFit.Cover => "cover",
+            ObjectFit.None => "none",
+            ObjectFit.ScaleDown => "scale-down",
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null)
+        };
+    }
+
     public static string ToCssValue(this TextDecoration value)
     {
         return value switch

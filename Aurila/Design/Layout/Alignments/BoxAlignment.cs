@@ -9,7 +9,7 @@ internal class BoxAlignment(string vertical, string horizontal) : IBidirectional
     private readonly string _parentClass = $"au-box-align-{vertical}-{horizontal}";
     private readonly string _childClass = $"au-box-item-{vertical}-{horizontal}";
 
-    public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
+    public void BuildClass(LayoutScope scope, Axis? axis, ComponentBase component, ClassBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
@@ -27,8 +27,36 @@ internal class BoxAlignment(string vertical, string horizontal) : IBidirectional
             }
         }
     }
-    public void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder)
+    public void BuildStyle(LayoutScope scope, Axis? axis, ComponentBase component, StyleBuilder builder)
     {
-        // No style;
+        if (scope is LayoutScope.Children)
+        {
+            if (component is AuGrid)
+            {
+                if (axis == Axis.Horizontal) builder.Add("justify-items", Map(horizontal));
+                else if (axis == Axis.Vertical) builder.Add("align-items", Map(vertical));
+                else builder.Add("place-items", $"{Map(vertical)} {Map(horizontal)}");
+            }
+        }
+        else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
+        {
+            var parent = layoutChild.Parent;
+            if (parent is AuGrid)
+            {
+                if (axis == Axis.Horizontal) builder.Add("justify-self", Map(horizontal));
+                else if (axis == Axis.Vertical) builder.Add("align-self", Map(vertical));
+                else builder.Add("place-self", $"{Map(vertical)} {Map(horizontal)}");
+            }
+        }
     }
+
+    private string Map(string value) => value switch
+    {
+        "top" => "start",
+        "bottom" => "end",
+        "start" => "start",
+        "end" => "end",
+        "center" => "center",
+        _ => "start"
+    };
 }

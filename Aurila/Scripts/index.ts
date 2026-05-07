@@ -4,6 +4,7 @@ import { ScrollOrientation } from "./enums";
 import { TextField } from "./input/text-field";
 import { PullToRefreshBox } from "./layout/pull-to-refresh-box";
 import { ScrollBox } from "./layout/scroll-box";
+import { HorizontalPager } from "./layout/horizontal-pager";
 import { BottomSheet } from "./modals/bottom-sheet";
 import { AdaptiveNavigationLayoutObserver } from "./navigation/adaptive-navigation";
 
@@ -34,6 +35,13 @@ export function createBottomSheet(
     dotNetObject: DotNetObject
 ): BottomSheet {
     return new BottomSheet(contentArea, dotNetObject);
+}
+
+export function createHorizontalPager(
+    element: HTMLElement,
+    dotNetObject: DotNetObject
+): HorizontalPager {
+    return new HorizontalPager(element, dotNetObject);
 }
 
 export function createTextField(

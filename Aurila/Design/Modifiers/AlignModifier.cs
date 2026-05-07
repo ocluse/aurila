@@ -7,11 +7,11 @@ internal class AlignModifier(IAlignment alignment) : IClassModifier, IStyleModif
 {
     public void BuildClass(ComponentBase component, ClassBuilder builder)
     {
-        alignment.BuildClass(LayoutScope.Self, component, builder);
+        alignment.BuildClass(LayoutScope.Self, null, component, builder);
     }
 
     public void BuildStyle(ComponentBase component, StyleBuilder builder)
     {
-        alignment.BuildStyle(LayoutScope.Self, component, builder);
+        alignment.BuildStyle(LayoutScope.Self, null, component, builder);
     }
 }

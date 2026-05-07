@@ -37,47 +37,53 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
 
     [Parameter]
     public CssLength? Margin { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginHorizontal { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginVertical { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginRight { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginLeft { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginTop { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginBottom { get; set; }
-    
+
     [Parameter]
     public CssLength? Width { get; set; }
-    
+
     [Parameter]
     public CssLength? Height { get; set; }
-    
+
     [Parameter]
     public CssLength? MinWidth { get; set; }
-    
+
     [Parameter]
     public CssLength? MaxWidth { get; set; }
-    
+
     [Parameter]
     public CssLength? MinHeight { get; set; }
-    
+
     [Parameter]
     public CssLength? MaxHeight { get; set; }
+
+    [Parameter]
+    public ObjectFit? ObjectFit { get; set; }
+
+    [Parameter]
+    public string? AspectRatio { get; set; }
 
     [Inject]
     private IImageLoader DefaultImageLoader { get; set; } = null!;
 
-   
+
 
     private LoadState _loadState = LoadState.NotLoading;
 
@@ -173,6 +179,8 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        string imageStyles = GetImageStyles();
+
         builder.OpenElement(0, "div");
         {
             builder.AddMultipleAttributes(1, GetAppliedAttributes());
@@ -184,23 +192,33 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
                     builder.OpenElement(2, "img");
                     {
                         builder.AddAttribute(3, "src", _resolvedSource);
-                        if (!string.IsNullOrEmpty(Description))
+                        if (Description.IsNotEmpty())
                         {
                             builder.AddAttribute(4, "alt", Description);
                         }
-                        builder.AddAttribute(5, "onload", EventCallback.Factory.Create(this, OnLoadedAsync));
-                        builder.AddAttribute(6, "onerror", EventCallback.Factory.Create(this, OnErrorAsync));
+
+                        if (imageStyles.IsNotEmpty())
+                        {
+                            builder.AddAttribute(5, "style", imageStyles);
+                        }
+
+                        builder.AddAttribute(6, "onload", EventCallback.Factory.Create(this, OnLoadedAsync));
+                        builder.AddAttribute(7, "onerror", EventCallback.Factory.Create(this, OnErrorAsync));
                     }
                     builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
-                    builder.AddContent(7, PlaceholderContent);
+                    builder.AddContent(8, PlaceholderContent);
                 }
                 else if (PlaceholderSrc != null)
                 {
-                    builder.OpenElement(8, "img");
-                    builder.AddAttribute(9, "src", PlaceholderSrc);
+                    builder.OpenElement(9, "img");
+                    builder.AddAttribute(10, "src", PlaceholderSrc);
+                    if (imageStyles.IsNotEmpty())
+                    {
+                        builder.AddAttribute(11, "style", imageStyles);
+                    }
                     builder.CloseElement(); // img
                 }
             }
@@ -218,6 +236,10 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
                 {
                     builder.OpenElement(102, "img");
                     builder.AddAttribute(103, "src", PlaceholderSrc);
+                    if (imageStyles.IsNotEmpty())
+                    {
+                        builder.AddAttribute(104, "style", imageStyles);
+                    }
                     builder.CloseElement(); // img
                 }
             }
@@ -231,16 +253,24 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
                 {
                     builder.OpenElement(201, "img");
                     builder.AddAttribute(202, "src", ErrorSrc);
+                    if (imageStyles.IsNotEmpty())
+                    {
+                        builder.AddAttribute(203, "style", imageStyles);
+                    }
                     builder.CloseElement(); // img
                 }
                 else if (PlaceholderContent != null)
                 {
-                    builder.AddContent(203, PlaceholderContent);
+                    builder.AddContent(204, PlaceholderContent);
                 }
                 else if (PlaceholderSrc.IsNotEmpty())
                 {
-                    builder.OpenElement(204, "img");
-                    builder.AddAttribute(205, "src", PlaceholderSrc);
+                    builder.OpenElement(205, "img");
+                    builder.AddAttribute(206, "src", PlaceholderSrc);
+                    if (imageStyles.IsNotEmpty())
+                    {
+                        builder.AddAttribute(207, "style", imageStyles);
+                    }
                     builder.CloseElement(); // img
                 }
             }
@@ -248,6 +278,23 @@ public class AuImage : AuControlBase<AuImage>, IDisposable, IHasMargin, IHasSize
         builder.CloseElement(); // div
     }
 
+
+    private string GetImageStyles()
+    {
+        StyleBuilder sb = new();
+
+        if (ObjectFit.HasValue)
+        {
+            sb.Add("object-fit", ObjectFit.Value.ToCssValue());
+        }
+
+        if (AspectRatio.IsNotEmpty())
+        {
+            sb.Add("aspect-ratio", AspectRatio);
+        }
+
+        return sb.ToString();
+    }
 
     private async Task OnLoadedAsync()
     {

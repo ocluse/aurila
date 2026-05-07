@@ -30,7 +30,11 @@ internal sealed class CenterAlignment : IBidirectionalAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is IColumn or IRow)
+            if (component is AuGrid)
+            {
+                builder.Add("place-items", "center");
+            }
+            else if (component is IColumn or IRow)
             {
                 builder.Add("align-items", "center");
             }
@@ -38,7 +42,11 @@ internal sealed class CenterAlignment : IBidirectionalAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is IColumn or IRow)
+            if (parent is AuGrid)
+            {
+                builder.Add("place-self", "center");
+            }
+            else if (parent is IColumn or IRow)
             {
                 builder.Add("align-self", "center");
             }

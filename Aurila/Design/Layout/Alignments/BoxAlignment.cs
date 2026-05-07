@@ -29,6 +29,30 @@ internal class BoxAlignment(string vertical, string horizontal) : IBidirectional
     }
     public void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder)
     {
-        // No style;
+        if (scope is LayoutScope.Children)
+        {
+            if (component is AuGrid)
+            {
+                builder.Add("place-items", $"{Map(vertical)} {Map(horizontal)}");
+            }
+        }
+        else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
+        {
+            var parent = layoutChild.Parent;
+            if (parent is AuGrid)
+            {
+                builder.Add("place-self", $"{Map(vertical)} {Map(horizontal)}");
+            }
+        }
     }
+
+    private string Map(string value) => value switch
+    {
+        "top" => "start",
+        "bottom" => "end",
+        "start" => "start",
+        "end" => "end",
+        "center" => "center",
+        _ => "start"
+    };
 }

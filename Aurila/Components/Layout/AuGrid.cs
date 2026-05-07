@@ -30,6 +30,12 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
     public IVerticalAlignment? VerticalAlignment { get; set; }
 
     [Parameter]
+    public IArrangement? HorizontalArrangement { get; set; }
+
+    [Parameter]
+    public IArrangement? VerticalArrangement { get; set; }
+
+    [Parameter]
     public bool Subgrid { get; set; } = false;
 
     [Parameter]
@@ -105,6 +111,8 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
 
         VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
         HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
+        VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
+        HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
@@ -114,6 +122,8 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
 
         VerticalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
         HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
+        VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
+        HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
 
         if (ColumnGap != null)
         {

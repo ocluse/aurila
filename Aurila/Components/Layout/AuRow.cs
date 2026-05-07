@@ -11,7 +11,13 @@ public class AuRow : AuControlBase<AuRow>, ILayoutParent, IRow, IHasMargin, IHas
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
+    public bool Wrap { get; set; }
+
+    [Parameter]
     public IArrangement? HorizontalArrangement { get; set; }
+
+    [Parameter]
+    public IArrangement? VerticalArrangement { get; set; }
 
     [Parameter]
     public IVerticalAlignment? VerticalAlignment { get; set; }
@@ -72,13 +78,21 @@ public class AuRow : AuControlBase<AuRow>, ILayoutParent, IRow, IHasMargin, IHas
         builder.Add("au-row");
         VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
         HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
+        VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
+        
+        if (Wrap)
+        {
+            builder.Add("flex-wrap", "wrap");
+        }
+
         VerticalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
         HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
+        VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
         if (Gap.HasValue)
         {
             builder.Add("gap", Gap.ToString());

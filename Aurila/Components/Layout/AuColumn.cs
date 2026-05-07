@@ -11,7 +11,13 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
+    public bool Wrap { get; set; }
+
+    [Parameter]
     public IArrangement? VerticalArrangement { get; set; }
+
+    [Parameter]
+    public IArrangement? HorizontalArrangement { get; set; }
 
     [Parameter]
     public IHorizontalAlignment? HorizontalAlignment { get; set; }
@@ -71,13 +77,21 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
         base.BuildClass(builder);
         builder.Add("au-column");
         VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
+        HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
         HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
+
+        if (Wrap)
+        {
+            builder.Add("flex-wrap", "wrap");
+        }
+
         VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
+        HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
         HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
         if (Gap != null)
         {

@@ -28,7 +28,11 @@ internal sealed class BottomAlignment : IVerticalAlignment
     {
         if (scope is LayoutScope.Children)
         {
-            if (component is IRow)
+            if (component is AuGrid)
+            {
+                builder.Add("align-items", "end");
+            }
+            else if (component is IRow)
             {
                 builder.Add("align-items", "flex-end");
             }
@@ -36,7 +40,11 @@ internal sealed class BottomAlignment : IVerticalAlignment
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
         {
             var parent = layoutChild.Parent;
-            if (parent is IRow)
+            if (parent is AuGrid)
+            {
+                builder.Add("align-self", "end");
+            }
+            else if (parent is IRow)
             {
                 builder.Add("align-self", "flex-end");
             }

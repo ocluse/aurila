@@ -5,20 +5,15 @@ namespace Aurila.Design.Layout;
 
 public static class Arrangement
 {
-    public static IArrangement Top { get; } = new SimpleArrangement("flex-start");
-    public static IArrangement Bottom { get; } = new SimpleArrangement("flex-end");
-    public static IArrangement Start { get; } = new SimpleArrangement("flex-start");
-    public static IArrangement End { get; } = new SimpleArrangement("flex-end");
-    public static IArrangement Center { get; } = new SimpleArrangement("center");
+    public static IVerticalArrangement Top { get; } = new SimpleArrangement("start");
+    public static IVerticalArrangement Bottom { get; } = new SimpleArrangement("end");
+    public static IHorizontalArrangement Start { get; } = new SimpleArrangement("start");
+    public static IHorizontalArrangement End { get; } = new SimpleArrangement("end");
+    public static IBidirectionalArrangement Center { get; } = new SimpleArrangement("center");
 
-    public static IArrangement SpaceBetween { get; } = new SimpleArrangement("space-between");
-    public static IArrangement SpaceAround { get; } = new SimpleArrangement("space-around");
-    public static IArrangement SpaceEvenly { get; } = new SimpleArrangement("space-evenly");
+    public static IBidirectionalArrangement SpaceBetween { get; } = new SimpleArrangement("space-between");
+    public static IBidirectionalArrangement SpaceAround { get; } = new SimpleArrangement("space-around");
+    public static IBidirectionalArrangement SpaceEvenly { get; } = new SimpleArrangement("space-evenly");
 
-    public static IArrangement EqualWeight { get; } = new EqualWeightArrangement();
-
-    //public static IArrangement SpacedBy(CssLength spacing) => new SpacedByArrangement(spacing);
-
-    //public static IArrangement SpacedBy(CssLength spacing, MainAxisAlignment alignment)
-    //    => new SpacedByArrangement(spacing, alignment);
+    public static IBidirectionalArrangement EqualWeight { get; } = new EqualWeightArrangement();
 }

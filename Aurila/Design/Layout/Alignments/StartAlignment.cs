@@ -7,10 +7,10 @@ namespace Aurila.Design.Layout.Alignments;
 
 internal sealed class StartAlignment : IHorizontalAlignment
 {
-    public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
+    public void BuildClass(LayoutScope scope, Axis? axis, ComponentBase component, ClassBuilder builder)
     {
     }
-    public void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder)
+    public void BuildStyle(LayoutScope scope, Axis? axis, ComponentBase component, StyleBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
@@ -20,7 +20,7 @@ internal sealed class StartAlignment : IHorizontalAlignment
             }
             else if (component is IColumn)
             {
-                builder.Add("align-items", "flex-start");
+                builder.Add("align-items", "start");
             }
         }
         else if (scope is LayoutScope.Self && component is ILayoutChild layoutChild)
@@ -32,7 +32,7 @@ internal sealed class StartAlignment : IHorizontalAlignment
             }
             else if (parent is IColumn)
             {
-                builder.Add("align-self", "flex-start");
+                builder.Add("align-self", "start");
             }
         }
     }

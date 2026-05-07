@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Components;
 
 namespace Aurila.Design.Layout.Arrangements;
 
-internal class SimpleArrangement(string cssValue) : IArrangement
+internal class SimpleArrangement(string cssValue) : IBidirectionalArrangement
 {
-    public void BuildClass(Axis axis, ComponentBase component, ClassBuilder builder)
+    public void BuildClass(Axis? axis, ComponentBase component, ClassBuilder builder)
     {
     }
 
-    public void BuildStyle(Axis axis, ComponentBase component, StyleBuilder builder)
+    public void BuildStyle(Axis? axis, ComponentBase component, StyleBuilder builder)
     {
         if (component is AuGrid)
         {

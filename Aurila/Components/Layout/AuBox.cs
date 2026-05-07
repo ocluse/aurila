@@ -65,13 +65,13 @@ public class AuBox : AuControlBase<AuBox>, ILayoutParent, IHasMargin, IHasPaddin
 
         builder.Add("au-box");
 
-        ContentAlignment?.BuildClass(LayoutScope.Children, this, builder);
+        ContentAlignment?.BuildClass(LayoutScope.Children, null, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
     {
         base.BuildStyle(builder);
 
-        ContentAlignment?.BuildStyle(LayoutScope.Self, this, builder);
+        ContentAlignment?.BuildStyle(LayoutScope.Self, null, this, builder);
     }
 }

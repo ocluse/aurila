@@ -6,7 +6,7 @@ namespace Aurila.Design.Layout.Alignments;
 
 internal sealed class CenterAlignment : IBidirectionalAlignment
 {
-    public void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder)
+    public void BuildClass(LayoutScope scope, Axis? axis, ComponentBase component, ClassBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
@@ -26,13 +26,15 @@ internal sealed class CenterAlignment : IBidirectionalAlignment
         }
     }
 
-    public void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder)
+    public void BuildStyle(LayoutScope scope, Axis? axis, ComponentBase component, StyleBuilder builder)
     {
         if (scope is LayoutScope.Children)
         {
             if (component is AuGrid)
             {
-                builder.Add("place-items", "center");
+                if (axis == Axis.Horizontal) builder.Add("justify-items", "center");
+                else if (axis == Axis.Vertical) builder.Add("align-items", "center");
+                else builder.Add("place-items", "center");
             }
             else if (component is IColumn or IRow)
             {
@@ -44,7 +46,9 @@ internal sealed class CenterAlignment : IBidirectionalAlignment
             var parent = layoutChild.Parent;
             if (parent is AuGrid)
             {
-                builder.Add("place-self", "center");
+                if (axis == Axis.Horizontal) builder.Add("justify-self", "center");
+                else if (axis == Axis.Vertical) builder.Add("align-self", "center");
+                else builder.Add("place-self", "center");
             }
             else if (parent is IColumn or IRow)
             {

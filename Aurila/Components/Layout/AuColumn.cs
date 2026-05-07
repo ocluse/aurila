@@ -14,10 +14,10 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
     public bool Wrap { get; set; }
 
     [Parameter]
-    public IArrangement? VerticalArrangement { get; set; }
+    public IVerticalArrangement? VerticalArrangement { get; set; }
 
     [Parameter]
-    public IArrangement? HorizontalArrangement { get; set; }
+    public IHorizontalArrangement? WrapHorizontalArrangement { get; set; }
 
     [Parameter]
     public IHorizontalAlignment? HorizontalAlignment { get; set; }
@@ -77,8 +77,8 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
         base.BuildClass(builder);
         builder.Add("au-column");
         VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
-        HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
-        HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
+        WrapHorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
+        HorizontalAlignment?.BuildClass(LayoutScope.Children, Axis.Horizontal, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
@@ -91,8 +91,8 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
         }
 
         VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
-        HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
-        HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
+        WrapHorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
+        HorizontalAlignment?.BuildStyle(LayoutScope.Children, Axis.Horizontal, this, builder);
         if (Gap != null)
         {
             builder.Add("gap", Gap.ToString());

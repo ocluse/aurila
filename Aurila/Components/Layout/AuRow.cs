@@ -14,10 +14,10 @@ public class AuRow : AuControlBase<AuRow>, ILayoutParent, IRow, IHasMargin, IHas
     public bool Wrap { get; set; }
 
     [Parameter]
-    public IArrangement? HorizontalArrangement { get; set; }
+    public IHorizontalArrangement? HorizontalArrangement { get; set; }
 
     [Parameter]
-    public IArrangement? VerticalArrangement { get; set; }
+    public IVerticalArrangement? WrapVerticalArrangement { get; set; }
 
     [Parameter]
     public IVerticalAlignment? VerticalAlignment { get; set; }
@@ -76,9 +76,9 @@ public class AuRow : AuControlBase<AuRow>, ILayoutParent, IRow, IHasMargin, IHas
     {
         base.BuildClass(builder);
         builder.Add("au-row");
-        VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
+        VerticalAlignment?.BuildClass(LayoutScope.Children, Axis.Vertical, this, builder);
         HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
-        VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
+        WrapVerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
     }
 
     protected override void BuildStyle(StyleBuilder builder)
@@ -90,9 +90,9 @@ public class AuRow : AuControlBase<AuRow>, ILayoutParent, IRow, IHasMargin, IHas
             builder.Add("flex-wrap", "wrap");
         }
 
-        VerticalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
+        VerticalAlignment?.BuildStyle(LayoutScope.Children, Axis.Vertical, this, builder);
         HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
-        VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
+        WrapVerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
         if (Gap.HasValue)
         {
             builder.Add("gap", Gap.ToString());

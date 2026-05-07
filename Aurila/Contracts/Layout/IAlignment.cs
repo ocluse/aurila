@@ -5,9 +5,9 @@ namespace Aurila.Contracts.Layout;
 
 public interface IAlignment
 {
-    void BuildClass(LayoutScope scope, ComponentBase component, ClassBuilder builder);
+    void BuildClass(LayoutScope scope, Axis? axis, ComponentBase component, ClassBuilder builder);
 
-    void BuildStyle(LayoutScope scope, ComponentBase component, StyleBuilder builder);
+    void BuildStyle(LayoutScope scope, Axis? axis, ComponentBase component, StyleBuilder builder);
 }
 
 public interface IVerticalAlignment : IAlignment;

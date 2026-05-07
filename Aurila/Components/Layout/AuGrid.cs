@@ -30,10 +30,10 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
     public IVerticalAlignment? VerticalAlignment { get; set; }
 
     [Parameter]
-    public IArrangement? HorizontalArrangement { get; set; }
+    public IHorizontalArrangement? HorizontalArrangement { get; set; }
 
     [Parameter]
-    public IArrangement? VerticalArrangement { get; set; }
+    public IVerticalArrangement? VerticalArrangement { get; set; }
 
     [Parameter]
     public bool Subgrid { get; set; } = false;
@@ -109,8 +109,8 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
         builder.Add("au-grid");
         builder.Add(_gridId);
 
-        VerticalAlignment?.BuildClass(LayoutScope.Children, this, builder);
-        HorizontalAlignment?.BuildClass(LayoutScope.Children, this, builder);
+        VerticalAlignment?.BuildClass(LayoutScope.Children, Axis.Vertical, this, builder);
+        HorizontalAlignment?.BuildClass(LayoutScope.Children, Axis.Horizontal, this, builder);
         VerticalArrangement?.BuildClass(Axis.Vertical, this, builder);
         HorizontalArrangement?.BuildClass(Axis.Horizontal, this, builder);
     }
@@ -120,8 +120,8 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
         base.BuildStyle(builder);
         builder.Add("display", "grid");
 
-        VerticalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
-        HorizontalAlignment?.BuildStyle(LayoutScope.Children, this, builder);
+        VerticalAlignment?.BuildStyle(LayoutScope.Children, Axis.Vertical, this, builder);
+        HorizontalAlignment?.BuildStyle(LayoutScope.Children, Axis.Horizontal, this, builder);
         VerticalArrangement?.BuildStyle(Axis.Vertical, this, builder);
         HorizontalArrangement?.BuildStyle(Axis.Horizontal, this, builder);
 

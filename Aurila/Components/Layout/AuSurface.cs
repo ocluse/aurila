@@ -70,6 +70,7 @@ public class AuSurface : AuControlBase<AuSurface>, IHasMargin, IHasShape, IHasBo
     {
         base.BuildClass(builder);
         builder.Add("au-surface");
+        builder.AddIf(Clicked.HasDelegate, "au-clickable");
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)

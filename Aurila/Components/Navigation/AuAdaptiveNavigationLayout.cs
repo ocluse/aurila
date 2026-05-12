@@ -2,11 +2,14 @@ using Aurila.Design;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
 using Microsoft.JSInterop;
+using System.Text;
 
 namespace Aurila.Components.Navigation;
 
 public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigationLayout>, IAsyncDisposable
 {
+    private readonly string _layoutId = $"au-nav-{Guid.NewGuid().ToString("N")[..8]}";
+
     [Parameter]
     public RenderFragment? Navigation { get; set; }
 
@@ -15,9 +18,6 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
 
     [Parameter]
     public IReadOnlyList<AdaptiveNavBreakpoint>? Breakpoints { get; set; }
-
-    [Parameter]
-    public AdaptiveNavPresentation? Presentation { get; set; }
 
     [Inject]
     public AurilaJSInterop JSInterop { get; set; } = null!;
@@ -38,43 +38,28 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "div");
+        builder.OpenElement(0, "style");
+        builder.AddContent(1, GenerateLayoutCss());
+        builder.CloseElement();
+
+        builder.OpenElement(2, "div");
         {
-            builder.AddMultipleAttributes(1, GetAppliedAttributes());
-            builder.AddElementReferenceCapture(2, element => _layoutElement = element);
+            builder.AddMultipleAttributes(3, GetAppliedAttributes());
+            builder.AddElementReferenceCapture(4, element => _layoutElement = element);
 
-            if (IsRailPresentation(_currentPresentation))
+            builder.OpenElement(5, "aside");
             {
-                builder.OpenElement(3, "aside");
-                {
-                    builder.AddAttribute(4, "class", "au-adaptive-navigation-layout__navigation");
-                    builder.AddContent(5, Navigation);
-                }
-                builder.CloseElement();
-
-                builder.OpenElement(6, "main");
-                {
-                    builder.AddAttribute(7, "class", "au-adaptive-navigation-layout__content");
-                    builder.AddContent(8, ChildContent);
-                }
-                builder.CloseElement();
+                builder.AddAttribute(6, "class", "au-adaptive-navigation-layout__navigation");
+                builder.AddContent(7, Navigation);
             }
-            else
+            builder.CloseElement();
+
+            builder.OpenElement(8, "main");
             {
-                builder.OpenElement(9, "main");
-                {
-                    builder.AddAttribute(10, "class", "au-adaptive-navigation-layout__content");
-                    builder.AddContent(11, ChildContent);
-                }
-                builder.CloseElement();
-
-                builder.OpenElement(12, "div");
-                {
-                    builder.AddAttribute(13, "class", "au-adaptive-navigation-layout__navigation");
-                    builder.AddContent(14, Navigation);
-                }
-                builder.CloseElement();
+                builder.AddAttribute(9, "class", "au-adaptive-navigation-layout__content");
+                builder.AddContent(10, ChildContent);
             }
+            builder.CloseElement();
         }
         builder.CloseElement();
     }
@@ -82,13 +67,9 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
     protected override void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
-        builder.Add("au-adaptive-navigation-layout")
-            .Add($"au-adaptive-navigation-layout--{GetPresentationClass(_currentPresentation)}");
-    }
-
-    private static bool IsRailPresentation(AdaptiveNavPresentation presentation)
-    {
-        return presentation is AdaptiveNavPresentation.ExpandedRail or AdaptiveNavPresentation.CompactRail;
+        builder.Add("au-adaptive-navigation-layout");
+        builder.Add(_layoutId);
+        builder.Add($"au-adaptive-navigation-layout--{GetPresentationClass(_currentPresentation)}");
     }
 
     private static string GetPresentationClass(AdaptiveNavPresentation presentation)
@@ -98,24 +79,12 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
             AdaptiveNavPresentation.ExpandedRail => "expanded-rail",
             AdaptiveNavPresentation.CompactRail => "compact-rail",
             AdaptiveNavPresentation.BottomBar => "bottom-bar",
-            AdaptiveNavPresentation.Drawer => "drawer",
             _ => "expanded-rail"
         };
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Presentation.HasValue)
-        {
-            var nextPresentation = Presentation.Value;
-            if (nextPresentation != _currentPresentation)
-            {
-                _currentPresentation = nextPresentation;
-                await InvokeAsync(StateHasChanged);
-            }
-            return;
-        }
-
         if (firstRender)
         {
             _dotNetObjRef = DotNetObjectReference.Create(this);
@@ -133,11 +102,6 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
     [JSInvokable]
     public async Task HandleLayoutWidthChanged(int width)
     {
-        if (Presentation.HasValue)
-        {
-            return;
-        }
-
         var matched = EffectiveBreakpoints.FirstOrDefault(item => item.Matches(width));
         var next = matched?.Presentation ?? AdaptiveNavPresentation.ExpandedRail;
 
@@ -146,6 +110,44 @@ public sealed class AuAdaptiveNavigationLayout : AuControlBase<AuAdaptiveNavigat
             _currentPresentation = next;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private string GenerateLayoutCss()
+    {
+        var css = new StringBuilder();
+
+        var sortedBreakpoints = EffectiveBreakpoints.OrderBy(b => b.MinWidth);
+
+        foreach (var bp in sortedBreakpoints)
+        {
+            var mediaQuery = $"@media (min-width: {bp.MinWidth}px)";
+
+            if (bp.MaxWidth.HasValue)
+            {
+                mediaQuery += $" and (max-width: {bp.MaxWidth.Value}px)";
+            }
+
+            css.AppendLine($"{mediaQuery} {{");
+            css.AppendLine($"  .{_layoutId} {{");
+
+            if (bp.Presentation == AdaptiveNavPresentation.BottomBar)
+            {
+                css.AppendLine("    grid-template-areas: \"content\" \"nav\";");
+                css.AppendLine("    grid-template-columns: 1fr;");
+                css.AppendLine("    grid-template-rows: 1fr max-content;");
+            }
+            else // ExpandedRail or CompactRail
+            {
+                css.AppendLine("    grid-template-areas: \"nav content\";");
+                css.AppendLine("    grid-template-columns: max-content 1fr;");
+                css.AppendLine("    grid-template-rows: 1fr;");
+            }
+
+            css.AppendLine("  }");
+            css.AppendLine("}");
+        }
+
+        return css.ToString();
     }
 
     public async ValueTask DisposeAsync()

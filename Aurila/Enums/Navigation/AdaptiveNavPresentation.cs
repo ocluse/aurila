@@ -4,6 +4,5 @@ public enum AdaptiveNavPresentation
 {
     ExpandedRail,
     CompactRail,
-    BottomBar,
-    Drawer
+    BottomBar
 }

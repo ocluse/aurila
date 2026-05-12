@@ -291,33 +291,19 @@
 }
 
 .au-adaptive-navigation-layout {
-  display: flex;
+  display: grid;
   min-height: 100%;
   height: 100%;
 }
 .au-adaptive-navigation-layout > .au-adaptive-navigation-layout__navigation {
-  flex-shrink: 0;
+  grid-area: nav;
+  overflow: hidden;
 }
 .au-adaptive-navigation-layout > .au-adaptive-navigation-layout__content {
-  flex: 1;
+  grid-area: content;
   min-width: 0;
   min-height: 0;
-}
-
-.au-adaptive-navigation-layout--expanded-rail,
-.au-adaptive-navigation-layout--compact-rail,
-.au-adaptive-navigation-layout--drawer {
-  flex-direction: row;
-}
-
-.au-adaptive-navigation-layout--bottom-bar {
-  flex-direction: column;
-}
-.au-adaptive-navigation-layout--bottom-bar > .au-adaptive-navigation-layout__content {
-  order: 1;
-}
-.au-adaptive-navigation-layout--bottom-bar > .au-adaptive-navigation-layout__navigation {
-  order: 2;
+  overflow: auto;
 }
 
 .au-adaptive-navigation {

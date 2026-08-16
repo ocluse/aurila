@@ -1,9 +1,10 @@
-//design
+﻿//design
 @use "design/alignment";
 @use "design/arrangement";
 
 //controls
 @use "controls/circular-progress";
+@use "controls/clickable";
 
 //modals
 @use "modals/modal";

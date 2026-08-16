@@ -18,7 +18,7 @@ public class AuText : AuControlBase<AuText>, IHasMargin, IHasPadding
     public string? FontFamily { get; set; }
 
     [Parameter]
-    public CssUnit? FontSize { get; set; }
+    public CssLength? FontSize { get; set; }
 
     [Parameter]
     public TextAlign? Align { get; set; }
@@ -37,22 +37,22 @@ public class AuText : AuControlBase<AuText>, IHasMargin, IHasPadding
 
     [Parameter]
     public CssLength? Margin { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginHorizontal { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginVertical { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginRight { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginLeft { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginTop { get; set; }
-    
+
     [Parameter]
     public CssLength? MarginBottom { get; set; }
 
@@ -122,7 +122,7 @@ public class AuText : AuControlBase<AuText>, IHasMargin, IHasPadding
 
         if (TextTransform.HasValue)
         {
-            string textTransformValue = TextTransform.Value.ToCssValue();   
+            string textTransformValue = TextTransform.Value.ToCssValue();
             builder.Add("text-transform", textTransformValue);
         }
 

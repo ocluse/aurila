@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>Aurila</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>0.0.1-preview4.8</Version>
+		<Version>0.0.1-preview5.3</Version>
 		<Authors>Ocluse,Thismaker,PhyTensor</Authors>
 		<PackageOutputPath>..\build</PackageOutputPath>
 		<Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>
@@ -26,6 +26,10 @@
 	
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Aurila.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

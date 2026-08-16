@@ -1,0 +1,18 @@
+.au-clickable--link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    text-decoration: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &:visited {
+        color: inherit;
+    }
+}
+
+.au-clickable--disabled {
+    cursor: default;
+}

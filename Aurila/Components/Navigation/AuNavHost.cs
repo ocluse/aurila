@@ -2,420 +2,682 @@
 using Aurila.Contracts.Navigation;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
+using Aurila.Services.Navigation;
+using Microsoft.Extensions.Logging;
 
 namespace Aurila.Components.Navigation;
 
-public sealed class AuNavHost(
-    IRouteRegistry routeRegistry)
-    : AuControlBase<AuNavHost>, IAsyncDisposable, INavigator, INavigationInterceptor
+public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator routeGenerator)
+    : AuControlBase<AuNavHost>, IAsyncDisposable, INavigator, INavigationDriver
 {
     public const int NavigationAnimationDuration = 300;
 
-    private readonly List<PageEntry> _pages = [];
+    private const int MaxPendingData = 32;
 
-    private TaskCompletionSource? _tcsRender;
-    private bool _shouldWaitForRender;
+    private readonly PageStore _store = new(routeRegistry);
+    private readonly List<PageEntry> _rendered = [];
+    private readonly List<TaskCompletionSource> _pendingRenders = [];
+    private readonly Dictionary<int, object?> _pendingData = [];
+    private readonly List<INavigationGuard> _guards = [];
+    private readonly SemaphoreSlim _navigationLock = new(1, 1);
 
-    private bool _isNavigating;
-    private readonly Queue<Func<Task>> _navigationQueue = new();
+    private QueryWriter? _queryWriter;
+    private PageEntry? _current;
+    private int _nextDataToken = 1;
+    private long _shownCounter;
+    private string? _leaveConfirmedFor;
+    private bool _guardArmed;
+
+    [Inject]
+    private INavigationLedger Ledger { get; set; } = null!;
+
+    [Inject]
+    private ILogger<AuNavHost> Logger { get; set; } = null!;
+
+    [Inject]
+    private PageParametersCache Parameters { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
     public Type? StartPage { get; set; }
 
     [Parameter]
-    public object? StartData { get; set; } = null;
-
-    [Parameter]
     public RenderFragment<NavHostLayoutContext>? LayoutTemplate { get; set; }
 
-    [CascadingParameter]
-    IAurilaNavigationContext AurilaContext { get; set; } = null!;
+    /// <summary>
+    /// How many retained pages may stay alive at once.
+    /// </summary>
+    /// <remarks>
+    /// A retained page keeps its component tree and its DOM while the user is elsewhere, which is why
+    /// returning to it is instant. Without a ceiling a deep history would keep every one of them, so
+    /// the least recently shown are dropped and rebuilt from their entry when needed.
+    /// </remarks>
+    [Parameter]
+    public int MaxRetainedPages { get; set; } = 4;
 
-    private PageEntry? CurrentPage => _pages.Count > 0 ? _pages[^1] : null;
-
-    Type? INavigator.CurrentPageType => CurrentPage?.PageType;
+    /// <summary>
+    /// How long the page transition runs, in milliseconds.
+    /// </summary>
+    [Parameter]
+    public int TransitionDuration { get; set; } = NavigationAnimationDuration;
 
     public event EventHandler<NavigatedEventArgs>? Navigated;
+
+    public Type? CurrentPageType => _current?.PageType;
+
+    public string? CurrentRoute => _current?.Path;
+
+    private string LiveRoute => Ledger.Snapshot.Current?.Path ?? _current?.Path ?? "/";
+
+    public bool CanGoBack => Ledger.CanGoBack;
+
+    public bool CanGoForward => Ledger.CanGoForward;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        await AurilaContext.RegisterInterceptorAsync(this);
+        Ledger.Driver = this;
+        _queryWriter = new QueryWriter((values, history) =>
+            GoAsync(QueryString.Merge(LiveRoute, values), null, history));
 
-        var currentLocation = AurilaContext.CurrentRoute.Value;
-        var navStack = await AurilaContext.GetNavStackAsync();
-
-        if (navStack != null && navStack.Count > 0)
-        {
-            // Hydrate from JS stack
-            foreach (var entry in navStack)
-            {
-                var match = routeRegistry.Match(entry.Url, null) ?? routeRegistry.GetFallbackRoute();
-                if (match != null)
-                {
-                    var pageEntry = PageEntry.Create(match.PageType, match.Data, entry.Url);
-                    pageEntry.IsRestored = true;
-                    if (Guid.TryParse(entry.Id, out var parsedId))
-                    {
-                        // Update Id via reflection since it's init-only, or we can just leave it as NewGuid.
-                        // Leaving it as NewGuid is probably fine, Blazor just uses it as a key.
-                    }
-                    _pages.Add(pageEntry);
-                }
-            }
-        }
-
-        if (_pages.Count > 0)
-        {
-            // We have a hydrated stack. Set states and trigger restore on the top page.
-            for (int i = 0; i < _pages.Count - 1; i++)
-            {
-                _pages[i].State = PageState.NavigatedFrom;
-            }
-
-            var topPage = _pages[^1];
-            topPage.State = PageState.NavigatingTo;
-            topPage.NavigationType = NavigationType.Restore;
-
-            _isNavigating = true;
-
-            // Render to create the instance
-            await WaitForRenderAsync();
-
-            var args = new NavigationToArgs
-            {
-                Data = topPage.Data,
-                Type = NavigationType.Restore
-            };
-
-            topPage.EnsuredInstance.OnNavigatingTo(args);
-
-            // simulate animation delay
-            await Task.Delay(NavigationAnimationDuration);
-
-            topPage.State = PageState.NavigatedTo;
-            topPage.NavigationType = null;
-            topPage.IsRestored = false; // It has now been visited
-
-            await WaitForRenderAsync();
-
-            _isNavigating = false;
-
-            topPage.EnsuredInstance.OnNavigatedTo(args);
-
-            if (topPage.Instance is INotifyRouteChanged toNotifyRouteChanged)
-            {
-                toNotifyRouteChanged.RouteChanged += OnRouteChanged;
-            }
-
-            if (args.DataConsumed)
-            {
-                topPage.Data = null;
-            }
-
-            Navigated?.Invoke(this, new NavigatedEventArgs(topPage.PageType, AurilaContext.CurrentRoute.Value));
-            return;
-        }
-
-        // Fallback to normal init
-        Type? actualStartPage = StartPage;
-        object? actualStartData = StartData;
-
-        if (currentLocation.IsNotEmpty() && currentLocation != "/")
-        {
-            //try to find a page matching the current location:
-            var routeMatch = routeRegistry.Match(currentLocation, null)
-                ?? routeRegistry.GetFallbackRoute();
-
-            if (routeMatch != null)
-            {
-                actualStartPage = routeMatch.PageType;
-                actualStartData = routeMatch.Data;
-            }
-        }
-
-        if (actualStartPage != null)
-        {
-            if (typeof(IPage).IsAssignableFrom(actualStartPage) == false)
-            {
-                throw new InvalidOperationException("The provided initial page does not implement IPage.");
-            }
-
-            _ = NavigateAsync(actualStartPage, actualStartData);
-        }
-        else
-        {
-            throw new InvalidOperationException("InitialPage must be set.");
-        }
+        await ShowCurrentEntryAsync();
+        await Ledger.ActivateAsync();
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
 
-        if (_shouldWaitForRender && _tcsRender != null && !_tcsRender.Task.IsCompleted)
+        if (_pendingRenders.Count == 0)
         {
-            _tcsRender.SetResult();
-        }
-    }
-
-    void INavigator.Navigate<TPage>(object? data)
-    {
-        _ = NavigateAsync(typeof(TPage), data);
-    }
-
-    void INavigator.Navigate(Type pageType, object? data)
-    {
-        _ = NavigateAsync(pageType, data);
-    }
-
-    void INavigator.Replace<TPage>(object? data)
-    {
-        _ = ReplaceAsync(typeof(TPage), data, null);
-    }
-
-    void INavigator.Replace(Type pageType, object? data)
-    {
-        _ = ReplaceAsync(pageType, data, null);
-    }
-
-    public void GoBack()
-    {
-        _ = GoBackAsync();
-    }
-
-    private async Task NavigateAsync(Type pageType, object? data)
-    {
-        PageEntry toPage = PageEntry.Create(pageType, data, null);
-        PageEntry? fromPage = CurrentPage;
-
-        await PerformNavigation(NavigationType.Push, fromPage, toPage);
-    }
-
-    private async Task ReplaceAsync(Type pageType, object? data, string? route)
-    {
-        PageEntry toPage = PageEntry.Create(pageType, data, route);
-        PageEntry? fromPage = CurrentPage;
-        NavigationType type = fromPage != null ? NavigationType.Replace : NavigationType.Push;
-        await PerformNavigation(type, fromPage, toPage);
-    }
-
-    private async Task GoBackAsync()
-    {
-        if (_pages.Count < 2)
-        {
-            //We still need to call onNavigatingFrom to clean up the current page:
-            var instance = CurrentPage?.Instance;
-
-            if (instance != null)
-            {
-                var args = new NavigationFromArgs
-                {
-                    Data = null,
-                    Type = NavigationType.Pop,
-                    Destination = null
-                };
-
-                await instance.OnNavigatingFromAsync(args);
-
-                if (!args.Cancelled)
-                {
-                    if (StartPage != null && instance.GetType() != StartPage)
-                    {
-                        //Navigate to the default page:
-                        await NavigateAsync(StartPage, null);
-                    }
-                    else
-                    {
-                        //TODO: implement
-                    }
-                }
-            }
-        }
-        else
-        {
-            var toPage = _pages[^2];
-
-            var fromPage = _pages[^1];
-            await PerformNavigation(NavigationType.Pop, fromPage, toPage);
-        }
-    }
-
-    private async Task PerformNavigation(NavigationType type, PageEntry? fromPage, PageEntry toPage)
-    {
-        if (_isNavigating || _navigationQueue.Count > 0)
-        {
-            _navigationQueue.Enqueue(() => PerformNavigationCore(type, fromPage, toPage));
             return;
         }
 
-        await PerformNavigationCore(type, fromPage, toPage);
+        var waiting = _pendingRenders.ToArray();
+        _pendingRenders.Clear();
+
+        foreach (var render in waiting)
+        {
+            render.TrySetResult();
+        }
     }
 
-    private async Task PerformNavigationCore(NavigationType type, PageEntry? fromPage, PageEntry toPage)
+    async Task INavigationDriver.RunAsync(NavigateObservation observation, CancellationToken cancellationToken)
     {
-        _isNavigating = true;
+        await _navigationLock.WaitAsync(CancellationToken.None);
 
-        NavigationFromArgs navigationFromArgs = new()
+        try
         {
-            Data = toPage.Data,
-            Destination = toPage.PageType,
-            Type = type,
-        };
-
-        if (fromPage?.Instance != null)
-        {
-            await fromPage.Instance.OnNavigatingFromAsync(navigationFromArgs);
+            await RunCoreAsync(observation, cancellationToken);
         }
-
-        if (navigationFromArgs.Cancelled)
+        finally
         {
-            _isNavigating = false;
+            _navigationLock.Release();
+        }
+    }
 
-            if (_navigationQueue.TryDequeue(out var cancelledNextNavigation))
-            {
-                _ = cancelledNextNavigation();
-            }
+    private async Task RunCoreAsync(NavigateObservation observation, CancellationToken cancellationToken)
+    {
+        var snapshot = Ledger.Snapshot;
+        var destination = snapshot.Current;
 
+        if (destination is null)
+        {
             return;
         }
 
-        var navToType = (type == NavigationType.Pop && toPage.IsRestored) ? NavigationType.Restore : type;
-        toPage.IsRestored = false;
+        bool leaveConfirmed = _leaveConfirmedFor is { } confirmedFor
+            && string.Equals(confirmedFor, observation.DestinationPath ?? string.Empty, StringComparison.Ordinal);
 
-        NavigationToArgs navigationToArgs = new()
-        {
-            Data = toPage.Data,
-            Type = navToType,
-        };
+        _leaveConfirmedFor = null;
 
-        //add to stack if we're navigating forward, or replacing.
-        if (type is NavigationType.Push or NavigationType.Replace)
+        var toPage = _store.Resolve(destination, StartPage);
+        var intent = ResolveIntent(observation, snapshot, destination, toPage);
+        var fromPage = _current;
+
+        ApplyMemoryState(toPage, TakeMemoryState(observation));
+
+        if (intent == NavIntent.Rebind)
         {
-            _pages.Add(toPage);
+            _current = toPage;
+            toPage.LastShownAt = Interlocked.Increment(ref _shownCounter);
+
+            RefreshParameters(toPage);
+
+            RebuildRenderSet();
+            await WaitForRenderAsync();
+
+            await UpdateGuardAsync();
+
+            Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, toPage.Path));
+            return;
         }
 
-        //apply navigating states:
+        if (_guardArmed && !leaveConfirmed)
+        {
+            await AskToLeaveAsync(new NavigationLeaveContext
+            {
+                Intent = intent,
+                DestinationPath = observation.DestinationPath,
+                CanBlock = false,
+                UserInitiated = observation.UserInitiated
+            });
+        }
+
+        _current = toPage;
+
+        await TransitionAsync(fromPage, toPage, intent, cancellationToken);
+
+        toPage.LastShownAt = Interlocked.Increment(ref _shownCounter);
+        _store.Prune(Ledger.Snapshot, destination.Key, MaxRetainedPages);
+        RebuildRenderSet();
+        await WaitForRenderAsync();
+
+        await UpdateGuardAsync();
+
+        Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, toPage.Path));
+    }
+
+    async ValueTask<bool> INavigationDriver.ConfirmLeaveAsync(NavigateObservation observation)
+    {
+        var intent = observation.ResolveIntent(CurrentIndex(Ledger.Snapshot));
+
+        await PersistStateAsync();
+
+        var context = new NavigationLeaveContext
+        {
+            Intent = intent,
+            DestinationPath = observation.DestinationPath,
+            CanBlock = observation.Cancelable,
+            UserInitiated = observation.UserInitiated
+        };
+
+        bool allowed = await AskToLeaveAsync(context);
+
+        _leaveConfirmedFor = allowed ? observation.DestinationPath ?? string.Empty : null;
+
+        return allowed;
+    }
+
+    private async Task<bool> AskToLeaveAsync(NavigationLeaveContext context)
+    {
+        foreach (var guard in _guards.ToArray())
+        {
+            if (!guard.IsArmed)
+            {
+                continue;
+            }
+
+            bool permitted;
+
+            try
+            {
+                permitted = await guard.CanLeaveAsync(context);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "A navigation guard threw and was treated as permitting the navigation.");
+                continue;
+            }
+
+            if (!permitted && context.CanBlock)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task ShowCurrentEntryAsync()
+    {
+        var snapshot = await Ledger.RefreshAsync();
+        var destination = snapshot.Current;
+
+        if (destination is null)
+        {
+            throw new InvalidOperationException(
+                "The browser reported no current history entry, so there is nothing to show.");
+        }
+
+        var page = _store.Resolve(destination, StartPage);
+
+        page.LastShownAt = Interlocked.Increment(ref _shownCounter);
+        page.State = PageState.NavigatedTo;
+        page.Intent = null;
+
+        _current = page;
+
+        PrepareBinding(page);
+
+        RebuildRenderSet();
+        await WaitForRenderAsync();
+
+        await UpdateGuardAsync();
+
+        Navigated?.Invoke(this, new NavigatedEventArgs(page.PageType, page.Path));
+    }
+
+    private async Task TransitionAsync(
+        PageEntry? fromPage,
+        PageEntry toPage,
+        NavIntent intent,
+        CancellationToken cancellationToken)
+    {
+        bool swapping = fromPage is not null && fromPage != toPage;
+        bool resuming = toPage.Instance is not null;
+
         toPage.State = PageState.NavigatingTo;
-        toPage.NavigationType = navToType;
-        if (fromPage != null)
-        {
-            if (fromPage.Instance is INotifyRouteChanged fromNotifyRouteChanged)
-            {
-                fromNotifyRouteChanged.RouteChanged -= OnRouteChanged;
-            }
+        toPage.Intent = intent;
 
-            fromPage.NavigationType = type;
-            fromPage.State = PageState.NavigatingFrom;
+        if (swapping)
+        {
+            fromPage!.State = PageState.NavigatingFrom;
+            fromPage.Intent = intent;
         }
 
+        PrepareBinding(toPage);
+
+        RebuildRenderSet(fromPage);
         await WaitForRenderAsync();
 
-        //notify the page we are heading to it:
-        toPage.EnsuredInstance.OnNavigatingTo(navigationToArgs);
+        if (resuming && toPage.Instance is AuPage resumed)
+        {
+            resumed.Resume();
+        }
 
-        //delay for the animation to finish:
-        await Task.Delay(NavigationAnimationDuration);
+        try
+        {
+            await Task.Delay(Math.Max(TransitionDuration, 0), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+        }
 
-        //apply navigated states and modify stack:
         toPage.State = PageState.NavigatedTo;
-        toPage.NavigationType = null;
-        if (fromPage != null)
-        {
-            fromPage.NavigationType = null;
-            fromPage.State = PageState.NavigatedFrom;
+        toPage.Intent = null;
 
-            if (type is NavigationType.Pop or NavigationType.Replace)
+        if (swapping)
+        {
+            fromPage!.State = PageState.NavigatedFrom;
+            fromPage.Intent = null;
+
+            if (fromPage.IsRetained && fromPage.Instance is AuPage suspended)
             {
-                _pages.Remove(fromPage);
+                suspended.Suspend();
             }
         }
-
-        await WaitForRenderAsync();
-
-        //if the from page still exists, notify it we just left:
-        if (fromPage?.Instance != null)
-        {
-            fromPage.Instance.OnNavigatedFrom(navigationFromArgs);
-        }
-
-        _isNavigating = false;
-
-        //notify the page we have arrived:
-        toPage.EnsuredInstance.OnNavigatedTo(navigationToArgs);
-
-        await CompleteNavigationAsync(toPage, type);
-
-        if (toPage.Instance is INotifyRouteChanged toNotifyRouteChanged)
-        {
-            toNotifyRouteChanged.RouteChanged += OnRouteChanged;
-        }
-
-        if (navigationToArgs.DataConsumed)
-        {
-            toPage.Data = null;
-        }
-
-        if (_navigationQueue.TryDequeue(out var nextNavigation))
-        {
-            _ = nextNavigation();
-        }
-
-        Navigated?.Invoke(this, new NavigatedEventArgs(toPage.PageType, AurilaContext.CurrentRoute.Value));
     }
 
-    private async Task CompleteNavigationAsync(PageEntry page, NavigationType navigationType)
+    private NavIntent ResolveIntent(
+        NavigateObservation observation,
+        NavSnapshot snapshot,
+        NavEntryRef destination,
+        PageEntry toPage)
     {
-        RouteInfo routeInfo;
+        var intent = observation.ResolveIntent(CurrentIndex(snapshot));
 
-        if (page.Instance is IRoutablePage routablePage)
+        if (_current is null)
         {
-            routeInfo = routablePage.GetRouteInfo();
-        }
-        else if (page.Route != null)
-        {
-            routeInfo = new(page.Route, null);
-        }
-        else
-        {
-            var routeTemplate = routeRegistry.GetRouteTemplate(page.PageType);
-
-            if (routeTemplate != null && !routeTemplate.HasTemplates)
-            {
-                routeInfo = new(routeTemplate.Template, null);
-            }
-            else
-            {
-                routeInfo = new(AurilaContext.CurrentRoute.Value, null);
-            }
+            return intent;
         }
 
-        page.Route = routeInfo.Url;
+        bool sameEntry = string.Equals(_current.EntryKey, destination.Key, StringComparison.Ordinal);
 
-        await AurilaContext.CompleteNavigationAsync(routeInfo, navigationType);
+        return sameEntry && toPage.PageType == _current.PageType ? NavIntent.Rebind : intent;
     }
 
-    private async void OnRouteChanged(object? sender, RouteInfoChangedEventArgs e)
+    private int CurrentIndex(NavSnapshot snapshot)
     {
-        if (sender == CurrentPage?.Instance)
+        if (_current is null)
         {
-            CurrentPage?.Route = e.Info.Url;
-            await AurilaContext.CompleteNavigationAsync(e.Info, NavigationType.UpdateUrl);
+            return snapshot.CurrentIndex;
         }
+
+        for (int i = 0; i < snapshot.Entries.Count; i++)
+        {
+            if (string.Equals(snapshot.Entries[i].Key, _current.EntryKey, StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return snapshot.CurrentIndex;
+    }
+
+    private void RebuildRenderSet(PageEntry? outgoing = null)
+    {
+        _rendered.Clear();
+
+        foreach (var page in _store.Live.OrderBy(p => p.EntryKey, StringComparer.Ordinal))
+        {
+            if (page.IsRetained && page.Instance is not null && page != _current && page != outgoing)
+            {
+                _rendered.Add(page);
+            }
+        }
+
+        if (outgoing is not null && outgoing != _current)
+        {
+            _rendered.Add(outgoing);
+        }
+
+        if (_current is not null)
+        {
+            _rendered.Add(_current);
+        }
+    }
+
+    private void PrepareBinding(PageEntry page)
+    {
+        page.Binding.RouteParameters = page.RouteParameters;
+        page.Binding.Writer = _queryWriter;
+    }
+
+    private void RefreshParameters(PageEntry page)
+    {
+        PrepareBinding(page);
+
+        if (page.Instance is not { } instance)
+        {
+            return;
+        }
+
+        Parameters.RefreshHolders(instance, page.RouteParameters);
+
+        if (instance is AuPage renderable)
+        {
+            renderable.NotifyStateChanged();
+        }
+    }
+
+    private async Task UpdateGuardAsync()
+    {
+        bool armed = _guards.Any(g => g.IsArmed);
+
+        if (armed == _guardArmed)
+        {
+            return;
+        }
+
+        await Ledger.SetGuardArmedAsync(armed);
+
+        _guardArmed = armed;
     }
 
     private async Task WaitForRenderAsync()
     {
-        _tcsRender = new();
-        _shouldWaitForRender = true;
+        var rendered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _pendingRenders.Add(rendered);
 
         await InvokeAsync(StateHasChanged);
+        await rendered.Task;
+    }
 
-        await _tcsRender.Task;
-        _shouldWaitForRender = false;
-        _tcsRender = null;
+    public void Navigate(NavTarget target, object? state = null)
+        => Start(NavigateCoreAsync(target, state, NavHistory.Push));
+
+    public void Navigate<TPage>(object? state = null, object? routeValues = null) where TPage : IPage
+        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), state, NavHistory.Push));
+
+    public void Replace(NavTarget target, object? state = null)
+        => Start(NavigateCoreAsync(target, state, NavHistory.Replace));
+
+    public void Replace<TPage>(object? state = null, object? routeValues = null) where TPage : IPage
+        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), state, NavHistory.Replace));
+
+    public string GetUrl(NavTarget target) => routeGenerator.GetUrl(target);
+
+    public bool TryGetUrl(NavTarget target, out string url) => routeGenerator.TryGetUrl(target, out url);
+
+    public void GoBack() => Start(PersistThen(() => Ledger.BackAsync().AsTask()));
+
+    public void GoForward() => Start(PersistThen(() => Ledger.ForwardAsync().AsTask()));
+
+    public void AddGuard(INavigationGuard guard)
+    {
+        if (!_guards.Contains(guard))
+        {
+            _guards.Add(guard);
+            RefreshGuards();
+        }
+    }
+
+    public void RemoveGuard(INavigationGuard guard)
+    {
+        if (_guards.Remove(guard))
+        {
+            RefreshGuards();
+        }
+    }
+
+    public void RefreshGuards() => Start(UpdateGuardAsync());
+
+    Task INavigationDriver.PersistStateAsync() => PersistStateAsync();
+
+    public async Task PersistStateAsync()
+    {
+        if (_current is not { Instance: not null } entry)
+        {
+            return;
+        }
+
+        if (!string.Equals(Ledger.Snapshot.Current?.Key, entry.EntryKey, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        Dictionary<string, object?> durable;
+
+        try
+        {
+            var (captured, memory) = Parameters.CaptureState(entry.Instance);
+
+            durable = captured;
+
+            foreach (var (key, value) in memory)
+            {
+                entry.MemoryState[key] = value;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Capturing state for {Page} failed.", entry.PageType.Name);
+            return;
+        }
+
+        try
+        {
+            await Ledger.UpdateStateAsync(durable.Count == 0 ? null : durable);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Persisting state for {Page} failed.", entry.PageType.Name);
+        }
+    }
+
+    private static void ApplyMemoryState(PageEntry page, IReadOnlyDictionary<string, object?>? state)
+    {
+        if (state is null)
+        {
+            return;
+        }
+
+        foreach (var (key, value) in state)
+        {
+            page.MemoryState[key] = value;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object?>? TakeMemoryState(NavigateObservation observation)
+        => TakeData(observation) as IReadOnlyDictionary<string, object?>;
+
+    private async Task PersistThen(Func<Task> operation)
+    {
+        await PersistStateAsync();
+        await operation();
+    }
+
+    public void UpdateUrl(string route, NavHistory history = NavHistory.Replace)
+        => Start(GoAsync(route, null, history));
+
+    public void SetQuery(
+        IReadOnlyDictionary<string, string?> parameters,
+        NavHistory history = NavHistory.Replace)
+        => Start(GoAsync(QueryString.Merge(LiveRoute, parameters), null, history, rebind: true));
+
+    public void SetQuery(string name, string? value, NavHistory history = NavHistory.Replace)
+        => SetQuery(new Dictionary<string, string?> { [name] = value }, history);
+
+    private void Start(Task navigation)
+    {
+        _ = navigation.ContinueWith(
+            t => Logger.LogError(t.Exception, "Navigation failed."),
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+    }
+
+    private async Task NavigateCoreAsync(NavTarget target, object? state, NavHistory history)
+    {
+        if (target.IsEmpty)
+        {
+            throw new InvalidOperationException("The navigation target is empty.");
+        }
+
+        if (target.PageType is { } declared && !typeof(IPage).IsAssignableFrom(declared))
+        {
+            throw new InvalidOperationException($"'{declared.FullName}' does not implement {nameof(IPage)}.");
+        }
+
+        string url = routeGenerator.GetUrl(target);
+        var pageType = target.PageType ?? _store.PeekPageType(url, StartPage);
+        var (durable, memory) = Parameters.SplitState(pageType, state);
+
+        if (pageType is not null && typeof(ISingletonPage).IsAssignableFrom(pageType))
+        {
+            var existing = _store.FindEntryForPath(Ledger.Snapshot, url);
+
+            if (existing is not null)
+            {
+                if (string.Equals(existing.Key, _current?.EntryKey, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                await PersistStateAsync();
+
+                var token = StashData(memory);
+                var traversal = await Ledger.TraverseToAsync(existing.Key, token);
+
+                if (!traversal.Committed && !traversal.IsAborted && token is not null)
+                {
+                    _pendingData.Remove(token.AuData);
+                }
+
+                return;
+            }
+        }
+
+        await GoAsync(url, memory, history, durable);
+    }
+
+    private async Task GoAsync(
+        string route,
+        object? memoryState,
+        NavHistory history,
+        Dictionary<string, object?>? durableState = null,
+        bool rebind = false)
+    {
+        await PersistStateAsync();
+
+        var info = StashData(memoryState, rebind);
+
+        var result = await Ledger.NavigateAsync(route, new NavigateOptions
+        {
+            History = history,
+            Info = info,
+            State = MergeWithCurrentState(durableState, history)
+        });
+
+        if (!result.Committed && !result.IsAborted && info is not null)
+        {
+            _pendingData.Remove(info.AuData);
+        }
+    }
+
+    /// <summary>
+    /// A replace keeps the entry, so state it does not mention must be carried across rather than
+    /// dropped.
+    /// </summary>
+    private object? MergeWithCurrentState(Dictionary<string, object?>? durableState, NavHistory history)
+    {
+        if (durableState is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        if (history != NavHistory.Replace
+            || Ledger.Snapshot.Current?.State is not { ValueKind: System.Text.Json.JsonValueKind.Object } existing)
+        {
+            return durableState;
+        }
+
+        var merged = new Dictionary<string, object?>(durableState);
+
+        foreach (var property in existing.EnumerateObject())
+        {
+            if (!merged.ContainsKey(property.Name))
+            {
+                merged[property.Name] = property.Value.Clone();
+            }
+        }
+
+        return merged;
+    }
+
+    private DataToken? StashData(object? data, bool rebind = false)
+    {
+        bool empty = data is null or IReadOnlyDictionary<string, object?> { Count: 0 };
+
+        if (empty && !rebind)
+        {
+            return null;
+        }
+
+        if (empty)
+        {
+            return new DataToken(0, rebind);
+        }
+
+        while (_pendingData.Count >= MaxPendingData)
+        {
+            _pendingData.Remove(_pendingData.Keys.Min());
+        }
+
+        int token = _nextDataToken++;
+        _pendingData[token] = data;
+
+        return new DataToken(token, rebind);
+    }
+
+    private object? TakeData(NavigateObservation observation)
+    {
+        if (observation.Info is not { ValueKind: System.Text.Json.JsonValueKind.Object } info
+            || !info.TryGetProperty("auData", out var property)
+            || !property.TryGetInt32(out int token))
+        {
+            return null;
+        }
+
+        if (!_pendingData.Remove(token, out var data))
+        {
+            return null;
+        }
+
+        return data;
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -430,7 +692,7 @@ public sealed class AuNavHost(
 
                 if (LayoutTemplate != null)
                 {
-                    var context = new NavHostLayoutContext(this, CurrentPage?.PageType, AurilaContext.CurrentRoute.Value, content);
+                    var context = new NavHostLayoutContext(this, CurrentPageType, CurrentRoute, content);
 
                     builder2.OpenComponent<CascadingValue<NavHostLayoutContext>>(4);
                     {
@@ -456,10 +718,11 @@ public sealed class AuNavHost(
         builder.OpenElement(0, "div");
         {
             builder.AddAttribute(1, "class", "nav-host");
-            foreach (var entry in _pages)
+
+            foreach (var entry in _rendered)
             {
                 builder.OpenComponent<PageRenderer>(2);
-                builder.SetKey(entry.Id);
+                builder.SetKey(entry.EntryKey);
                 builder.AddAttribute(3, nameof(PageRenderer.Entry), entry);
                 builder.CloseComponent();
             }
@@ -467,119 +730,29 @@ public sealed class AuNavHost(
         builder.CloseElement();
     }
 
-    public async Task<InterceptionResult> HandleAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_pages.Count == 0)
+        if (ReferenceEquals(Ledger.Driver, this))
         {
-            return InterceptionResult.NotHandled;
+            Ledger.Driver = null;
         }
-        else if (_pages.Count == 1 && _pages[0].PageType == StartPage)
-        {
-            return InterceptionResult.NotHandled;
-        }
-        else
-        {
-            await GoBackAsync();
-            return InterceptionResult.Navigating;
-        }
+
+        _guards.Clear();
+        _pendingData.Clear();
+
+        return ValueTask.CompletedTask;
     }
 
-    public void Navigate(string route)
+    private sealed class DataToken(int token, bool rebind)
     {
-        var routeMatch = routeRegistry.Match(route, null)
-            ?? routeRegistry.GetFallbackRoute();
+        [System.Text.Json.Serialization.JsonPropertyName("auData")]
+        public int AuData { get; } = token;
 
-        if (routeMatch != null)
-        {
-            var pageType = routeMatch.PageType;
-            var data = routeMatch.Data;
-
-            _ = NavigateAsync(pageType, data);
-        }
-    }
-
-    public void Replace(string route)
-    {
-        var routeMatch = routeRegistry.Match(route, null)
-            ?? routeRegistry.GetFallbackRoute();
-
-        if (routeMatch != null)
-        {
-            var pageType = routeMatch.PageType;
-            var data = routeMatch.Data;
-
-            _ = ReplaceAsync(pageType, data, route);
-        }
-    }
-
-    public void UpdateUrl(string route)
-    {
-        if (CurrentPage != null)
-        {
-            CurrentPage.Route = route;
-            _ = AurilaContext.CompleteNavigationAsync(new RouteInfo(route, null), NavigationType.UpdateUrl);
-        }
-    }
-
-    public void UpdateQueryParameters(IReadOnlyDictionary<string, string?> parameters)
-    {
-        var currentRoute = AurilaContext.CurrentRoute.Value;
-        if (string.IsNullOrEmpty(currentRoute)) return;
-
-        var uri = new Uri("http://localhost" + (currentRoute.StartsWith("/") ? currentRoute : "/" + currentRoute));
-        var query = uri.Query;
-        
-        var queryParams = new Dictionary<string, string>();
-        if (!string.IsNullOrEmpty(query))
-        {
-            var parts = query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var part in parts)
-            {
-                var kvp = part.Split('=', 2);
-                if (kvp.Length == 2)
-                {
-                    queryParams[Uri.UnescapeDataString(kvp[0])] = Uri.UnescapeDataString(kvp[1]);
-                }
-                else if (kvp.Length == 1)
-                {
-                    queryParams[Uri.UnescapeDataString(kvp[0])] = string.Empty;
-                }
-            }
-        }
-
-        foreach (var kvp in parameters)
-        {
-            if (kvp.Value == null)
-            {
-                queryParams.Remove(kvp.Key);
-            }
-            else
-            {
-                queryParams[kvp.Key] = kvp.Value;
-            }
-        }
-
-        var newRoute = uri.AbsolutePath;
-        if (queryParams.Count > 0)
-        {
-            var queryString = string.Join("&", queryParams.Select(kvp => 
-                $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
-            newRoute += "?" + queryString;
-        }
-        
-        newRoute += uri.Fragment;
-
-        UpdateUrl(newRoute);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (CurrentPage?.Instance is INotifyRouteChanged notifyRouteChanged)
-        {
-            notifyRouteChanged.RouteChanged -= OnRouteChanged;
-        }
-
-        await AurilaContext.UnregisterReceiverAsync(this);
+        /// <summary>
+        /// Marks a URL change that keeps the page, so the ledger does not hold it back for a guard
+        /// the page would be prompting itself with.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("auRebind")]
+        public bool AuRebind { get; } = rebind;
     }
 }
-

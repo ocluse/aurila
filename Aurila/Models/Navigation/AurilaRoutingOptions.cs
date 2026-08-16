@@ -1,4 +1,4 @@
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Contracts.Navigation;
 
 namespace Aurila.Models.Navigation;
 
@@ -7,15 +7,36 @@ public class AurilaRoutingOptions
     internal List<RouteDefinition> Routes { get; } = [];
     internal RouteDefinition? FallbackRoute { get; set; }
 
-    public void MapRoute<TPage>(string template, Func<RouteParameters, string?, object?>? dataFactory = null) where TPage : IPage
+    /// <summary>
+    /// Maps a URL template to a page.
+    /// </summary>
+    /// <param name="argumentFactory">
+    /// Projects the URL into a typed argument, delivered to the page's <c>[RouteArgument]</c>
+    /// property. Because it reads only the URL, the result is reproduced on every replay.
+    /// </param>
+    public void MapRoute<TPage>(
+        string template,
+        string? name = null,
+        Func<RouteParameters, object?>? argumentFactory = null) where TPage : IPage
     {
-        Routes.Add(new RouteDefinition(typeof(TPage), template, dataFactory));
+        Routes.Add(new RouteDefinition(typeof(TPage), template, name, argumentFactory));
     }
 
-    public void MapFallbackRoute<TPage>(Func<string?, object?>? dataFactory = null) where TPage : IPage
+    public void MapRoute<TPage>(string template, Func<RouteParameters, object?>? argumentFactory)
+        where TPage : IPage
     {
-        FallbackRoute = new RouteDefinition(typeof(TPage), string.Empty, (args, state) => dataFactory?.Invoke(state));
+        Routes.Add(new RouteDefinition(typeof(TPage), template, null, argumentFactory));
+    }
+
+    public void MapFallbackRoute<TPage>(Func<RouteParameters, object?>? argumentFactory = null)
+        where TPage : IPage
+    {
+        FallbackRoute = new RouteDefinition(typeof(TPage), string.Empty, null, argumentFactory);
     }
 }
 
-internal record RouteDefinition(Type PageType, string Template, Func<RouteParameters, string?, object?>? DataFactory);
+internal record RouteDefinition(
+    Type PageType,
+    string Template,
+    string? Name,
+    Func<RouteParameters, object?>? ArgumentFactory);

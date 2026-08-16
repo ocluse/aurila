@@ -1,15 +1,15 @@
-using Aurila.Contracts.Modals;
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Contracts.Modals;
 using Aurila.Design;
-using Aurila.Enums.Navigation;
 
 namespace Aurila.Components.Modals;
 
-public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigationInterceptor, IAsyncDisposable
+public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, IAsyncDisposable
     where TControl : AuModalBase<TControl>
 {
-    [CascadingParameter]
-    public IAurilaContext AurilaContext { get; set; } = null!;
+    [Inject]
+    private AurilaJSInterop JSInterop { get; set; } = null!;
+
+    private CloseRequestWatcher? _closeWatcher;
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -89,7 +89,7 @@ public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigatio
 
         try
         {
-            await AurilaContext.RegisterInterceptorAsync(this);
+            _closeWatcher ??= await CloseRequestWatcher.CreateAsync(JSInterop, HideAsync);
 
             _ctsOpeningAnimation = new();
 
@@ -124,8 +124,7 @@ public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigatio
 
         try
         {
-            //remove from back interception immediately to avoid swallowing rapid double-clicks:
-            await AurilaContext.UnregisterReceiverAsync(this);
+            await DisposeCloseWatcherAsync();
 
             _ctsClosingAnimation = new();
             _isClosing = true;
@@ -176,15 +175,18 @@ public class AuModalBase<TControl> : AuControlBase<TControl>, IModal, INavigatio
     protected virtual async Task PlayOpenAnimationAsync(CancellationToken cancellationToken = default) 
         => await Task.Delay(300, cancellationToken);
 
-    async Task<InterceptionResult> INavigationInterceptor.HandleAsync()
+    private async Task DisposeCloseWatcherAsync()
     {
-        await HideAsync();
-        return InterceptionResult.Handled;
+        if (_closeWatcher is not null)
+        {
+            await _closeWatcher.DisposeAsync();
+            _closeWatcher = null;
+        }
     }
 
     protected virtual async ValueTask DisposeAsyncCore()
     {
-        await AurilaContext.UnregisterReceiverAsync(this);
+        await DisposeCloseWatcherAsync();
     }
 
     public async ValueTask DisposeAsync()

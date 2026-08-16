@@ -1,65 +1,56 @@
 ﻿using Aurila.Contracts.Navigation;
 using Aurila.Enums.Navigation;
+using System.Text.Json;
 
 namespace Aurila.Models.Navigation;
-internal class PageEntry
-{
-    public Guid Id { get; init; } = Guid.NewGuid();
 
-    public bool IsRestored { get; set; }
+internal sealed class PageEntry
+{
+    public required string EntryKey { get; init; }
 
     public required Type PageType { get; init; }
 
-    public required object? Data { get; set; }
+    public required bool IsRetained { get; init; }
 
-    public required bool IsSingleton { get; init; }
+    public required bool IsReusable { get; init; }
 
-    public string? Route { get; set; }
+    public required string Path { get; set; }
+
+    public required RouteParameters RouteParameters { get; set; }
+
+    public JsonElement? EntryState { get; set; }
+
+    public Dictionary<string, object?> Scratch { get; } = [];
+
+    /// <summary>
+    /// When this page was last shown, used to evict the least recently used retained page.
+    /// </summary>
+    public long LastShownAt { get; set; }
+
+    public object? Data { get; set; }
 
     public IPage? Instance { get; set; }
 
-    public IPage EnsuredInstance
-    {
-        get
-        {
-            if (Instance == null)
-            {
-                throw new InvalidOperationException($"Page instance from {Id} is not set.");
-            }
-            return Instance;
-        }
-    }
-
     public PageState State { get; set; } = PageState.None;
 
-    public NavigationType? NavigationType { get; set; }
+    public NavIntent? Intent { get; set; }
 
-    public bool ShouldRender
-    {
-        get
-        {
-            if (State is PageState.None or PageState.NavigatedFrom)
-            {
-                return IsSingleton;
-            }
-            else
-            {
-                return true;
-            }
-        }
-    }
+    public IPage EnsuredInstance => Instance
+        ?? throw new InvalidOperationException($"The page for history entry '{EntryKey}' has not been rendered yet.");
 
-    public static PageEntry Create(Type pageType, object? data, string? route)
+    public static PageEntry Create(NavEntryRef entry, Type pageType, RouteParameters routeParameters)
     {
+        bool singleton = typeof(ISingletonPage).IsAssignableFrom(pageType);
+
         return new PageEntry
         {
+            EntryKey = entry.Key,
             PageType = pageType,
-            Data = data,
-            IsSingleton = typeof(ISingletonPage).IsAssignableFrom(pageType),
-            State = PageState.None,
-            NavigationType = null,
-            Route = route
+            IsRetained = singleton,
+            IsReusable = singleton,
+            Path = entry.Path ?? "/",
+            RouteParameters = routeParameters,
+            EntryState = entry.State
         };
     }
 }
-

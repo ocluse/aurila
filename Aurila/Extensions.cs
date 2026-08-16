@@ -14,6 +14,11 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<AurilaJSInterop>();
         services.TryAddScoped<IImageLoader, DefaultImageLoader>();
         services.TryAddSingleton<IRouteRegistry, RouteRegistry>();
+        services.TryAddSingleton<IRouteGenerator, RouteGenerator>();
+        services.TryAddSingleton<PageParametersCache>();
+
+        services.TryAddScoped<JsNavigationLedger>();
+        services.TryAddScoped<INavigationLedger>(sp => sp.GetRequiredService<JsNavigationLedger>());
         return services;
     }
 

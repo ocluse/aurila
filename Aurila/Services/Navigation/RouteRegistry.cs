@@ -1,4 +1,4 @@
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Contracts.Navigation;
 using Aurila.Models.Navigation;
 using Microsoft.Extensions.Options;
 
@@ -10,11 +10,18 @@ internal sealed class RouteRegistry : IRouteRegistry
 
     private readonly List<(RouteTemplate Template, RouteDefinition Definition)> _routes;
 
+    private readonly Dictionary<string, RouteTemplate> _templatesByText = [];
+
     public RouteRegistry(IOptions<AurilaRoutingOptions> options)
     {
         _options = options.Value;
 
         _routes = [.. _options.Routes.Select(r => (new RouteTemplate(r.Template), r))];
+
+        foreach (var (template, _) in _routes)
+        {
+            _templatesByText.TryAdd(template.Template, template);
+        }
     }
 
     public RouteMatch? Match(string path, string? serializedState)
@@ -40,7 +47,11 @@ internal sealed class RouteRegistry : IRouteRegistry
     {
         ParseUrl(path, out var pathWithoutQuery, out var queryParameters);
 
-        var routeTemplate = new RouteTemplate(template);
+        if (!_templatesByText.TryGetValue(template, out var routeTemplate))
+        {
+            routeTemplate = new RouteTemplate(template);
+            _templatesByText[template] = routeTemplate;
+        }
 
         var parameters = routeTemplate.TryMatch(pathWithoutQuery, out var dict)
             ? dict

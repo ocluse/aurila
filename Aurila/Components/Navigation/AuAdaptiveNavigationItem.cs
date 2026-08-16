@@ -1,8 +1,7 @@
-using Aurila.Components.Controls;
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Components.Controls;
 using Aurila.Design;
 using Aurila.Enums.Navigation;
-using Microsoft.AspNetCore.Components.Web;
+using Aurila.Models.Navigation;
 
 namespace Aurila.Components.Navigation;
 
@@ -12,31 +11,17 @@ public sealed class AuAdaptiveNavigationItem : AuClickableBase<AuAdaptiveNavigat
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public Type? Page { get; set; }
-
-    [Parameter]
-    public string? Route { get; set; }
-
-    [Parameter]
-    public object? Data { get; set; }
-
-    [Parameter]
-    public Func<object?>? GetData { get; set; }
-
-    [Parameter]
-    public bool Replace { get; set; }
-
-    [Parameter]
     public bool? Selected { get; set; }
 
+    /// <summary>
+    /// How the destination is compared with the current route. Falls back to the containing
+    /// navigation's default.
+    /// </summary>
     [Parameter]
-    public ActiveMatch MatchMode { get; set; }
+    public ActiveMatch? MatchMode { get; set; }
 
     [CascadingParameter]
-    public IAurilaContext AurilaContext { get; set; } = null!;
-
-    [CascadingParameter]
-    INavigator Navigator { get; set; } = null!;
+    private AuAdaptiveNavigation? Navigation { get; set; }
 
     protected override void BuildContent(RenderTreeBuilder builder)
     {
@@ -50,43 +35,13 @@ public sealed class AuAdaptiveNavigationItem : AuClickableBase<AuAdaptiveNavigat
             .AddIf(IsSelected(), "au-adaptive-navigation-item--selected");
     }
 
-    protected override Task OnClickedAsync(MouseEventArgs e)
+    protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
-        if (Clicked.HasDelegate)
-        {
-            return Clicked.InvokeAsync(e);
-        }
+        base.BuildAttributes(attributes);
 
-        if (Page != null)
+        if (IsSelected())
         {
-            var payload = ResolveData(e);
-
-            if (Replace)
-            {
-                Navigator.Replace(Page, payload);
-            }
-            else
-            {
-                Navigator.Navigate(Page, payload);
-            }
-        }
-        else if (Route.IsNotEmpty())
-        {
-            Navigator.Navigate(Route);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private object? ResolveData(MouseEventArgs e)
-    {
-        if (GetData != null)
-        {
-            return GetData();
-        }
-        else
-        {
-            return Data;
+            attributes["aria-current"] = "page";
         }
     }
 
@@ -97,33 +52,13 @@ public sealed class AuAdaptiveNavigationItem : AuClickableBase<AuAdaptiveNavigat
             return Selected.Value;
         }
 
-        var currentPageType = Navigator.CurrentPageType;
-        var currentRoute = AurilaContext.CurrentRoute.Value;
-
-        var matchMode = MatchMode;
-        
-
-        if (!string.IsNullOrWhiteSpace(Route) && !string.IsNullOrWhiteSpace(currentRoute))
+        if (Navigator is null || ResolvedUrl is not { } url)
         {
-            if (matchMode == ActiveMatch.Exact)
-            {
-                return string.Equals(currentRoute, Route, StringComparison.OrdinalIgnoreCase);
-            }
-
-            if (currentRoute.Equals(Route, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            var routePrefix = Route!.EndsWith('/') ? Route : $"{Route}/";
-            return currentRoute.StartsWith(routePrefix, StringComparison.OrdinalIgnoreCase);
+            return false;
         }
 
-        if (Page != null && currentPageType != null)
-        {
-            return Page == currentPageType;
-        }
+        var mode = MatchMode ?? Navigation?.DefaultMatchMode ?? ActiveMatch.Prefix;
 
-        return false;
+        return RouteMatching.IsActive(Navigator.CurrentRoute, url, mode);
     }
 }

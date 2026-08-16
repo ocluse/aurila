@@ -1,5 +1,4 @@
-import { AurilaApp } from "./aurila-app";
-import { DotNetObject, ScrollValues } from "./common";
+﻿import { DotNetObject, ScrollValues } from "./common";
 import { ScrollOrientation } from "./enums";
 import { TextField } from "./input/text-field";
 import { PullToRefreshBox } from "./layout/pull-to-refresh-box";
@@ -7,11 +6,19 @@ import { ScrollBox } from "./layout/scroll-box";
 import { HorizontalPager } from "./layout/horizontal-pager";
 import { BottomSheet } from "./modals/bottom-sheet";
 import { AdaptiveNavigationLayoutObserver } from "./navigation/adaptive-navigation";
+import { NavigationLedger } from "./navigation/navigation-ledger";
+import { CloseRequestWatcher } from "./modals/close-watcher";
 
-export function createAurilaApp(
+export function createNavigationLedger(
     dotNetObject: DotNetObject
-): AurilaApp {
-    return new AurilaApp(dotNetObject);
+): NavigationLedger {
+    return new NavigationLedger(dotNetObject);
+}
+
+export function createCloseRequestWatcher(
+    dotNetObject: DotNetObject
+): CloseRequestWatcher {
+    return new CloseRequestWatcher(dotNetObject);
 }
 
 export function createScrollBox(

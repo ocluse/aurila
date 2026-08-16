@@ -195,6 +195,24 @@
     stroke-dasharray: 0 calc(358 * var(--au-1deg)) calc(2 * var(--au-1deg));
   }
 }
+.au-clickable--link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-decoration: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.au-clickable--link:visited {
+  color: inherit;
+}
+
+.au-clickable--disabled {
+  cursor: default;
+}
+
 .au-modal {
   height: 100%;
   width: 100%;

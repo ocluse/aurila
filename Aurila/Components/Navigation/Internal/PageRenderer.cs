@@ -2,10 +2,11 @@
 using Aurila.Design;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
+using Aurila.Services.Navigation;
 
 namespace Aurila.Components.Navigation.Internal;
 
-internal sealed class PageRenderer : ComponentBase, IDisposable
+internal sealed class PageRenderer(PageParametersCache pageParametersCache) : ComponentBase, IDisposable
 {
     [Parameter]
     [EditorRequired]
@@ -13,21 +14,27 @@ internal sealed class PageRenderer : ComponentBase, IDisposable
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        if (Entry.ShouldRender)
-        {
-            //open a div element:
-            builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", GetClass());
-            builder.OpenComponent(2, Entry.PageType);
+        var pageParameters = pageParametersCache.GetAvailableParameters(
+            Entry.PageType,
+            Entry.RouteParameters,
+            Entry.RouteArgument,
+            Entry.EntryState,
+            Entry.MemoryState);
 
-            //add ref:
-            builder.AddComponentReferenceCapture(3, item =>
-            {
-                Entry.Instance = (IPage)item;
-            });
-            builder.CloseComponent();
-            builder.CloseElement();
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", GetClass());
+        builder.OpenComponent(2, Entry.PageType);
+
+        if (pageParameters.Count > 0)
+        {
+            builder.AddMultipleAttributes(3, pageParameters!);
         }
+
+        builder.AddAttribute(4, nameof(PageBindingContext), Entry.Binding);
+        builder.AddComponentReferenceCapture(5, item => Entry.Instance = (IPage)item);
+
+        builder.CloseComponent();
+        builder.CloseElement();
     }
 
     private string GetClass()
@@ -40,17 +47,17 @@ internal sealed class PageRenderer : ComponentBase, IDisposable
             _ => "au-page--inactive"
         };
 
-        string navigationTypeClass = Entry.NavigationType switch
+        string intentClass = Entry.Intent switch
         {
-            NavigationType.Push => "au-page--navigation-push",
-            NavigationType.Pop => "au-page--navigation-pop",
+            NavIntent.Push or NavIntent.Forward => "au-page--navigation-push",
+            NavIntent.Back or NavIntent.Jump => "au-page--navigation-pop",
             _ => string.Empty
         };
 
         return new ClassBuilder()
             .Add("au-page")
             .Add(stateClass)
-            .Add(navigationTypeClass)
+            .Add(intentClass)
             .ToString();
     }
 
@@ -59,4 +66,3 @@ internal sealed class PageRenderer : ComponentBase, IDisposable
         Entry.Instance = null;
     }
 }
-

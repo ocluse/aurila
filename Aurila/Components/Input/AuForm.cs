@@ -107,14 +107,22 @@ public class AuForm : ComponentBase, IForm
         try
         {
             List<ValidationResult> validationResults = [];
-            
-            foreach(var validatable in _valItems)
-            {
-                var validationResult = await validatable.InvokeValidate();
-                validationResults.Add(validationResult);
-            }
+            bool valid = true;
 
-            bool valid = validationResults.All(r => r.IsValid);
+            foreach (var validatable in _valItems)
+            {
+                if (await validatable.InvokeValidate())
+                {
+                    continue;
+                }
+
+                valid = false;
+
+                if (validatable is IInputComponent { Validation: { } validation })
+                {
+                    validationResults.Add(validation);
+                }
+            }
 
             if (valid)
             {

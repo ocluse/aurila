@@ -17,11 +17,11 @@ public class CompositeAppearance<T> : IBuildingAppearance<T>
     {
         foreach (var appearance in _appearances)
         {
-            if(appearance is IBuildingAppearance<T> buildingAppearance)
+            if (appearance is IBuildingAppearance<T> buildingAppearance)
             {
                 buildingAppearance.BuildClass(control, builder);
             }
-            else if(appearance is IStaticAppearance<T> staticAppearance)
+            else if (appearance is IStaticAppearance<T> staticAppearance)
             {
                 builder.Add(staticAppearance.Class);
             }
@@ -42,24 +42,11 @@ public class CompositeAppearance<T> : IBuildingAppearance<T>
             }
             else if (appearance is IStaticAppearance<T> staticAppearance)
             {
-                string? style = staticAppearance.Style;
+                var styles = StylingUtility.GetStyles(staticAppearance.Style);
 
-                if (style.IsNotWhiteSpace())
+                foreach (var style in styles)
                 {
-                    string[] tokens = style.Split(';', StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var token in tokens)
-                    {
-                        var styleParts = token.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);
-                        if (styleParts.Length != 2)
-                        {
-                            continue; // Skip invalid style tokens
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(token))
-                        {
-                            builder.Add(styleParts[1], styleParts[2]);
-                        }
-                    }
+                    builder.Add(style.Key, style.Value);
                 }
             }
             else

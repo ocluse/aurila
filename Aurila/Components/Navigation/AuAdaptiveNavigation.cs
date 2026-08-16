@@ -1,4 +1,4 @@
-using Aurila.Contracts.Navigation;
+﻿using Aurila.Contracts.Navigation;
 using Aurila.Design;
 using Aurila.Enums.Navigation;
 using Aurila.Models.Navigation;
@@ -12,9 +12,6 @@ public sealed class AuAdaptiveNavigation : AuControlBase<AuAdaptiveNavigation>, 
 
     [Parameter]
     public ActiveMatch DefaultMatchMode { get; set; } = ActiveMatch.Prefix;
-
-    [Parameter]
-    public Func<AdaptiveNavigationItemContext, object?>? GetData { get; set; }
 
     [CascadingParameter]
     public NavHostLayoutContext? LayoutContext { get; set; }

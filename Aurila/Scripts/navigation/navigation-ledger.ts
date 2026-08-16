@@ -226,7 +226,7 @@ export class NavigationLedger {
             return;
         }
 
-        if (this.guardArmed && !this.isReplay(event)) {
+        if (this.guardArmed && !this.isReplay(event) && !this.isRebind(event)) {
             if (event.cancelable) {
                 event.preventDefault();
                 void this.confirmThenReplay(event);
@@ -296,6 +296,16 @@ export class NavigationLedger {
                     info);
                 return;
         }
+    }
+
+    /**
+     * A URL change that keeps the page on screen. The page is not being left, so holding it back to
+     * ask a guard would mean prompting the user about their own filter change.
+     */
+    private isRebind(event: NavigateEvent): boolean {
+        return typeof event.info === "object"
+            && event.info !== null
+            && (event.info as Record<string, unknown>)["auRebind"] === true;
     }
 
     private isReplay(event: NavigateEvent): boolean {

@@ -65,7 +65,7 @@ internal class FieldRenderingUtility
                     {
                         BuildFieldHeader(builder, field, headerStyle);
                     }
-                    builder.CloseElement();
+                    builder.CloseRegion();
                 }
 
                 if (field.Suffix != null)

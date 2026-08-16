@@ -14,17 +14,24 @@ internal sealed class PageRenderer(PageParametersCache pageParametersCache) : Co
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var pageParameters = pageParametersCache.GetAvailableParameters(Entry.PageType, Entry.RouteParameters);
+        var pageParameters = pageParametersCache.GetAvailableParameters(
+            Entry.PageType,
+            Entry.RouteParameters,
+            Entry.RouteArgument,
+            Entry.EntryState,
+            Entry.MemoryState);
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", GetClass());
         builder.OpenComponent(2, Entry.PageType);
-        builder.AddComponentReferenceCapture(3, item => Entry.Instance = (IPage)item);
 
         if (pageParameters.Count > 0)
         {
-            builder.AddMultipleAttributes(4, pageParameters!);
+            builder.AddMultipleAttributes(3, pageParameters!);
         }
+
+        builder.AddAttribute(4, nameof(PageBindingContext), Entry.Binding);
+        builder.AddComponentReferenceCapture(5, item => Entry.Instance = (IPage)item);
 
         builder.CloseComponent();
         builder.CloseElement();

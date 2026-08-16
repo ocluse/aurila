@@ -24,7 +24,7 @@ internal sealed class RouteRegistry : IRouteRegistry
         }
     }
 
-    public RouteMatch? Match(string path, string? serializedState)
+    public RouteMatch? Match(string path)
     {
         ParseUrl(path, out var pathWithoutQuery, out var queryParameters);
 
@@ -32,11 +32,10 @@ internal sealed class RouteRegistry : IRouteRegistry
         {
             if (template.TryMatch(pathWithoutQuery, out var parameters))
             {
-                var data = route.DataFactory?.Invoke(
-                    new RouteParameters(parameters, queryParameters),
-                    serializedState);
+                var argument = route.ArgumentFactory?.Invoke(
+                    new RouteParameters(parameters, queryParameters));
 
-                return new RouteMatch(route.PageType, data);
+                return new RouteMatch(route.PageType, argument);
             }
         }
 
@@ -47,15 +46,21 @@ internal sealed class RouteRegistry : IRouteRegistry
     {
         ParseUrl(path, out var pathWithoutQuery, out var queryParameters);
 
-        if (!_templatesByText.TryGetValue(template, out var routeTemplate))
-        {
-            routeTemplate = new RouteTemplate(template);
-            _templatesByText[template] = routeTemplate;
-        }
+        Dictionary<string, string> parameters = new(StringComparer.OrdinalIgnoreCase);
 
-        var parameters = routeTemplate.TryMatch(pathWithoutQuery, out var dict)
-            ? dict
-            : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrEmpty(template))
+        {
+            if (!_templatesByText.TryGetValue(template, out var routeTemplate))
+            {
+                routeTemplate = new RouteTemplate(template);
+                _templatesByText[template] = routeTemplate;
+            }
+
+            if (routeTemplate.TryMatch(pathWithoutQuery, out var matched))
+            {
+                parameters = matched;
+            }
+        }
 
         return new RouteParameters(parameters, queryParameters);
     }
@@ -70,11 +75,10 @@ internal sealed class RouteRegistry : IRouteRegistry
     {
         if (_options.FallbackRoute == null) return null;
 
-        var data = _options.FallbackRoute.DataFactory?.Invoke(
-            new RouteParameters(new Dictionary<string, string>(), new Dictionary<string, string>()),
-            null);
+        var argument = _options.FallbackRoute.ArgumentFactory?.Invoke(
+            new RouteParameters(new Dictionary<string, string>(), new Dictionary<string, string>()));
 
-        return new RouteMatch(_options.FallbackRoute.PageType, data);
+        return new RouteMatch(_options.FallbackRoute.PageType, argument);
     }
 
     private static void ParseUrl(

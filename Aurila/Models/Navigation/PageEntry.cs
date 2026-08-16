@@ -12,22 +12,31 @@ internal sealed class PageEntry
 
     public required bool IsRetained { get; init; }
 
-    public required bool IsReusable { get; init; }
-
     public required string Path { get; set; }
 
     public required RouteParameters RouteParameters { get; set; }
 
+    /// <summary>
+    /// Handed to the page so it can bind its own two-way query parameters as it initialises.
+    /// </summary>
+    public PageBindingContext Binding { get; } = new() { RouteParameters = RouteParameters.Empty };
+
     public JsonElement? EntryState { get; set; }
 
-    public Dictionary<string, object?> Scratch { get; } = [];
+    /// <summary>
+    /// State kept in memory alongside this entry, for values that are not serialized onto it.
+    /// </summary>
+    public Dictionary<string, object?> MemoryState { get; } = [];
+
+    /// <summary>
+    /// The typed argument produced by the route's factory from this entry's URL.
+    /// </summary>
+    public object? RouteArgument { get; set; }
 
     /// <summary>
     /// When this page was last shown, used to evict the least recently used retained page.
     /// </summary>
     public long LastShownAt { get; set; }
-
-    public object? Data { get; set; }
 
     public IPage? Instance { get; set; }
 
@@ -38,7 +47,11 @@ internal sealed class PageEntry
     public IPage EnsuredInstance => Instance
         ?? throw new InvalidOperationException($"The page for history entry '{EntryKey}' has not been rendered yet.");
 
-    public static PageEntry Create(NavEntryRef entry, Type pageType, RouteParameters routeParameters)
+    public static PageEntry Create(
+        NavEntryRef entry,
+        Type pageType,
+        RouteParameters routeParameters,
+        object? routeArgument)
     {
         bool singleton = typeof(ISingletonPage).IsAssignableFrom(pageType);
 
@@ -47,9 +60,9 @@ internal sealed class PageEntry
             EntryKey = entry.Key,
             PageType = pageType,
             IsRetained = singleton,
-            IsReusable = singleton,
             Path = entry.Path ?? "/",
             RouteParameters = routeParameters,
+            RouteArgument = routeArgument,
             EntryState = entry.State
         };
     }

@@ -1,15 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<RootNamespace>Aurila</RootNamespace>
+		<RootNamespace>Aurila.Material</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>0.0.1-preview5.2</Version>
+		<Version>0.0.1-preview1.0</Version>
 		<Authors>Ocluse,Thismaker,PhyTensor</Authors>
 		<PackageOutputPath>..\build</PackageOutputPath>
-		<Description>A Blazor UI libray meant for a simple yet flexible UI/UX development.</Description>
+		<Description>A Material 3 appearance provider for Aurila. Install it for a complete, themeable Material Design look with no styling work.</Description>
 		<RepositoryUrl>https://github.com/ocluse/aurila</RepositoryUrl>
 		<Copyright>© Ocluse</Copyright>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,24 +17,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Remove="compilerconfig.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="compilerconfig.json" />
-	</ItemGroup>
-	
-	<ItemGroup>
 		<SupportedPlatform Include="browser" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Aurila.Tests" />
+		<InternalsVisibleTo Include="Aurila.Material.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.7" />
-		<PackageReference Include="Ocluse.LiquidSnow.Core" Version="0.6.5-preview8.2" />
+		<ProjectReference Include="..\Aurila\Aurila.csproj" />
 	</ItemGroup>
 
 </Project>

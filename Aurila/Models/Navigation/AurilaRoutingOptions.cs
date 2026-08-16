@@ -7,17 +7,25 @@ public class AurilaRoutingOptions
     internal List<RouteDefinition> Routes { get; } = [];
     internal RouteDefinition? FallbackRoute { get; set; }
 
+    /// <summary>
+    /// Maps a URL template to a page.
+    /// </summary>
+    /// <param name="argumentFactory">
+    /// Projects the URL into a typed argument, delivered to the page's <c>[RouteArgument]</c>
+    /// property. Because it reads only the URL, the result is reproduced on every replay.
+    /// </param>
     public void MapRoute<TPage>(
         string template,
         string? name = null,
-        Func<RouteParameters, string?, object?>? dataFactory = null) where TPage : IPage
+        Func<RouteParameters, object?>? argumentFactory = null) where TPage : IPage
     {
-        Routes.Add(new RouteDefinition(typeof(TPage), template, name, dataFactory));
+        Routes.Add(new RouteDefinition(typeof(TPage), template, name, argumentFactory));
     }
 
-    public void MapFallbackRoute<TPage>(Func<string?, object?>? dataFactory = null) where TPage : IPage
+    public void MapFallbackRoute<TPage>(Func<RouteParameters, object?>? argumentFactory = null)
+        where TPage : IPage
     {
-        FallbackRoute = new RouteDefinition(typeof(TPage), string.Empty, null, (args, state) => dataFactory?.Invoke(state));
+        FallbackRoute = new RouteDefinition(typeof(TPage), string.Empty, null, argumentFactory);
     }
 }
 
@@ -25,4 +33,4 @@ internal record RouteDefinition(
     Type PageType,
     string Template,
     string? Name,
-    Func<RouteParameters, string?, object?>? DataFactory);
+    Func<RouteParameters, object?>? ArgumentFactory);

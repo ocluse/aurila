@@ -15,6 +15,7 @@ internal sealed class QueryWriter(Func<IReadOnlyDictionary<string, string?>, Nav
     : IQueryParamWriter
 {
     private readonly Dictionary<string, string?> _pending = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Lock _gate = new();
 
     private Task _inFlight = Task.CompletedTask;
     private NavHistory _history = NavHistory.Replace;
@@ -22,19 +23,22 @@ internal sealed class QueryWriter(Func<IReadOnlyDictionary<string, string?>, Nav
 
     public void Write(string name, string? value, NavHistory history)
     {
-        _pending[name] = value;
-
-        if (history == NavHistory.Push)
+        lock (_gate)
         {
-            _history = NavHistory.Push;
-        }
+            _pending[name] = value;
 
-        if (_flushScheduled)
-        {
-            return;
-        }
+            if (history == NavHistory.Push)
+            {
+                _history = NavHistory.Push;
+            }
 
-        _flushScheduled = true;
+            if (_flushScheduled)
+            {
+                return;
+            }
+
+            _flushScheduled = true;
+        }
 
         _ = FlushAsync();
     }
@@ -53,18 +57,24 @@ internal sealed class QueryWriter(Func<IReadOnlyDictionary<string, string?>, Nav
         {
         }
 
-        _flushScheduled = false;
+        Dictionary<string, string?> batch;
+        NavHistory history;
 
-        if (_pending.Count == 0)
+        lock (_gate)
         {
-            return;
+            _flushScheduled = false;
+
+            if (_pending.Count == 0)
+            {
+                return;
+            }
+
+            batch = new Dictionary<string, string?>(_pending, StringComparer.OrdinalIgnoreCase);
+            history = _history;
+
+            _pending.Clear();
+            _history = NavHistory.Replace;
         }
-
-        var batch = new Dictionary<string, string?>(_pending, StringComparer.OrdinalIgnoreCase);
-        var history = _history;
-
-        _pending.Clear();
-        _history = NavHistory.Replace;
 
         _inFlight = commit(batch, history);
 

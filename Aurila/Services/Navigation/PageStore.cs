@@ -26,7 +26,7 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
     /// <summary>
     /// The page a URL would resolve to, without creating anything.
     /// </summary>
-    public Type? PeekPageType(string path) => ResolvePageType(path, null);
+    public Type? PeekPageType(string path, Type? startPage = null) => ResolvePageType(path, startPage);
 
     public PageEntry? Find(string entryKey)
         => _live.TryGetValue(entryKey, out var entry) ? entry : null;
@@ -39,6 +39,8 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
     {
         string path = entry.Path ?? "/";
 
+        var match = routeRegistry.Match(path);
+
         if (_live.TryGetValue(entry.Key, out var existing))
         {
             if (string.Equals(existing.Path, path, StringComparison.OrdinalIgnoreCase))
@@ -47,11 +49,12 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
                 return existing;
             }
 
-            if (ResolvePageType(path, fallbackPageType) == existing.PageType)
+            if (match?.PageType == existing.PageType)
             {
                 existing.Path = path;
                 existing.EntryState = entry.State;
                 existing.RouteParameters = ParseParameters(existing.PageType, path);
+                existing.RouteArgument = match.Argument;
                 return existing;
             }
         }
@@ -61,7 +64,7 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
                 $"No page is mapped to '{path}' and no fallback route is configured. " +
                 "Map one with MapFallbackRoute<TPage>().");
 
-        var created = PageEntry.Create(entry, pageType, ParseParameters(pageType, path));
+        var created = PageEntry.Create(entry, pageType, ParseParameters(pageType, path), match?.Argument);
 
         _live[entry.Key] = created;
 
@@ -150,7 +153,7 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
     private void Evict(string key, PageEntry entry)
     {
         entry.Instance = null;
-        entry.Scratch.Clear();
+        entry.MemoryState.Clear();
         _live.Remove(key);
     }
 
@@ -160,7 +163,7 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
 
         if (!_pageTypeByPath.TryGetValue(cacheKey, out var pageType))
         {
-            pageType = routeRegistry.Match(path, null)?.PageType;
+            pageType = routeRegistry.Match(path)?.PageType;
 
             if (_pageTypeByPath.Count >= MaxCachedPaths)
             {
@@ -199,8 +202,6 @@ internal sealed class PageStore(IRouteRegistry routeRegistry)
     {
         var template = routeRegistry.GetRouteTemplate(pageType);
 
-        return template is null
-            ? RouteParameters.Empty
-            : routeRegistry.ParseRouteParameters(path, template.Template);
+        return routeRegistry.ParseRouteParameters(path, template?.Template ?? string.Empty);
     }
 }

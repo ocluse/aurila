@@ -23,13 +23,21 @@ public interface INavigator
 
     bool CanGoForward { get; }
 
-    void Navigate(NavTarget target, object? data = null);
+    /// <summary>
+    /// Navigates to a target, optionally handing the destination page a value for one of its
+    /// <c>[NavigationState]</c> properties.
+    /// </summary>
+    /// <param name="state">
+    /// Matched to a state property by type. Whether it is serialized onto the entry or kept in
+    /// memory is decided by that property's declared scope, not here.
+    /// </param>
+    void Navigate(NavTarget target, object? state = null);
 
-    void Navigate<TPage>(object? data = null, object? routeValues = null) where TPage : IPage;
+    void Navigate<TPage>(object? state = null, object? routeValues = null) where TPage : IPage;
 
-    void Replace(NavTarget target, object? data = null);
+    void Replace(NavTarget target, object? state = null);
 
-    void Replace<TPage>(object? data = null, object? routeValues = null) where TPage : IPage;
+    void Replace<TPage>(object? state = null, object? routeValues = null) where TPage : IPage;
 
     /// <summary>
     /// Resolves a target to the URL it would navigate to, for use as an anchor's <c>href</c>.

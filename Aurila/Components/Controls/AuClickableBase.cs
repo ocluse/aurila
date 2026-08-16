@@ -42,17 +42,19 @@ public abstract class AuClickableBase<TControl> : AuFormControlBase<TControl>, I
     public bool Replace { get; set; }
 
     /// <summary>
-    /// An ephemeral payload handed to the destination page. It is absent when the user later
-    /// traverses back to the entry, so it may only save the page work, never determine what it shows.
+    /// A value for one of the destination page's <c>[NavigationState]</c> properties, matched by type.
     /// </summary>
+    /// <remarks>
+    /// A page should be able to work without this, as a URL can only carry a limited string.
+    /// </remarks>
     [Parameter]
-    public object? Data { get; set; }
+    public object? State { get; set; }
 
     /// <summary>
-    /// Produces <see cref="Data"/> at click time, for payloads that are expensive or that change.
+    /// Produces <see cref="State"/> at click time, for values that are expensive or that change.
     /// </summary>
     [Parameter]
-    public Func<object?>? GetData { get; set; }
+    public Func<object?>? GetState { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> Clicked { get; set; }
@@ -137,15 +139,15 @@ public abstract class AuClickableBase<TControl> : AuFormControlBase<TControl>, I
             return;
         }
 
-        object? data = GetData is not null ? GetData() : Data;
+        object? state = GetState is not null ? GetState() : State;
 
         if (Replace)
         {
-            Navigator.Replace(To, data);
+            Navigator.Replace(To, state);
         }
         else
         {
-            Navigator.Navigate(To, data);
+            Navigator.Navigate(To, state);
         }
     }
 
@@ -172,10 +174,7 @@ public abstract class AuClickableBase<TControl> : AuFormControlBase<TControl>, I
 
         builder.Add("au-clickable");
         builder.AddIf(RendersAsLink, "au-clickable--link");
-        
         BuildControlClass(builder);
-
-        //disabled class applied last so that it can override other classes if necessary
         builder.AddIf(Disabled, "au-clickable--disabled");
     }
 

@@ -68,7 +68,7 @@ public sealed class QueryParam<T> : IQueryParam
 
     public override string? ToString() => _value?.ToString();
 
-    void IQueryParam.Bind(string name, IQueryParamWriter writer)
+    void IQueryParam.Bind(string name, IQueryParamWriter? writer)
     {
         _name = name;
         _writer = writer;
@@ -76,7 +76,9 @@ public sealed class QueryParam<T> : IQueryParam
 
     void IQueryParam.ReadFrom(RouteParameters parameters)
     {
-        T? incoming = parameters.TryGet<T>(_name, out var parsed) ? parsed : Default;
+        T? incoming = parameters.TryGetFromQuery(typeof(T), _name, out var parsed) && parsed is T typed
+            ? typed
+            : Default;
 
         if (_comparer.Equals(_value, incoming))
         {
@@ -93,7 +95,7 @@ public sealed class QueryParam<T> : IQueryParam
 
 internal interface IQueryParam
 {
-    void Bind(string name, IQueryParamWriter writer);
+    void Bind(string name, IQueryParamWriter? writer);
 
     void ReadFrom(RouteParameters parameters);
 }

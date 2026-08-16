@@ -1,3 +1,3 @@
-namespace Aurila.Models.Navigation;
+﻿namespace Aurila.Models.Navigation;
 
-public record RouteMatch(Type PageType, object? Data);
+public record RouteMatch(Type PageType, object? Argument);

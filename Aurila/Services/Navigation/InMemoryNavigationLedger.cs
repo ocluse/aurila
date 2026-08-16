@@ -163,8 +163,10 @@ public sealed class InMemoryNavigationLedger : INavigationLedger
 
     private string NextId() => $"id-{_nextId++}";
 
+    private static readonly JsonSerializerOptions _stateOptions = new(JsonSerializerDefaults.Web);
+
     private static JsonElement? Serialize(object? state)
-        => state is null ? null : JsonSerializer.SerializeToElement(state);
+        => state is null ? null : JsonSerializer.SerializeToElement(state, _stateOptions);
 
     private void Publish()
     {

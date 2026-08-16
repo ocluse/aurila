@@ -135,7 +135,8 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         var toPage = _store.Resolve(destination, StartPage);
         var intent = ResolveIntent(observation, snapshot, destination, toPage);
         var fromPage = _current;
-        var data = TakeData(observation);
+
+        ApplyMemoryState(toPage, TakeMemoryState(observation));
 
         if (intent == NavIntent.Rebind)
         {
@@ -153,12 +154,6 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             return;
         }
 
-        var fromArgs = new NavigationFromArgs
-        {
-            Intent = intent,
-            Destination = toPage.PageType
-        };
-
         if (_guardArmed && !leaveConfirmed)
         {
             await AskToLeaveAsync(new NavigationLeaveContext
@@ -170,16 +165,9 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             });
         }
 
-        var toArgs = new NavigationToArgs
-        {
-            Intent = intent,
-            Data = data,
-            State = toPage.EntryState
-        };
-
         _current = toPage;
 
-        await TransitionAsync(fromPage, toPage, intent, fromArgs, toArgs, cancellationToken);
+        await TransitionAsync(fromPage, toPage, intent, cancellationToken);
 
         toPage.LastShownAt = Interlocked.Increment(ref _shownCounter);
         _store.Prune(Ledger.Snapshot, destination.Key, MaxRetainedPages);
@@ -239,20 +227,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             }
         }
 
-        if (_current?.Instance is not { } instance)
-        {
-            return true;
-        }
-
-        var args = new NavigationFromArgs
-        {
-            Intent = context.Intent,
-            Destination = null
-        };
-
-        await instance.OnNavigatingFromAsync(args);
-
-        return !(args.Cancelled && context.CanBlock);
+        return true;
     }
 
     private async Task ShowCurrentEntryAsync()
@@ -274,20 +249,10 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
         _current = page;
 
+        PrepareBinding(page);
+
         RebuildRenderSet();
         await WaitForRenderAsync();
-
-        BindParameters(page);
-
-        var args = new NavigationToArgs
-        {
-            Intent = NavIntent.Reload,
-            Data = null,
-            State = page.EntryState
-        };
-
-        page.EnsuredInstance.OnNavigatingTo(args);
-        page.EnsuredInstance.OnNavigatedTo(args);
 
         await UpdateGuardAsync();
 
@@ -298,11 +263,10 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         PageEntry? fromPage,
         PageEntry toPage,
         NavIntent intent,
-        NavigationFromArgs fromArgs,
-        NavigationToArgs toArgs,
         CancellationToken cancellationToken)
     {
         bool swapping = fromPage is not null && fromPage != toPage;
+        bool resuming = toPage.Instance is not null;
 
         toPage.State = PageState.NavigatingTo;
         toPage.Intent = intent;
@@ -313,12 +277,15 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             fromPage.Intent = intent;
         }
 
+        PrepareBinding(toPage);
+
         RebuildRenderSet(fromPage);
         await WaitForRenderAsync();
 
-        BindParameters(toPage);
-
-        toPage.EnsuredInstance.OnNavigatingTo(toArgs);
+        if (resuming && toPage.Instance is AuPage resumed)
+        {
+            resumed.Resume();
+        }
 
         try
         {
@@ -335,10 +302,12 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         {
             fromPage!.State = PageState.NavigatedFrom;
             fromPage.Intent = null;
-            fromPage.Instance?.OnNavigatedFrom(fromArgs);
-        }
 
-        toPage.EnsuredInstance.OnNavigatedTo(toArgs);
+            if (fromPage.IsRetained && fromPage.Instance is AuPage suspended)
+            {
+                suspended.Suspend();
+            }
+        }
     }
 
     private NavIntent ResolveIntent(
@@ -383,7 +352,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
         foreach (var page in _store.Live.OrderBy(p => p.EntryKey, StringComparer.Ordinal))
         {
-            if (page.IsRetained && page != _current && page != outgoing)
+            if (page.IsRetained && page.Instance is not null && page != _current && page != outgoing)
             {
                 _rendered.Add(page);
             }
@@ -400,26 +369,16 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         }
     }
 
-    private void BindParameters(PageEntry page)
+    private void PrepareBinding(PageEntry page)
     {
-        if (page.Instance is not { } instance)
-        {
-            return;
-        }
-
-        if (_queryWriter is not null)
-        {
-            Parameters.BindHolders(instance, page.RouteParameters, _queryWriter);
-        }
-
-        if (instance is AuPage typed)
-        {
-            typed.AttachScratch(page.Scratch);
-        }
+        page.Binding.RouteParameters = page.RouteParameters;
+        page.Binding.Writer = _queryWriter;
     }
 
     private void RefreshParameters(PageEntry page)
     {
+        PrepareBinding(page);
+
         if (page.Instance is not { } instance)
         {
             return;
@@ -435,8 +394,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
     private async Task UpdateGuardAsync()
     {
-        bool armed = _guards.Any(g => g.IsArmed)
-            || (_current is not null && PageCapabilities.MayBlockNavigation(_current.PageType));
+        bool armed = _guards.Any(g => g.IsArmed);
 
         if (armed == _guardArmed)
         {
@@ -458,17 +416,17 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         await rendered.Task;
     }
 
-    public void Navigate(NavTarget target, object? data = null)
-        => Start(NavigateCoreAsync(target, data, NavHistory.Push));
+    public void Navigate(NavTarget target, object? state = null)
+        => Start(NavigateCoreAsync(target, state, NavHistory.Push));
 
-    public void Navigate<TPage>(object? data = null, object? routeValues = null) where TPage : IPage
-        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), data, NavHistory.Push));
+    public void Navigate<TPage>(object? state = null, object? routeValues = null) where TPage : IPage
+        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), state, NavHistory.Push));
 
-    public void Replace(NavTarget target, object? data = null)
-        => Start(NavigateCoreAsync(target, data, NavHistory.Replace));
+    public void Replace(NavTarget target, object? state = null)
+        => Start(NavigateCoreAsync(target, state, NavHistory.Replace));
 
-    public void Replace<TPage>(object? data = null, object? routeValues = null) where TPage : IPage
-        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), data, NavHistory.Replace));
+    public void Replace<TPage>(object? state = null, object? routeValues = null) where TPage : IPage
+        => Start(NavigateCoreAsync(NavTarget.To<TPage>(routeValues), state, NavHistory.Replace));
 
     public string GetUrl(NavTarget target) => routeGenerator.GetUrl(target);
 
@@ -501,7 +459,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
     public async Task PersistStateAsync()
     {
-        if (_current is not { Instance: AuPage page } entry)
+        if (_current is not { Instance: not null } entry)
         {
             return;
         }
@@ -511,11 +469,18 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             return;
         }
 
-        object? state;
+        Dictionary<string, object?> durable;
 
         try
         {
-            state = page.CaptureStateForHost();
+            var (captured, memory) = Parameters.CaptureState(entry.Instance);
+
+            durable = captured;
+
+            foreach (var (key, value) in memory)
+            {
+                entry.MemoryState[key] = value;
+            }
         }
         catch (Exception ex)
         {
@@ -525,13 +490,29 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
         try
         {
-            await Ledger.UpdateStateAsync(state);
+            await Ledger.UpdateStateAsync(durable.Count == 0 ? null : durable);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Persisting state for {Page} failed.", entry.PageType.Name);
         }
     }
+
+    private static void ApplyMemoryState(PageEntry page, IReadOnlyDictionary<string, object?>? state)
+    {
+        if (state is null)
+        {
+            return;
+        }
+
+        foreach (var (key, value) in state)
+        {
+            page.MemoryState[key] = value;
+        }
+    }
+
+    private IReadOnlyDictionary<string, object?>? TakeMemoryState(NavigateObservation observation)
+        => TakeData(observation) as IReadOnlyDictionary<string, object?>;
 
     private async Task PersistThen(Func<Task> operation)
     {
@@ -545,7 +526,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
     public void SetQuery(
         IReadOnlyDictionary<string, string?> parameters,
         NavHistory history = NavHistory.Replace)
-        => Start(GoAsync(QueryString.Merge(LiveRoute, parameters), null, history));
+        => Start(GoAsync(QueryString.Merge(LiveRoute, parameters), null, history, rebind: true));
 
     public void SetQuery(string name, string? value, NavHistory history = NavHistory.Replace)
         => SetQuery(new Dictionary<string, string?> { [name] = value }, history);
@@ -559,7 +540,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             TaskScheduler.Default);
     }
 
-    private async Task NavigateCoreAsync(NavTarget target, object? data, NavHistory history)
+    private async Task NavigateCoreAsync(NavTarget target, object? state, NavHistory history)
     {
         if (target.IsEmpty)
         {
@@ -572,7 +553,8 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         }
 
         string url = routeGenerator.GetUrl(target);
-        var pageType = target.PageType ?? _store.PeekPageType(url);
+        var pageType = target.PageType ?? _store.PeekPageType(url, StartPage);
+        var (durable, memory) = Parameters.SplitState(pageType, state);
 
         if (pageType is not null && typeof(ISingletonPage).IsAssignableFrom(pageType))
         {
@@ -587,10 +569,10 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
 
                 await PersistStateAsync();
 
-                var token = StashData(data);
+                var token = StashData(memory);
                 var traversal = await Ledger.TraverseToAsync(existing.Key, token);
 
-                if (!traversal.Committed && token is not null)
+                if (!traversal.Committed && !traversal.IsAborted && token is not null)
                 {
                     _pendingData.Remove(token.AuData);
                 }
@@ -599,19 +581,25 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
             }
         }
 
-        await GoAsync(url, data, history);
+        await GoAsync(url, memory, history, durable);
     }
 
-    private async Task GoAsync(string route, object? data, NavHistory history)
+    private async Task GoAsync(
+        string route,
+        object? memoryState,
+        NavHistory history,
+        Dictionary<string, object?>? durableState = null,
+        bool rebind = false)
     {
         await PersistStateAsync();
 
-        var info = StashData(data);
+        var info = StashData(memoryState, rebind);
 
         var result = await Ledger.NavigateAsync(route, new NavigateOptions
         {
             History = history,
-            Info = info
+            Info = info,
+            State = MergeWithCurrentState(durableState, history)
         });
 
         if (!result.Committed && !result.IsAborted && info is not null)
@@ -620,11 +608,48 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         }
     }
 
-    private DataToken? StashData(object? data)
+    /// <summary>
+    /// A replace keeps the entry, so state it does not mention must be carried across rather than
+    /// dropped.
+    /// </summary>
+    private object? MergeWithCurrentState(Dictionary<string, object?>? durableState, NavHistory history)
     {
-        if (data is null)
+        if (durableState is not { Count: > 0 })
         {
             return null;
+        }
+
+        if (history != NavHistory.Replace
+            || Ledger.Snapshot.Current?.State is not { ValueKind: System.Text.Json.JsonValueKind.Object } existing)
+        {
+            return durableState;
+        }
+
+        var merged = new Dictionary<string, object?>(durableState);
+
+        foreach (var property in existing.EnumerateObject())
+        {
+            if (!merged.ContainsKey(property.Name))
+            {
+                merged[property.Name] = property.Value.Clone();
+            }
+        }
+
+        return merged;
+    }
+
+    private DataToken? StashData(object? data, bool rebind = false)
+    {
+        bool empty = data is null or IReadOnlyDictionary<string, object?> { Count: 0 };
+
+        if (empty && !rebind)
+        {
+            return null;
+        }
+
+        if (empty)
+        {
+            return new DataToken(0, rebind);
         }
 
         while (_pendingData.Count >= MaxPendingData)
@@ -635,7 +660,7 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         int token = _nextDataToken++;
         _pendingData[token] = data;
 
-        return new DataToken(token);
+        return new DataToken(token, rebind);
     }
 
     private object? TakeData(NavigateObservation observation)
@@ -718,9 +743,16 @@ public sealed class AuNavHost(IRouteRegistry routeRegistry, IRouteGenerator rout
         return ValueTask.CompletedTask;
     }
 
-    private sealed class DataToken(int token)
+    private sealed class DataToken(int token, bool rebind)
     {
         [System.Text.Json.Serialization.JsonPropertyName("auData")]
         public int AuData { get; } = token;
+
+        /// <summary>
+        /// Marks a URL change that keeps the page, so the ledger does not hold it back for a guard
+        /// the page would be prompting itself with.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("auRebind")]
+        public bool AuRebind { get; } = rebind;
     }
 }

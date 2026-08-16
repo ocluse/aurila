@@ -12,13 +12,10 @@ namespace Aurila.Components.Controls;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A clickable renders as an anchor when it has a destination and as a button when it does not. That
-/// is not cosmetic: an anchor gives the user a real address to middle-click, open in a new tab, copy,
-/// or have announced as a link. A button that navigates offers none of those, and an anchor that does
-/// not navigate misleads everyone.
+/// A clickable renders as an anchor when it has a destination and as a button when it does not.
 /// </para>
 /// <para>
-/// A disabled clickable always renders as a button, because there is no honest disabled anchor.
+/// A disabled clickable always renders as a button.
 /// </para>
 /// </remarks>
 public abstract class AuClickableBase<TControl> : AuFormControlBase<TControl>, IFocusable
@@ -172,10 +169,13 @@ public abstract class AuClickableBase<TControl> : AuFormControlBase<TControl>, I
     protected override sealed void BuildClass(ClassBuilder builder)
     {
         base.BuildClass(builder);
-        BuildControlClass(builder);
 
         builder.Add("au-clickable");
         builder.AddIf(RendersAsLink, "au-clickable--link");
+        
+        BuildControlClass(builder);
+
+        //disabled class applied last so that it can override other classes if necessary
         builder.AddIf(Disabled, "au-clickable--disabled");
     }
 

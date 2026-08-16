@@ -22,6 +22,12 @@ public class AurilaRoutingOptions
         Routes.Add(new RouteDefinition(typeof(TPage), template, name, argumentFactory));
     }
 
+    public void MapRoute<TPage>(string template, Func<RouteParameters, object?>? argumentFactory)
+        where TPage : IPage
+    {
+        Routes.Add(new RouteDefinition(typeof(TPage), template, null, argumentFactory));
+    }
+
     public void MapFallbackRoute<TPage>(Func<RouteParameters, object?>? argumentFactory = null)
         where TPage : IPage
     {

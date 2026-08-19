@@ -3,6 +3,7 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="Aurila/Aurila.csproj" />
+  <Project Path="Aurila.Material.Gallery/Aurila.Material.Gallery.csproj" />
   <Project Path="Aurila.Web/Aurila.Web.csproj" />
   <Project Path="Aurila.Material/Aurila.Material.csproj" />
 </Solution>

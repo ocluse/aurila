@@ -1,0 +1,13 @@
+<div class="section-heading">
+    <div>
+        <span class="eyebrow">@Kicker</span>
+        <AuText TextStyle="MaterialTypeScale.HeadlineLarge">@Title</AuText>
+    </div>
+    <AuText TextStyle="MaterialTypeScale.BodyLarge">@Description</AuText>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Kicker { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Description { get; set; } = string.Empty;
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#65558f" />
+    <base href="/" />
+    <title>Aurila Material 3 Gallery</title>
+    <meta name="description" content="An interactive gallery for the Aurila Material 3 component system." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2365558f'/%3E%3Cpath d='M18 46 29 17h7l11 29h-7l-2-7H27l-2 7Zm11-13h7l-3.5-11Z' fill='white'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="_content/Aurila/aurila.css" />
+    <link rel="stylesheet" href="_content/Aurila.Material/aurila.material.css" />
+    <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+    <div id="app">
+        <div class="app-loading" role="status">
+            <div class="app-loading__mark">A</div>
+            <div>
+                <strong>Aurila Material</strong>
+                <span>Preparing the gallery…</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        Something went wrong. <a href="." class="reload">Reload</a>
+        <button type="button" class="dismiss">×</button>
+    </div>
+    <script>window.galleryScrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });</script>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

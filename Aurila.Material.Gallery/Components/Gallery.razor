@@ -1,0 +1,445 @@
+@implements IDisposable
+@inject MaterialThemeService ThemeService
+
+<div class="gallery-shell">
+    <aside class="gallery-rail" aria-label="Gallery navigation">
+        <a class="brand" href="#top" aria-label="Aurila Material home">
+            <span class="brand__mark">A</span>
+            <span class="brand__copy">
+                <strong>Aurila</strong>
+                <small>Material 3</small>
+            </span>
+        </a>
+
+        <nav class="section-nav">
+            @foreach (NavItem item in Navigation)
+            {
+                <a href="@($"#{item.Id}")">
+                    <GalleryIcon Name="@item.Icon" Size="20" />
+                    <span>@item.Label</span>
+                </a>
+            }
+        </nav>
+
+        <div class="rail-note">
+            <span class="rail-note__dot"></span>
+            <div><strong>Built with Aurila</strong><small>Blazor WebAssembly</small></div>
+        </div>
+    </aside>
+
+    <main id="top" class="gallery-main">
+        <header class="mobile-header">
+            <a class="brand" href="#top"><span class="brand__mark">A</span><strong>Aurila</strong></a>
+            <span class="eyebrow">Material 3</span>
+        </header>
+
+        <section class="hero">
+            <div class="hero__copy">
+                <span class="eyebrow"><span></span> Aurila appearance system</span>
+                <AuText TextStyle="MaterialTypeScale.DisplaySmall">Material, made yours.</AuText>
+                <AuText TextStyle="MaterialTypeScale.BodyLarge" Class="hero__lede">
+                    A living gallery of expressive, adaptive Material 3 components for Blazor—generated from one seed colour and built on Aurila's flexible core.
+                </AuText>
+                <div class="hero__actions">
+                    <AuButton Appearance="MaterialButton.Filled" Clicked="@(_ => ScrollToComponents())">
+                        Explore components <GalleryIcon Name="arrow" Size="18" />
+                    </AuButton>
+                    <AuButton Appearance="MaterialButton.Outlined" Clicked="@(_ => ShowSnackbar(WelcomeMessage))">
+                        <GalleryIcon Name="code" Size="18" /> View interaction
+                    </AuButton>
+                </div>
+            </div>
+
+            <div class="theme-studio" aria-label="Theme studio">
+                <div class="theme-studio__header">
+                    <div>
+                        <span class="eyebrow">Theme studio</span>
+                        <h2>Make it yours</h2>
+                    </div>
+                    <div class="mode-control" aria-label="Colour mode">
+                        <button class="@ModeClass(ThemeMode.Light)" title="Light mode" @onclick="() => SetMode(ThemeMode.Light)"><GalleryIcon Name="light" Size="18" /></button>
+                        <button class="@ModeClass(ThemeMode.System)" title="System mode" @onclick="() => SetMode(ThemeMode.System)">A</button>
+                        <button class="@ModeClass(ThemeMode.Dark)" title="Dark mode" @onclick="() => SetMode(ThemeMode.Dark)"><GalleryIcon Name="dark" Size="18" /></button>
+                    </div>
+                </div>
+
+                <label class="studio-label" for="seed-color">Seed colour <code>@_seed</code></label>
+                <div class="seed-row">
+                    <input id="seed-color" type="color" value="@_seed" @oninput="SetCustomSeed" aria-label="Custom seed colour" />
+                    @foreach (SeedPreset preset in SeedPresets)
+                    {
+                        <button class="seed-swatch @(_seed == preset.Value ? "is-selected" : null)"
+                                style="--seed: @preset.Value" title="@preset.Name" aria-label="@preset.Name seed"
+                                @onclick="() => SetSeed(preset.Value)"></button>
+                    }
+                </div>
+
+                <label class="studio-label" for="scheme-variant">Scheme personality</label>
+                <select id="scheme-variant" value="@_variant" @onchange="SetVariant">
+                    @foreach (SchemeVariant variant in Enum.GetValues<SchemeVariant>())
+                    {
+                        <option value="@variant">@SplitName(variant.ToString())</option>
+                    }
+                </select>
+
+                <div class="mini-palette" aria-hidden="true">
+                    <span class="primary"></span><span class="secondary"></span><span class="tertiary"></span><span class="surface"></span>
+                </div>
+            </div>
+        </section>
+
+        <section id="foundations" class="gallery-section">
+            <SectionHeading Kicker="Foundations" Title="One seed. A complete design language."
+                            Description="Aurila generates the full Material colour system at runtime, with tonal surfaces, semantic roles, typography, shape, elevation, and motion tokens that stay in sync." />
+
+            <div class="color-role-grid">
+                <ColorRole Class="primary" Name="Primary" Variable="--md-sys-color-primary" />
+                <ColorRole Class="secondary" Name="Secondary" Variable="--md-sys-color-secondary" />
+                <ColorRole Class="tertiary" Name="Tertiary" Variable="--md-sys-color-tertiary" />
+                <ColorRole Class="error" Name="Error" Variable="--md-sys-color-error" />
+                <ColorRole Class="primary-container" Name="Primary container" Variable="--md-sys-color-primary-container" />
+                <ColorRole Class="secondary-container" Name="Secondary container" Variable="--md-sys-color-secondary-container" />
+                <ColorRole Class="tertiary-container" Name="Tertiary container" Variable="--md-sys-color-tertiary-container" />
+                <ColorRole Class="surface-container" Name="Surface container" Variable="--md-sys-color-surface-container" />
+            </div>
+
+            <div class="foundation-grid">
+                <div class="showcase-panel typography-panel">
+                    <div class="panel-label">Type scale</div>
+                    <AuText TextStyle="MaterialTypeScale.DisplaySmall">Display</AuText>
+                    <AuText TextStyle="MaterialTypeScale.HeadlineMedium">Headline medium</AuText>
+                    <AuText TextStyle="MaterialTypeScale.TitleLarge">Title large</AuText>
+                    <AuText TextStyle="MaterialTypeScale.BodyLarge">Body large · Built to read beautifully anywhere.</AuText>
+                    <AuText TextStyle="MaterialTypeScale.LabelLarge">LABEL LARGE</AuText>
+                </div>
+
+                <div class="showcase-panel elevation-panel">
+                    <div class="panel-label">Surface elevation</div>
+                    <div class="surface-stack">
+                        <AuSurface Appearance="MaterialSurface.Level1">01</AuSurface>
+                        <AuSurface Appearance="MaterialSurface.Level2">02</AuSurface>
+                        <AuSurface Appearance="MaterialSurface.Level3">03</AuSurface>
+                        <AuSurface Appearance="MaterialSurface.Level4">04</AuSurface>
+                        <AuSurface Appearance="MaterialSurface.Level5">05</AuSurface>
+                    </div>
+                    <p>Five tonal elevation levels use colour and shadow to create hierarchy.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="actions" class="gallery-section">
+            <SectionHeading Kicker="Actions" Title="Clear, tactile, and expressive."
+                            Description="Every action includes Material state layers, focus treatment, disabled states, shape tokens, and optional pointer ripples." />
+
+            <div class="component-grid">
+                <ShowcaseCard Title="Buttons" Caption="Five emphasis levels">
+                    <div class="component-row">
+                        <AuButton Appearance="MaterialButton.Filled" Clicked="@(_ => CountClick())">Filled · @_clickCount</AuButton>
+                        <AuButton Appearance="MaterialButton.Tonal">Tonal</AuButton>
+                        <AuButton Appearance="MaterialButton.Elevated">Elevated</AuButton>
+                        <AuButton Appearance="MaterialButton.Outlined">Outlined</AuButton>
+                        <AuButton Appearance="MaterialButton.Text">Text</AuButton>
+                        <AuButton Appearance="MaterialButton.Filled" Disabled="true">Disabled</AuButton>
+                    </div>
+                </ShowcaseCard>
+
+                <ShowcaseCard Title="Icon buttons" Caption="Compact and accessible">
+                    <div class="component-row">
+                        <AuIconButton Appearance="MaterialIconButton.Standard" HtmlTitleAttr="Search"><GalleryIcon Name="search" /></AuIconButton>
+                        <AuIconButton Appearance="MaterialIconButton.Filled" HtmlTitleAttr="Favourite"><GalleryIcon Name="favorite" /></AuIconButton>
+                        <AuIconButton Appearance="MaterialIconButton.Tonal" HtmlTitleAttr="Settings"><GalleryIcon Name="settings" /></AuIconButton>
+                        <AuIconButton Appearance="MaterialIconButton.Outlined" HtmlTitleAttr="More options"><GalleryIcon Name="menu" /></AuIconButton>
+                        <AuIconButton Appearance="MaterialIconButton.Standard" Disabled="true"><GalleryIcon Name="search" /></AuIconButton>
+                    </div>
+                </ShowcaseCard>
+
+                <ShowcaseCard Title="Floating action buttons" Caption="Primary actions at every scale" Wide="true">
+                    <div class="component-row fab-row">
+                        <AuFloatingActionButton Appearance="MaterialFab.PrimarySmall"><GalleryIcon Name="add" Size="20" /></AuFloatingActionButton>
+                        <AuFloatingActionButton Appearance="MaterialFab.Primary"><GalleryIcon Name="add" /></AuFloatingActionButton>
+                        <AuFloatingActionButton Appearance="MaterialFab.Secondary"><GalleryIcon Name="palette" /> Create theme</AuFloatingActionButton>
+                        <AuFloatingActionButton Appearance="MaterialFab.Tertiary"><GalleryIcon Name="favorite" /> Save</AuFloatingActionButton>
+                        <AuFloatingActionButton Appearance="MaterialFab.PrimaryLarge"><GalleryIcon Name="add" Size="36" /></AuFloatingActionButton>
+                    </div>
+                </ShowcaseCard>
+            </div>
+        </section>
+
+        <section id="selection" class="gallery-section">
+            <SectionHeading Kicker="Selection" Title="Small controls, considered states."
+                            Description="Selection controls communicate choice instantly while inheriting the active colour scheme." />
+
+            <div class="component-grid">
+                <ShowcaseCard Title="Chips" Caption="Assist, filter, input, and suggestion">
+                    <div class="component-row">
+                        <AuChip Appearance="MaterialChip.Assist"><GalleryIcon Name="palette" Size="18" /> Assist</AuChip>
+                        <AuChip Appearance="MaterialChip.Filter" Selected="true"><GalleryIcon Name="check" Size="18" /> Selected</AuChip>
+                        <AuChip Appearance="MaterialChip.Input">Input <GalleryIcon Name="close" Size="18" /></AuChip>
+                        <AuChip Appearance="MaterialChip.Suggestion">Suggestion</AuChip>
+                        <AuChip Disabled="true">Disabled</AuChip>
+                    </div>
+                    <div class="interactive-subset">
+                        <span>Try a multi-select group</span>
+                        <AuChipSelect TValue="string" Items="@Topics" SelectionMode="SelectionMode.Multiple" @bind-SelectedItems="_selectedTopics" />
+                    </div>
+                </ShowcaseCard>
+
+                <ShowcaseCard Title="Switches & checkbox" Caption="Native semantics, Material styling">
+                    <div class="selection-list">
+                        <div><span><strong>Dynamic colour</strong><small>Follow the selected seed</small></span><AuSwitch @bind-Value="_dynamicColor" /></div>
+                        <div><span><strong>Expressive motion</strong><small>Use emphasized transitions</small></span><AuSwitch @bind-Value="_motion" /></div>
+                        <div><span><strong>Unavailable option</strong><small>Disabled state remains clear</small></span><AuSwitch Value="false" Disabled="true" /></div>
+                        <div class="check-row"><AuCheckBox @bind-Value="_accepted" Context="isChecked">I agree to build delightful interfaces</AuCheckBox></div>
+                    </div>
+                </ShowcaseCard>
+            </div>
+        </section>
+
+        <section id="inputs" class="gallery-section">
+            <SectionHeading Kicker="Input" Title="Form controls that feel at home."
+                            Description="Outlined and filled fields share floating labels, validation affordances, flexible adornments, and keyboard-friendly behaviour." />
+
+            <div class="showcase-panel form-showcase">
+                <div class="form-grid">
+                    <AuTextBox @bind-Value="_name" Placeholder="Ada Lovelace">
+                        <Header>Display name</Header>
+                        <Prefix><GalleryIcon Name="favorite" Size="20" /></Prefix>
+                    </AuTextBox>
+
+                    <AuTextBox @bind-Value="_email" Appearance="MaterialField.FilledBox" Placeholder="you@example.com">
+                        <Header>Email address</Header>
+                        <Suffix><span class="field-status">Optional</span></Suffix>
+                    </AuTextBox>
+
+                    <AuDropdown TValue="string" Items="@Plans" @bind-Value="_selectedPlan" Placeholder="Choose a plan">
+                        <Header>Workspace plan</Header>
+                        <Suffix><span class="dropdown-chevron">⌄</span></Suffix>
+                    </AuDropdown>
+
+                    <AuTextBox Value="Read-only value" ReadOnly="true">
+                        <Header>Read-only field</Header>
+                    </AuTextBox>
+
+                    <AuTextField @bind-Value="_message" MinLines="2" MaxLines="5" Placeholder="Tell us what you're building…" Appearance="MaterialField.Filled">
+                        <Header>Project notes</Header>
+                    </AuTextField>
+                </div>
+                <div class="form-footer">
+                    <span>@(_message.Length) characters · @_selectedPlan plan</span>
+                    <AuButton Appearance="MaterialButton.Filled" Clicked="@(_ => ShowSnackbar(FormSavedMessage))">Save changes</AuButton>
+                </div>
+            </div>
+        </section>
+
+        <section id="containment" class="gallery-section">
+            <SectionHeading Kicker="Containment" Title="Content with rhythm and hierarchy."
+                            Description="Cards, surfaces, alerts, and dividers compose naturally without hiding the underlying Aurila layout system." />
+
+            <div class="card-demo-grid">
+                <AuCard Appearance="MaterialCard.Elevated">
+                    <HeaderContent><span class="card-kicker">Elevated</span><h3>Quiet depth</h3></HeaderContent>
+                    <ChildContent><p>Use elevation for content that needs to sit above its surroundings without shouting.</p></ChildContent>
+                    <FooterContent><AuButton Appearance="MaterialButton.Text">Learn more</AuButton></FooterContent>
+                </AuCard>
+                <AuCard Appearance="MaterialCard.Filled">
+                    <HeaderContent><span class="card-kicker">Filled</span><h3>Tonal grouping</h3></HeaderContent>
+                    <ChildContent><p>A stronger surface tone gathers related information into one coherent region.</p></ChildContent>
+                    <FooterContent><AuButton Appearance="MaterialButton.Text">Open card</AuButton></FooterContent>
+                </AuCard>
+                <AuCard Appearance="MaterialCard.Outlined">
+                    <HeaderContent><span class="card-kicker">Outlined</span><h3>Lightweight boundary</h3></HeaderContent>
+                    <ChildContent><p>An outline creates definition while keeping the visual weight comfortably low.</p></ChildContent>
+                    <FooterContent><AuButton Appearance="MaterialButton.Text">Details</AuButton></FooterContent>
+                </AuCard>
+            </div>
+
+            <AuAlertBox>
+                <Icon><GalleryIcon Name="info" /></Icon>
+                <ChildContent>Material roles are exposed as CSS custom properties, so app-specific UI can share the same generated theme.</ChildContent>
+            </AuAlertBox>
+        </section>
+
+        <section id="navigation" class="gallery-section">
+            <SectionHeading Kicker="Navigation" Title="Responsive patterns, ready to compose."
+                            Description="Aurila's mobile-first navigation components receive the same Material appearance automatically." />
+
+            <div class="navigation-showcase">
+                <div class="phone-frame">
+                    <AuTopAppBar Appearance="MaterialTopAppBar.Small">
+                        <NavigationIcon><AuIconButton><GalleryIcon Name="menu" /></AuIconButton></NavigationIcon>
+                        <Title>My workspace</Title>
+                        <Actions><AuIconButton><GalleryIcon Name="search" /></AuIconButton><AuIconButton><GalleryIcon Name="settings" /></AuIconButton></Actions>
+                    </AuTopAppBar>
+                    <div class="phone-content">
+                        <div class="phone-hero"><GalleryIcon Name="palette" Size="42" /><span>Adaptive canvas</span></div>
+                        <div class="phone-lines"><i></i><i></i><i></i></div>
+                    </div>
+                    <AuBottomNavigation>
+                        <AuBottomNavigationItem Selected="true"><GalleryIcon Name="home" /><span>Home</span></AuBottomNavigationItem>
+                        <AuBottomNavigationItem Selected="false"><GalleryIcon Name="palette" /><span>Theme</span></AuBottomNavigationItem>
+                        <AuBottomNavigationItem Selected="false"><GalleryIcon Name="favorite" /><span>Saved</span></AuBottomNavigationItem>
+                    </AuBottomNavigation>
+                </div>
+
+                <div class="nav-copy">
+                    <span class="eyebrow">Adaptive by design</span>
+                    <AuText TextStyle="MaterialTypeScale.HeadlineMedium">From bottom bar to navigation rail.</AuText>
+                    <p>One component model adapts to phone, tablet, desktop, and MAUI Blazor hosts—while preserving page state and navigation intent.</p>
+                    <ul><li><GalleryIcon Name="check" Size="18" /> Mobile-first interaction</li><li><GalleryIcon Name="check" Size="18" /> Stateful navigation</li><li><GalleryIcon Name="check" Size="18" /> Browser back integration</li></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="feedback" class="gallery-section">
+            <SectionHeading Kicker="Feedback" Title="Keep people oriented."
+                            Description="Progress, snackbar, dialog, and bottom-sheet patterns give every interaction a clear response." />
+
+            <div class="component-grid">
+                <ShowcaseCard Title="Progress" Caption="Determinate and indeterminate">
+                    <div class="progress-demo">
+                        <AuCircularProgress Size="48" />
+                        <AuCircularProgress Progress="0.72" TrackColor="var(--md-sys-color-secondary-container)" Size="64" />
+                        <div><strong>72%</strong><span>Theme package</span></div>
+                    </div>
+                </ShowcaseCard>
+                <ShowcaseCard Title="Transient UI" Caption="Feedback without interruption">
+                    <div class="component-row">
+                        <AuButton Appearance="MaterialButton.Tonal" Clicked="@(_ => ShowSnackbar(PaletteCopiedMessage))">Show snackbar</AuButton>
+                        <AuButton Appearance="MaterialButton.Outlined" Clicked="@(_ => _dialogOpen = true)">Open dialog</AuButton>
+                        <AuButton Appearance="MaterialButton.Text" Clicked="@(_ => _sheetOpen = true)">Open bottom sheet</AuButton>
+                    </div>
+                </ShowcaseCard>
+            </div>
+        </section>
+
+        <section id="get-started" class="get-started">
+            <div>
+                <span class="eyebrow">Three lines to Material</span>
+                <AuText TextStyle="MaterialTypeScale.HeadlineLarge">Bring the system into your app.</AuText>
+                <p>Register the services, wrap your UI in the theme, then use Aurila components as usual.</p>
+            </div>
+            <pre><code><span>builder.Services</span>.AddAurilaMaterial(<em>"#65558F"</em>);
+
+&lt;<span>AuMaterialTheme</span>&gt;
+  &lt;<span>AuButton</span> Appearance=<em>"MaterialButton.Filled"</em>&gt;
+    Get started
+  &lt;/<span>AuButton</span>&gt;
+&lt;/<span>AuMaterialTheme</span>&gt;</code></pre>
+        </section>
+
+        <footer>
+            <a class="brand" href="#top"><span class="brand__mark">A</span><span class="brand__copy"><strong>Aurila</strong><small>Material 3 gallery</small></span></a>
+            <p>Designed for expressive Blazor experiences.</p>
+            <a href="#top">Back to top ↑</a>
+        </footer>
+    </main>
+
+    <AuSnackbarHost @ref="_snackbar" />
+
+    <AuDialog @bind-Open="_dialogOpen">
+        <div class="modal-copy">
+            <GalleryIcon Name="palette" Size="30" />
+            <h2>Use this colour theme?</h2>
+            <p>Your seed colour <code>@_seed</code> generates light and dark schemes with accessible Material roles.</p>
+            <div class="modal-actions"><AuButton Appearance="MaterialButton.Text" Clicked="@(_ => _dialogOpen = false)">Cancel</AuButton><AuButton Appearance="MaterialButton.Filled" Clicked="@(_ => AcceptTheme())">Use theme</AuButton></div>
+        </div>
+    </AuDialog>
+
+    <AuBottomSheet @bind-Open="_sheetOpen">
+        <div class="sheet-content">
+            <AuText TextStyle="MaterialTypeScale.HeadlineSmall">Choose an action</AuText>
+            <p>Bottom sheets put contextual actions within easy reach on mobile.</p>
+            <button @onclick="() => CloseSheet(PaletteExportedMessage)"><GalleryIcon Name="palette" /><span><strong>Export palette</strong><small>CSS custom properties</small></span></button>
+            <button @onclick="() => CloseSheet(SettingsOpenedMessage)"><GalleryIcon Name="settings" /><span><strong>Theme settings</strong><small>Adjust colour and contrast</small></span></button>
+        </div>
+    </AuBottomSheet>
+</div>
+
+@code {
+    private const string WelcomeMessage = "Welcome to the Material gallery";
+    private const string FormSavedMessage = "Demo form saved";
+    private const string PaletteCopiedMessage = "Your palette was copied";
+    private const string PaletteExportedMessage = "Palette exported";
+    private const string SettingsOpenedMessage = "Theme settings opened";
+
+    private readonly SeedPreset[] SeedPresets =
+    [
+        new("Violet", "#65558F"), new("Ocean", "#006A6A"), new("Rose", "#9C4146"),
+        new("Amber", "#825500"), new("Forest", "#3F6654")
+    ];
+
+    private readonly NavItem[] Navigation =
+    [
+        new("foundations", "palette", "Foundations"), new("actions", "add", "Actions"),
+        new("selection", "check", "Selection"), new("inputs", "code", "Input"),
+        new("containment", "favorite", "Containment"), new("navigation", "home", "Navigation"),
+        new("feedback", "info", "Feedback")
+    ];
+
+    private readonly string[] Topics = ["Colour", "Type", "Shape", "Motion"];
+    private readonly string[] Plans = ["Starter", "Professional", "Enterprise"];
+    private IReadOnlyCollection<string> _selectedTopics = ["Colour", "Shape"];
+    private string _seed = "#65558F";
+    private SchemeVariant _variant = SchemeVariant.TonalSpot;
+    private string _name = "Ada Lovelace";
+    private string _email = string.Empty;
+    private string _message = "A fast, tactile workspace for creative teams.";
+    private string _selectedPlan = "Professional";
+    private bool _dynamicColor = true;
+    private bool _motion = true;
+    private bool _accepted;
+    private bool _dialogOpen;
+    private bool _sheetOpen;
+    private int _clickCount;
+    private AuSnackbarHost? _snackbar;
+
+    protected override void OnInitialized() => ThemeService.Changed += OnThemeChanged;
+
+    public void Dispose() => ThemeService.Changed -= OnThemeChanged;
+
+    private void OnThemeChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void SetSeed(string value)
+    {
+        _seed = value.ToUpperInvariant();
+        ThemeService.SetSeed(_seed, _variant);
+    }
+
+    private void SetCustomSeed(ChangeEventArgs args)
+    {
+        if (args.Value is string value && value.Length == 7) SetSeed(value);
+    }
+
+    private void SetVariant(ChangeEventArgs args)
+    {
+        if (Enum.TryParse(args.Value?.ToString(), out SchemeVariant variant))
+        {
+            _variant = variant;
+            ThemeService.SetSeed(_seed, _variant);
+        }
+    }
+
+    private void SetMode(ThemeMode mode) => ThemeService.SetMode(mode);
+    private string ModeClass(ThemeMode mode) => ThemeService.Mode == mode ? "is-selected" : string.Empty;
+    private void CountClick() => _clickCount++;
+    private void ShowSnackbar(string message) => _snackbar?.ShowMessage(message);
+    private void ScrollToComponents() => _ = JS.InvokeVoidAsync("galleryScrollTo", "actions");
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
+
+    private void AcceptTheme()
+    {
+        _dialogOpen = false;
+        ShowSnackbar("Theme applied to the gallery");
+    }
+
+    private void CloseSheet(string message)
+    {
+        _sheetOpen = false;
+        ShowSnackbar(message);
+    }
+
+    private static string SplitName(string value) => System.Text.RegularExpressions.Regex.Replace(value, "([a-z])([A-Z])", "$1 $2");
+    private sealed record SeedPreset(string Name, string Value);
+    private sealed record NavItem(string Id, string Icon, string Label);
+}

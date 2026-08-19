@@ -1,0 +1,13 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "22.15.17",
+    "esbuild": "^0.25.4",
+    "sass": "^1.83.0"
+  },
+  "scripts": {
+    "build": "npm run build:js && npm run build:css",
+    "build:js": "esbuild --bundle Scripts/index.ts --outfile=wwwroot/aurila.material.js --minify --sourcemap --format=esm",
+    "build:css": "sass Styles/main.scss wwwroot/aurila.material.css --style=compressed --no-source-map --load-path=Styles"
+  }
+}

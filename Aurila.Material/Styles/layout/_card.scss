@@ -1,0 +1,89 @@
+@use "../mixins" as *;
+
+.md-card {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border-radius: var(--md-sys-shape-corner-medium);
+    color: var(--md-sys-color-on-surface);
+    overflow: hidden;
+
+    &.md-card--elevated {
+        background: var(--md-sys-color-surface-container-low);
+        box-shadow: var(--md-sys-elevation-level1);
+    }
+
+    &.md-card--filled {
+        background: var(--md-sys-color-surface-container-highest);
+    }
+
+    &.md-card--outlined {
+        background: var(--md-sys-color-surface);
+        border: 1px solid var(--md-sys-color-outline-variant);
+    }
+
+    &.au-clickable {
+        cursor: pointer;
+        @include state-layer(var(--md-sys-color-on-surface));
+    }
+}
+
+.au-card__header {
+    padding: 16px 16px 0;
+    @include title-medium;
+}
+
+.au-card__content {
+    padding: 16px;
+}
+
+.au-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 16px 16px;
+}
+
+.md-group-box {
+    display: block;
+    box-sizing: border-box;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+}
+
+.au-group-box__header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface-variant);
+    @include title-medium;
+}
+
+.au-group-box__content {
+    padding: 16px;
+}
+
+.au-alertbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-secondary-container);
+    color: var(--md-sys-color-on-secondary-container);
+    @include body-medium;
+}
+
+.au-alertbox__icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.au-alertbox__content {
+    flex: 1 1 auto;
+    min-width: 0;
+}

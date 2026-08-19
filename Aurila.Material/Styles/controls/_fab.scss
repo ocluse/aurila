@@ -1,0 +1,67 @@
+@use "../mixins" as *;
+
+.md-fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-sizing: border-box;
+    min-width: 56px;
+    height: 56px;
+    padding: 0 16px;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-large);
+    box-shadow: var(--md-sys-elevation-level3);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+    @include label-large;
+    @include focus-ring;
+
+    &:hover:not(.au-clickable--disabled) {
+        box-shadow: var(--md-sys-elevation-level4);
+    }
+
+    &.md-fab--small {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 8px;
+        border-radius: var(--md-sys-shape-corner-medium);
+    }
+
+    &.md-fab--large {
+        min-width: 96px;
+        height: 96px;
+        padding: 0 24px;
+        border-radius: var(--md-sys-shape-corner-extra-large);
+    }
+
+    &.md-fab--primary {
+        background: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+        @include state-layer(var(--md-sys-color-on-primary-container));
+    }
+
+    &.md-fab--secondary {
+        background: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+        @include state-layer(var(--md-sys-color-on-secondary-container));
+    }
+
+    &.md-fab--tertiary {
+        background: var(--md-sys-color-tertiary-container);
+        color: var(--md-sys-color-on-tertiary-container);
+        @include state-layer(var(--md-sys-color-on-tertiary-container));
+    }
+
+    &.md-fab--surface {
+        background: var(--md-sys-color-surface-container-high);
+        color: var(--md-sys-color-primary);
+        @include state-layer(var(--md-sys-color-primary));
+    }
+
+    &.au-clickable--disabled {
+        @include disabled-container;
+    }
+}

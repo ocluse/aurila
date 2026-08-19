@@ -1,0 +1,171 @@
+@use "../mixins" as *;
+
+// Structure Aurila renders:
+//   .au-field.au-input.md-field > .au-field__content > [prefix] input|textarea .au-field__header [suffix]
+//                               > .au-field__validation-label
+// The label sits after the input in the DOM, and AuInputBase adds au-input--has-value, so the
+// floating state needs neither :has() nor :placeholder-shown.
+
+// .au-field is included so the generic pickers, whose closed types cannot be registered on the
+// provider, still get the full treatment rather than rendering unstyled.
+.md-field,
+.au-field {
+    display: inline-flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    color: var(--md-sys-color-on-surface);
+
+    .au-field__content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-sizing: border-box;
+        min-height: 56px;
+        padding: 0 16px;
+        transition:
+            border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+            background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+    }
+
+    input,
+    textarea {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+        margin: 0;
+        padding: 16px 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        @include body-large;
+
+        &::placeholder {
+            color: var(--md-sys-color-on-surface-variant);
+            opacity: 0;
+            transition: opacity var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+        }
+
+        &:focus::placeholder {
+            opacity: 1;
+        }
+    }
+
+    textarea {
+        resize: vertical;
+    }
+
+    .au-field__content__prefix,
+    .au-field__content__suffix {
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .au-field__header {
+        color: var(--md-sys-color-on-surface-variant);
+        @include body-large;
+
+        &.floating {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            transform-origin: left center;
+            pointer-events: none;
+            transition: transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+        }
+
+        &.static {
+            padding-bottom: 4px;
+            @include body-small;
+        }
+    }
+
+    .au-field__validation-label {
+        padding: 4px 16px 0;
+        color: var(--md-sys-color-on-surface-variant);
+        @include body-small;
+    }
+
+    &.au-input__validation-invalid {
+        .au-field__content {
+            border-color: var(--md-sys-color-error);
+        }
+
+        .au-field__header,
+        .au-field__validation-label {
+            color: var(--md-sys-color-error);
+        }
+    }
+
+    &.au-input--disabled {
+        opacity: 0.38;
+        pointer-events: none;
+    }
+}
+
+// Outlined — the floated label breaks the outline by painting the surface behind itself.
+.md-field--outlined,
+.au-field:not(.md-field--filled) {
+    .au-field__content {
+        border: 1px solid var(--md-sys-color-outline);
+        border-radius: var(--md-sys-shape-corner-extra-small);
+        background: transparent;
+    }
+
+    &:focus-within .au-field__content {
+        border-color: var(--md-sys-color-primary);
+        border-width: 2px;
+        padding: 0 15px;
+    }
+
+    &.au-input--has-value .au-field__header.floating,
+    &:focus-within .au-field__header.floating {
+        top: 0;
+        transform: translateY(-50%) scale(0.75);
+        padding: 0 4px;
+        background: var(--md-sys-color-surface);
+    }
+
+    &:focus-within .au-field__header.floating {
+        color: var(--md-sys-color-primary);
+    }
+}
+
+// Filled — no outline to break, so the label rises inside the container instead.
+.md-field--filled {
+    .au-field__content {
+        border: none;
+        border-bottom: 1px solid var(--md-sys-color-on-surface-variant);
+        border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-extra-small) 0 0;
+        background: var(--md-sys-color-surface-container-highest);
+        padding-top: 8px;
+    }
+
+    &:focus-within .au-field__content {
+        border-bottom: 2px solid var(--md-sys-color-primary);
+    }
+
+    &.au-input--has-value .au-field__header.floating,
+    &:focus-within .au-field__header.floating {
+        top: 12px;
+        transform: scale(0.75);
+    }
+
+    &:focus-within .au-field__header.floating {
+        color: var(--md-sys-color-primary);
+    }
+
+    &.au-input--has-value input,
+    &.au-input--has-value textarea,
+    &:focus-within input,
+    &:focus-within textarea {
+        padding-top: 22px;
+        padding-bottom: 10px;
+    }
+}

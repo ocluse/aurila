@@ -1,0 +1,91 @@
+@use "../mixins" as *;
+
+.au-modal {
+    border: none;
+    background: transparent;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    color: var(--md-sys-color-on-surface);
+
+    &::backdrop {
+        background: transparent;
+    }
+}
+
+.au-modal__scrim {
+    background: var(--md-sys-color-scrim);
+    opacity: 0.32;
+    transition: opacity var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
+}
+
+.au-modal--opening .au-modal__scrim {
+    opacity: 0.32;
+}
+
+.au-modal--closing .au-modal__scrim {
+    opacity: 0;
+}
+
+.md-dialog {
+    .au-modal__content-area {
+        box-sizing: border-box;
+        min-width: 280px;
+        max-width: 560px;
+        padding: 24px;
+        border-radius: var(--md-sys-shape-corner-extra-large);
+        background: var(--md-sys-color-surface-container-high);
+        color: var(--md-sys-color-on-surface);
+        box-shadow: var(--md-sys-elevation-level3);
+        @include body-medium;
+    }
+
+    &.au-modal--opening .au-modal__content-area {
+        animation: md-dialog-in var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-emphasized);
+    }
+
+    &.au-modal--closing .au-modal__content-area {
+        animation: md-dialog-out var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-accelerate) forwards;
+    }
+}
+
+@keyframes md-dialog-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes md-dialog-out {
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+.md-bottom-sheet {
+    .au-modal__content-area {
+        box-sizing: border-box;
+        padding: 8px 16px 24px;
+        border-radius: var(--md-sys-shape-corner-extra-large) var(--md-sys-shape-corner-extra-large) 0 0;
+        background: var(--md-sys-color-surface-container-low);
+        color: var(--md-sys-color-on-surface);
+        box-shadow: var(--md-sys-elevation-level1);
+
+        // Drag handle.
+        &::before {
+            content: "";
+            display: block;
+            width: 32px;
+            height: 4px;
+            margin: 6px auto 16px;
+            border-radius: var(--md-sys-shape-corner-full);
+            background: var(--md-sys-color-on-surface-variant);
+            opacity: 0.4;
+        }
+    }
+}

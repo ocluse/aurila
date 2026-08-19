@@ -1,0 +1,38 @@
+@use "../mixins" as *;
+
+.md-icon-button {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border-radius: var(--md-sys-shape-corner-full);
+    flex: 0 0 auto;
+
+    &.md-icon-button--standard {
+        background: transparent;
+        color: var(--md-sys-color-on-surface-variant);
+        @include state-layer(var(--md-sys-color-on-surface-variant));
+    }
+
+    &.md-icon-button--filled {
+        background: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+        @include state-layer(var(--md-sys-color-on-primary));
+    }
+
+    &.md-icon-button--tonal {
+        background: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+        @include state-layer(var(--md-sys-color-on-secondary-container));
+    }
+
+    &.md-icon-button--outlined {
+        background: transparent;
+        color: var(--md-sys-color-on-surface-variant);
+        border: 1px solid var(--md-sys-color-outline);
+        @include state-layer(var(--md-sys-color-on-surface-variant));
+    }
+
+    &.au-clickable--disabled {
+        @include disabled-container;
+    }
+}

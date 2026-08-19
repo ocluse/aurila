@@ -1,0 +1,147 @@
+@use "mixins" as *;
+
+.au-button-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    @include body-1-strong;
+    @include interactive-neutral;
+    @include focus-ring;
+}
+
+.fl-button {
+    min-width: 96px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--fluent-radius-medium);
+}
+
+.fl-button, .fl-icon-button {
+    background: var(--fluent-color-neutral-background-1);
+    color: var(--fluent-color-neutral-foreground-1);
+    border-color: var(--fluent-color-neutral-stroke-1);
+}
+
+.fl-button--primary {
+    background: var(--fluent-color-brand-background);
+    color: var(--fluent-color-neutral-foreground-on-brand);
+    &:hover:not(.au-clickable--disabled) { background: var(--fluent-color-brand-background-hover); }
+    &:active:not(.au-clickable--disabled) { background: var(--fluent-color-brand-background-pressed); }
+}
+
+.fl-button--secondary {
+    background: var(--fluent-color-neutral-background-1);
+    color: var(--fluent-color-neutral-foreground-1);
+    border-color: var(--fluent-color-neutral-stroke-1);
+    &:hover:not(.au-clickable--disabled) {
+        background: var(--fluent-color-neutral-background-1-hover);
+        color: var(--fluent-color-neutral-foreground-1-hover);
+        border-color: var(--fluent-color-neutral-stroke-1-hover);
+    }
+    &:active:not(.au-clickable--disabled) {
+        background: var(--fluent-color-neutral-background-1-pressed);
+        color: var(--fluent-color-neutral-foreground-1-pressed);
+        border-color: var(--fluent-color-neutral-stroke-1-pressed);
+    }
+}
+
+.fl-button--outline {
+    background: transparent;
+    color: var(--fluent-color-neutral-foreground-1);
+    border-color: var(--fluent-color-neutral-stroke-1);
+    &:hover:not(.au-clickable--disabled) { color: var(--fluent-color-neutral-foreground-1-hover); border-color: var(--fluent-color-neutral-stroke-1-hover); }
+    &:active:not(.au-clickable--disabled) { color: var(--fluent-color-neutral-foreground-1-pressed); border-color: var(--fluent-color-neutral-stroke-1-pressed); }
+}
+
+.fl-button--subtle, .fl-button--transparent {
+    background: transparent;
+    border-color: transparent;
+    color: var(--fluent-color-neutral-foreground-2);
+}
+.fl-button--subtle {
+    &:hover:not(.au-clickable--disabled) { background: var(--fluent-color-subtle-background-hover); color: var(--fluent-color-neutral-foreground-2-hover); }
+    &:active:not(.au-clickable--disabled) { background: var(--fluent-color-subtle-background-pressed); color: var(--fluent-color-neutral-foreground-2-pressed); }
+}
+.fl-button--transparent {
+    &:hover:not(.au-clickable--disabled) { color: var(--fluent-color-neutral-foreground-2-brand-hover); }
+    &:active:not(.au-clickable--disabled) { color: var(--fluent-color-neutral-foreground-2-brand-pressed); }
+}
+.fl-button.au-clickable--disabled, .fl-icon-button.au-clickable--disabled { @include disabled; }
+
+.fl-icon-button {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 5px;
+    border-radius: var(--fluent-radius-medium);
+}
+
+.fl-fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: var(--fluent-radius-large);
+    box-shadow: var(--fluent-shadow-8);
+    cursor: pointer;
+    @include body-1-strong;
+    @include interactive-neutral;
+    @include focus-ring;
+    &:hover:not(.au-clickable--disabled) { box-shadow: var(--fluent-shadow-16); transform: translateY(-1px); }
+}
+.fl-fab--brand { background: var(--fluent-color-brand-background); color: var(--fluent-color-neutral-foreground-on-brand); }
+.fl-fab--neutral { background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); border-color: var(--fluent-color-neutral-stroke-2); }
+.fl-fab--small { min-width: 32px; height: 32px; padding: 0 7px; border-radius: var(--fluent-radius-medium); }
+.fl-fab--large { min-width: 64px; height: 64px; padding: 0 20px; border-radius: var(--fluent-radius-xlarge); }
+
+.au-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    height: 32px;
+    padding: 0 11px;
+    border: 1px solid transparent;
+    border-radius: var(--fluent-radius-medium);
+    background: var(--fluent-color-neutral-background-3);
+    color: var(--fluent-color-neutral-foreground-2);
+    cursor: pointer;
+    @include body-1;
+    @include interactive-neutral;
+    @include focus-ring;
+    &:hover:not(.au-chip--disabled):not(.au-chip--selected) { background: var(--fluent-color-neutral-background-3-hover); color: var(--fluent-color-brand-foreground-1-hover); }
+    &:active:not(.au-chip--disabled):not(.au-chip--selected) { background: var(--fluent-color-neutral-background-3-pressed); color: var(--fluent-color-brand-foreground-1-pressed); }
+    &.au-chip--selected { background: var(--fluent-color-brand-background); color: var(--fluent-color-neutral-foreground-on-brand); border-color: var(--fluent-color-brand-stroke-1); }
+    &.au-chip--selected:hover { background: var(--fluent-color-brand-background-hover); }
+    &.au-chip--selected:active { background: var(--fluent-color-brand-background-pressed); }
+    &.au-chip--disabled { @include disabled; pointer-events: none; }
+}
+.fl-tag--filled, .fl-chip--neutral { background: var(--fluent-color-neutral-background-3); color: var(--fluent-color-neutral-foreground-2); }
+.fl-tag--brand, .fl-chip--brand { background: var(--fluent-color-brand-background-2); color: var(--fluent-color-brand-foreground-2); border-color: transparent; }
+.fl-tag--outline, .fl-chip--outline { background: var(--fluent-color-subtle-background); color: var(--fluent-color-neutral-foreground-2); border-color: var(--fluent-color-neutral-stroke-1); }
+.au-chip-select { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.au-horizontal-divider { width: 100%; height: 1px; border: none; background: var(--fluent-color-neutral-stroke-2); }
+.au-circular-progress, .fl-spinner { color: var(--fluent-color-brand-stroke-1); }
+.fl-spinner.au-circular-progress--indeterminate {
+    position: relative;
+    border-radius: var(--fluent-radius-circular);
+    background: conic-gradient(var(--fluent-color-brand-stroke-1) 0 92deg, var(--fluent-color-brand-stroke-2-contrast) 92deg 360deg);
+    animation: fl-spinner-rotate 1.5s linear infinite;
+    -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+    mask: radial-gradient(closest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+    svg { visibility: hidden; }
+}
+@keyframes fl-spinner-rotate { to { transform: rotate(360deg); } }
+.au-icon { flex: 0 0 auto; }

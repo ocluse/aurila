@@ -1,0 +1,98 @@
+@use "mixins" as *;
+
+.fl-field, .au-field {
+    display: inline-flex;
+    flex-direction: column;
+    width: 100%;
+    color: var(--fluent-color-neutral-foreground-1);
+
+    .au-field__header.static { margin-bottom: 5px; color: var(--fluent-color-neutral-foreground-1); @include body-1-strong; }
+    .au-field__content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-sizing: border-box;
+        min-height: 32px;
+        padding: 0 9px;
+        border: 1px solid var(--fluent-color-neutral-stroke-1);
+        border-bottom-color: var(--fluent-color-neutral-stroke-accessible);
+        border-radius: var(--fluent-radius-medium);
+        background: var(--fluent-color-neutral-background-1);
+        @include interactive-neutral;
+        &::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+            left: -1px;
+            height: max(2px, var(--fluent-radius-medium));
+            border-bottom: 2px solid var(--fluent-color-brand-stroke-1);
+            border-radius: 0 0 var(--fluent-radius-medium) var(--fluent-radius-medium);
+            clip-path: inset(calc(100% - 2px) 0 0);
+            transform: scaleX(0);
+            transition: transform var(--fluent-duration-ultra-fast) var(--fluent-curve-easy-ease);
+            pointer-events: none;
+        }
+    }
+    input, textarea {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+        padding: 5px 0;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        @include body-1;
+        &::placeholder { color: var(--fluent-color-neutral-foreground-4); }
+    }
+    textarea { min-height: 42px; resize: vertical; }
+    .au-field__content__prefix, .au-field__content__suffix { display: flex; align-items: center; color: var(--fluent-color-neutral-foreground-3); }
+    .au-field__validation-label { padding-top: 5px; color: var(--fluent-color-neutral-foreground-3); @include caption-1; }
+    &:not(.au-input--disabled) .au-field__content:hover { border-color: var(--fluent-color-neutral-stroke-1-hover); border-bottom-color: var(--fluent-color-neutral-stroke-accessible-hover); }
+    &:focus-within .au-field__content { border-color: var(--fluent-color-neutral-stroke-1-pressed); border-bottom-color: var(--fluent-color-neutral-stroke-accessible-pressed); outline: 2px solid transparent; }
+    &:focus-within .au-field__content::after { transform: scaleX(1); transition-duration: var(--fluent-duration-normal); }
+    &.au-input__validation-invalid .au-field__content { border-color: var(--fluent-color-status-danger-foreground-1); }
+    &.au-input__validation-invalid .au-field__validation-label { color: var(--fluent-color-status-danger-foreground-1); }
+    &.au-input--disabled { opacity: 1; pointer-events: none; .au-field__content { @include disabled; } }
+}
+
+.fl-field--filled-darker .au-field__content, .fl-field--filled .au-field__content { background: var(--fluent-color-neutral-background-3); border-color: transparent; }
+.fl-field--filled-lighter .au-field__content { background: var(--fluent-color-neutral-background-1); border-color: transparent; }
+.fl-field--filled-darker:not(.au-input--disabled) .au-field__content:hover,
+.fl-field--filled-lighter:not(.au-input--disabled) .au-field__content:hover { border-color: transparent; }
+.fl-field--underline .au-field__content { padding-inline: 0; border-width: 0 0 1px; border-radius: 0; background: transparent; }
+.fl-field--underline .au-field__content::after { right: 0; left: 0; border-radius: 0; }
+
+.au-checkbox__content { position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; @include body-1; }
+.au-checkbox__content__input { position: absolute; width: 16px; height: 16px; opacity: 0; }
+.au-checkbox_content__checkmark {
+    order: -1; position: relative; width: 16px; height: 16px; border: 1px solid var(--fluent-color-neutral-stroke-accessible);
+    border-radius: var(--fluent-radius-small); background: var(--fluent-color-neutral-background-1);
+    &::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0); }
+}
+.au-checkbox--checked .au-checkbox_content__checkmark { background: var(--fluent-color-brand-background); border-color: var(--fluent-color-brand-stroke-1); &::after { transform: rotate(45deg) scale(1); } }
+.au-checkbox.au-input--disabled { opacity: .5; pointer-events: none; }
+
+.au-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; @include body-1; @include focus-ring; }
+.au-switch__content { position: relative; box-sizing: border-box; width: 40px; height: 20px; flex: 0 0 auto; border: 1px solid var(--fluent-color-neutral-stroke-accessible); border-radius: var(--fluent-radius-circular); background: transparent; color: var(--fluent-color-neutral-stroke-accessible); transition: background-color var(--fluent-duration-normal), border-color var(--fluent-duration-normal), color var(--fluent-duration-normal); }
+.au-switch__content__slider { position: absolute; top: 0; left: 0; width: 18px; height: 18px; border-radius: 50%; background: currentColor; transition: transform var(--fluent-duration-normal) var(--fluent-curve-easy-ease); }
+.au-switch:hover:not(.au-input--disabled):not(.au-switch--checked) .au-switch__content { color: var(--fluent-color-neutral-stroke-accessible-hover); border-color: var(--fluent-color-neutral-stroke-accessible-hover); }
+.au-switch:active:not(.au-input--disabled):not(.au-switch--checked) .au-switch__content { color: var(--fluent-color-neutral-stroke-accessible-pressed); border-color: var(--fluent-color-neutral-stroke-accessible-pressed); }
+.au-switch--checked .au-switch__content { background: var(--fluent-color-brand-background); border-color: var(--fluent-color-brand-background); }
+.au-switch--checked .au-switch__content__slider { background: var(--fluent-color-neutral-foreground-inverted); transform: translateX(20px); }
+.au-switch--checked:hover:not(.au-input--disabled) .au-switch__content { background: var(--fluent-color-brand-background-hover); border-color: var(--fluent-color-brand-background-hover); }
+.au-switch--checked:active:not(.au-input--disabled) .au-switch__content { background: var(--fluent-color-brand-background-pressed); border-color: var(--fluent-color-brand-background-pressed); }
+.au-switch.au-input--disabled { opacity: .45; pointer-events: none; }
+
+.au-dropdown__popup { min-width: 120px; max-height: 320px; padding: 4px; border: 1px solid var(--fluent-color-neutral-stroke-2); border-radius: var(--fluent-radius-large); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); box-shadow: var(--fluent-shadow-16); overflow-y: auto; }
+.au-dropdown__item { display: flex; align-items: center; min-height: 32px; padding: 0 8px; border-radius: var(--fluent-radius-medium); cursor: pointer; @include body-1; &:hover { background: var(--fluent-color-neutral-background-3); } &.selected { background: var(--fluent-color-brand-background-2); color: var(--fluent-color-brand-foreground-1); } }
+
+.au-calendar { padding: 12px; border: 1px solid var(--fluent-color-neutral-stroke-2); border-radius: var(--fluent-radius-xlarge); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); box-shadow: var(--fluent-shadow-8); }
+.au-calendar__header { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 10px; @include body-1-strong; }
+.au-calendar__day-labels, .au-calendar__week { display: grid; grid-template-columns: repeat(7, 1fr); }
+.au-calendar__day-labels { color: var(--fluent-color-neutral-foreground-3); @include caption-1; }
+.au-calendar__day, .au-calendar__item, .au-calendar__month, .au-calendar__year { display: grid; min-width: 32px; height: 32px; place-items: center; border-radius: var(--fluent-radius-circular); cursor: pointer; @include caption-1; &:hover { background: var(--fluent-color-neutral-background-3); } }
+.au-calendar__day--today, .au-calendar__item--today { box-shadow: inset 0 0 0 1px var(--fluent-color-brand-stroke-1); }
+.au-calendar__day--selected, .au-calendar__item--selected, .au-calendar__month--selected, .au-calendar__year--selected { background: var(--fluent-color-brand-background); color: white; }

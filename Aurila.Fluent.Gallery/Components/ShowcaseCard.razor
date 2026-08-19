@@ -1,0 +1,12 @@
+<div class="showcase-card @(Wide ? "showcase-card--wide" : null)">
+    <div class="showcase-card__header"><div><h3>@Title</h3><span>@Caption</span></div><code>@ComponentName</code></div>
+    <div class="showcase-card__body">@ChildContent</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? ComponentName { get; set; }
+    [Parameter] public bool Wide { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -1,0 +1,33 @@
+@use "mixins" as *;
+
+body {
+    margin: 0;
+    background: var(--fluent-color-neutral-background-2);
+    color: var(--fluent-color-neutral-foreground-1);
+    font-family: var(--fluent-font-family-base);
+    @include body-1;
+}
+
+.au-text { margin: 0; @include body-1; }
+
+.fl-typography-display { @include typography(var(--fluent-font-size-hero-1000), var(--fluent-line-height-hero-1000), var(--fluent-font-weight-semibold)); }
+.fl-typography-large-title { @include typography(var(--fluent-font-size-hero-900), var(--fluent-line-height-hero-900), var(--fluent-font-weight-semibold)); }
+.fl-typography-title-1 { @include typography(var(--fluent-font-size-hero-800), var(--fluent-line-height-hero-800), var(--fluent-font-weight-semibold)); }
+.fl-typography-title-2 { @include typography(var(--fluent-font-size-hero-700), var(--fluent-line-height-hero-700), var(--fluent-font-weight-semibold)); }
+.fl-typography-title-3 { @include typography(var(--fluent-font-size-base-600), var(--fluent-line-height-base-600), var(--fluent-font-weight-semibold)); }
+.fl-typography-subtitle-1 { @include typography(var(--fluent-font-size-base-500), var(--fluent-line-height-base-500), var(--fluent-font-weight-semibold)); }
+.fl-typography-subtitle-2 { @include typography(var(--fluent-font-size-base-400), var(--fluent-line-height-base-400), var(--fluent-font-weight-semibold)); }
+.fl-typography-subtitle-2-stronger { @include typography(var(--fluent-font-size-base-400), var(--fluent-line-height-base-400), var(--fluent-font-weight-bold)); }
+.fl-typography-body-1 { @include body-1; }
+.fl-typography-body-1-strong { @include typography(var(--fluent-font-size-base-300), var(--fluent-line-height-base-300), var(--fluent-font-weight-semibold)); }
+.fl-typography-body-1-stronger { @include typography(var(--fluent-font-size-base-300), var(--fluent-line-height-base-300), var(--fluent-font-weight-bold)); }
+.fl-typography-body-2 { @include body-2; }
+.fl-typography-caption-1 { @include caption-1; }
+.fl-typography-caption-1-strong { @include typography(var(--fluent-font-size-base-200), var(--fluent-line-height-base-200), var(--fluent-font-weight-semibold)); }
+.fl-typography-caption-1-stronger { @include typography(var(--fluent-font-size-base-200), var(--fluent-line-height-base-200), var(--fluent-font-weight-bold)); }
+.fl-typography-caption-2 { @include typography(var(--fluent-font-size-base-100), var(--fluent-line-height-base-100), var(--fluent-font-weight-regular)); }
+.fl-typography-caption-2-strong { @include typography(var(--fluent-font-size-base-100), var(--fluent-line-height-base-100), var(--fluent-font-weight-semibold)); }
+
+.fl-typography-display, .fl-typography-large-title, .fl-typography-title-1,
+.fl-typography-title-2, .fl-typography-title-3, .fl-typography-subtitle-1,
+.fl-typography-subtitle-2, .fl-typography-subtitle-2-stronger { margin: 0; }

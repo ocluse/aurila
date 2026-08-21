@@ -1,16 +1,9 @@
-using Aurila.Components.Layout.Internal;
-using Aurila.Contracts.Layout;
 using Aurila.Design;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 
 namespace Aurila.Components.Layout;
 
-public class AuGridItem : AuControlBase<AuGridItem>, ILayoutParent, IHasPadding
+public class AuGridItem : AuInteractiveLayoutBase<AuGridItem>, IHasPadding
 {
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
     [Parameter]
     public bool FullWidth { get; set; }
 
@@ -55,11 +48,6 @@ public class AuGridItem : AuControlBase<AuGridItem>, ILayoutParent, IHasPadding
 
     [Parameter]
     public CssLength? PaddingLeft { get; set; }
-
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
-    {
-        LayoutRenderingUtility.Render(this, builder);
-    }
 
     protected override void BuildClass(ClassBuilder builder)
     {

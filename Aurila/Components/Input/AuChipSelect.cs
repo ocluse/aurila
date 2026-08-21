@@ -1,6 +1,9 @@
 ﻿using Aurila.Contracts.Layout;
 using Aurila.Design;
+using Aurila.Components.Controls;
 using Aurila.Enums.Input;
+using Aurila.Models.Navigation;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Input;
 
@@ -14,6 +17,13 @@ public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, I
 
     [Parameter]
     public RenderFragment<TValue>? ItemTemplate { get; set; }
+
+    /// <summary>
+    /// Produces an optional navigation destination for each chip. An empty target leaves the item as
+    /// a native action button.
+    /// </summary>
+    [Parameter]
+    public Func<TValue, NavTarget>? GetItemTarget { get; set; }
 
     [Parameter]
     public RenderFragment? EmptyTemplate { get; set; }
@@ -75,38 +85,29 @@ public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, I
             {
                 foreach (TValue item in Items)
                 {
-                    builder.OpenElement(3, "div");
-                    {
-                        builder.SetKey(item);
+                    bool selected = SelectionMode == SelectionMode.Multiple
+                        ? SelectedItems.Contains(item)
+                        : EqualityComparer<TValue>.Default.Equals(item, Value);
+                    NavTarget target = GetItemTarget?.Invoke(item) ?? default;
 
-                        bool selected = SelectionMode == SelectionMode.Multiple ? SelectedItems.Contains(item) : EqualityComparer<TValue>.Default.Equals(item, Value);
-
-                        string itemClass = new ClassBuilder()
-                            .Add("au-chip au-chip-select__item")
-                            .AddIf(selected, "au-chip--selected")
-                            .ToString();
-
-                        builder.AddAttribute(4, "class", itemClass);
-                        builder.AddAttribute(5, "onclick", EventCallback.Factory.Create(this, async () => await HandleItemClickAsync(item)));
-
-                        if (ItemTemplateWithSelected != null)
-                        {
-                            builder.AddContent(6, ItemTemplateWithSelected, (item, selected));
-                        }
-                        else if (ItemTemplate != null)
-                        {
-                            builder.AddContent(7, ItemTemplate, item);
-                        }
-                        else
-                        {
-                            builder.OpenElement(8, "span");
-                            {
-                                builder.AddContent(9, item.GetDisplayValue(ToStringFunc));
-                            }
-                            builder.CloseElement();
-                        }
-                    }
-                    builder.CloseElement();
+                    builder.OpenComponent<AuChip>(3);
+                    builder.SetKey(item);
+                    builder.AddAttribute(4, nameof(AuChip.Class), "au-chip-select__item");
+                    builder.AddAttribute(5, nameof(AuChip.Selected), selected);
+                    builder.AddAttribute(6, nameof(AuChip.Selectable), true);
+                    builder.AddAttribute(7, nameof(AuChip.Disabled), Disabled);
+                    builder.AddAttribute(8, nameof(AuChip.To), target);
+                    builder.AddAttribute(
+                        9,
+                        nameof(AuChip.Clicked),
+                        EventCallback.Factory.Create<MouseEventArgs>(
+                            this,
+                            e => HandleItemClickAsync(item, e, !target.IsEmpty)));
+                    builder.AddAttribute(
+                        10,
+                        nameof(AuChip.ChildContent),
+                        (RenderFragment)(chipBuilder => BuildItemContent(chipBuilder, item, selected)));
+                    builder.CloseComponent();
                 }
             }
             else if (EmptyTemplate != null)
@@ -117,8 +118,32 @@ public class AuChipSelect<TValue> : AuInputBase<AuChipSelect<TValue>, TValue>, I
         builder.CloseElement();
     }
 
-    private async Task HandleItemClickAsync(TValue value)
+    private void BuildItemContent(RenderTreeBuilder builder, TValue item, bool selected)
     {
+        if (ItemTemplateWithSelected != null)
+        {
+            builder.AddContent(0, ItemTemplateWithSelected, (item, selected));
+        }
+        else if (ItemTemplate != null)
+        {
+            builder.AddContent(1, ItemTemplate, item);
+        }
+        else
+        {
+            builder.OpenElement(2, "span");
+            builder.AddContent(3, item.GetDisplayValue(ToStringFunc));
+            builder.CloseElement();
+        }
+    }
+
+    private async Task HandleItemClickAsync(TValue value, MouseEventArgs e, bool isLink)
+    {
+        if (isLink
+            && (e.Button != 0 || e.CtrlKey || e.MetaKey || e.ShiftKey || e.AltKey))
+        {
+            return;
+        }
+
         await NotifyValueChange(value);
 
         if (SelectionMode == SelectionMode.Single)

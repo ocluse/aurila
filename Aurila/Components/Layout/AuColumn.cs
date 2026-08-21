@@ -1,15 +1,11 @@
-﻿using Aurila.Components.Layout.Internal;
-using Aurila.Contracts.Layout;
+﻿using Aurila.Contracts.Layout;
 using Aurila.Design;
 using Aurila.Enums.Layout;
 
 namespace Aurila.Components.Layout;
 
-public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMargin, IHasPadding
+public class AuColumn : AuInteractiveLayoutBase<AuColumn>, IColumn, IHasMargin, IHasPadding
 {
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-
     [Parameter]
     public bool Wrap { get; set; }
 
@@ -66,11 +62,6 @@ public class AuColumn : AuControlBase<AuColumn>, ILayoutParent, IColumn, IHasMar
 
     [Parameter]
     public CssLength? PaddingLeft { get; set; }
-
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
-    {
-        LayoutRenderingUtility.Render(this, builder);
-    }
 
     protected override void BuildClass(ClassBuilder builder)
     {

@@ -1,9 +1,10 @@
 ﻿using Aurila.Design;
 using Microsoft.JSInterop;
+using Aurila.Enums.Input;
 
 
 namespace Aurila.Components.Input;
-public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
+public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin, IAsyncDisposable
 {
     private string? _value;
 
@@ -29,6 +30,46 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
 
     [Parameter]
     public bool DeferExternalUpdatesWhileFocused { get; set; } = true;
+
+    /// <summary>
+    /// Determines how Enter and modifier+Enter behave. The default preserves normal textarea line
+    /// breaks.
+    /// </summary>
+    [Parameter]
+    public TextEnterBehavior EnterBehavior { get; set; } = TextEnterBehavior.NewLine;
+
+    /// <summary>
+    /// The modifier used by <see cref="EnterBehavior"/>. Shift matches the common chat-composer
+    /// convention.
+    /// </summary>
+    [Parameter]
+    public KeyboardModifier EnterModifier { get; set; } = KeyboardModifier.Shift;
+
+    /// <summary>
+    /// Determines how virtual keyboard line-break input behaves when no distinct keyboard shortcut
+    /// is available.
+    /// </summary>
+    [Parameter]
+    public VirtualEnterBehavior VirtualEnterBehavior { get; set; } = VirtualEnterBehavior.FollowUnmodifiedEnter;
+
+    /// <summary>
+    /// Invoked with the textarea's current DOM value when the configured Enter gesture submits.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string?> Submitted { get; set; }
+
+    /// <summary>
+    /// Attributes applied to the textarea itself. These override library-generated input attributes.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyDictionary<string, object>? InputAttributes { get; set; }
+
+    /// <summary>
+    /// Makes final changes to the textarea's attributes after defaults and
+    /// <see cref="InputAttributes"/> have been applied.
+    /// </summary>
+    [Parameter]
+    public Action<IDictionary<string, object>>? InputAttributesBuilder { get; set; }
 
     [Parameter]
     public CssLength? Margin { get; set; }
@@ -63,23 +104,78 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
 
         builder.OpenElement(0, "textarea");
         {
-            builder.AddAttribute(1, "rows", minLines);
+            builder.AddMultipleAttributes(1, GetInputAttributes());
+            builder.AddAttribute(2, "rows", minLines);
             if(Placeholder.IsNotEmpty())
             {
-                builder.AddAttribute(2, "placeholder", Placeholder);
+                builder.AddAttribute(3, "placeholder", Placeholder);
             }
             if (Disabled)
             {
-                builder.AddAttribute(3, "disabled");
+                builder.AddAttribute(4, "disabled");
             }
             if (ReadOnly)
             {
-                builder.AddAttribute(4, "readonly");
+                builder.AddAttribute(5, "readonly");
             }
-            builder.AddElementReferenceCapture(5, reference => _textAreaElement = reference);
+            builder.AddElementReferenceCapture(6, reference => _textAreaElement = reference);
         }
         builder.CloseElement(); //textarea
     }
+
+    private Dictionary<string, object> GetInputAttributes()
+    {
+        var attributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+        if (Submitted.HasDelegate && VirtualEnterSubmits())
+        {
+            attributes["enterkeyhint"] = "send";
+        }
+
+        if (Submitted.HasDelegate)
+        {
+            string? shortcut = GetSubmitShortcut();
+            if (shortcut is not null)
+            {
+                attributes["aria-keyshortcuts"] = shortcut;
+            }
+        }
+
+        if (InputAttributes is not null)
+        {
+            foreach (var attribute in InputAttributes)
+            {
+                attributes[attribute.Key] = attribute.Value;
+            }
+        }
+
+        InputAttributesBuilder?.Invoke(attributes);
+        return attributes;
+    }
+
+    private bool VirtualEnterSubmits()
+        => VirtualEnterBehavior switch
+        {
+            VirtualEnterBehavior.Submit => true,
+            VirtualEnterBehavior.NewLine => false,
+            _ => EnterBehavior == TextEnterBehavior.SubmitUnlessModified
+        };
+
+    private string? GetSubmitShortcut()
+        => EnterBehavior switch
+        {
+            TextEnterBehavior.SubmitUnlessModified => "Enter",
+            TextEnterBehavior.SubmitWhenModified => EnterModifier switch
+            {
+                KeyboardModifier.Shift => "Shift+Enter",
+                KeyboardModifier.Control => "Control+Enter",
+                KeyboardModifier.Alt => "Alt+Enter",
+                KeyboardModifier.Meta => "Meta+Enter",
+                KeyboardModifier.ControlOrMeta => "Control+Enter Meta+Enter",
+                _ => null
+            },
+            _ => null
+        };
 
     [JSInvokable]
     public async Task HandleInputFromJS(string value, int? selectionStart, int? selectionEnd, bool isComposing)
@@ -108,6 +204,23 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
         return FlushPendingExternalValueAsync();
     }
 
+    [JSInvokable]
+    public async Task HandleSubmitFromJS(string value)
+    {
+        if (Disabled || ReadOnly || !Submitted.HasDelegate)
+        {
+            return;
+        }
+
+        if (_value != value)
+        {
+            _value = value;
+            await NotifyValueChange(_value);
+        }
+
+        await Submitted.InvokeAsync(value);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         base.OnAfterRender(firstRender);
@@ -116,7 +229,17 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
             (int minLines, int maxLines) = GetLineBounds();
 
             _dotNetRef = DotNetObjectReference.Create(this);
-            _jsInstance = await JSInterop.CreateObjectAsync("TextField", _textAreaElement, maxLines, minLines, _dotNetRef, _value ?? string.Empty);
+            _jsInstance = await JSInterop.CreateObjectAsync(
+                "TextField",
+                _textAreaElement,
+                maxLines,
+                minLines,
+                _dotNetRef,
+                _value ?? string.Empty,
+                EnterBehavior.ToString(),
+                EnterModifier.ToString(),
+                VirtualEnterBehavior.ToString(),
+                Submitted.HasDelegate);
             await FlushPendingExternalValueAsync();
         }
         else if(_jsInstance != null)
@@ -157,6 +280,14 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
     {
         bool maxLinesChanged = parameters.TryGetValue(nameof(MaxLines), out int maxLines) && maxLines != MaxLines;
         bool minLinesChanged = parameters.TryGetValue(nameof(MinLines), out int minLines) && minLines != MinLines;
+        bool enterBehaviorChanged = parameters.TryGetValue(nameof(EnterBehavior), out TextEnterBehavior enterBehavior)
+            && enterBehavior != EnterBehavior;
+        bool enterModifierChanged = parameters.TryGetValue(nameof(EnterModifier), out KeyboardModifier enterModifier)
+            && enterModifier != EnterModifier;
+        bool virtualBehaviorChanged = parameters.TryGetValue(nameof(VirtualEnterBehavior), out VirtualEnterBehavior virtualBehavior)
+            && virtualBehavior != VirtualEnterBehavior;
+        bool submittedChanged = parameters.TryGetValue(nameof(Submitted), out EventCallback<string?> submitted)
+            && !submitted.Equals(Submitted);
 
         await base.SetParametersAsync(parameters);
 
@@ -167,6 +298,17 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
                 (int nextMinLines, int nextMaxLines) = GetLineBounds();
                 await _jsInstance.InvokeVoidAsync("setLineBounds", nextMinLines, nextMaxLines);
             }
+        }
+
+        if (_jsInstance is not null
+            && (enterBehaviorChanged || enterModifierChanged || virtualBehaviorChanged || submittedChanged))
+        {
+            await _jsInstance.InvokeVoidAsync(
+                "setEnterOptions",
+                EnterBehavior.ToString(),
+                EnterModifier.ToString(),
+                VirtualEnterBehavior.ToString(),
+                Submitted.HasDelegate);
         }
     }
 
@@ -188,5 +330,6 @@ public class AuTextField : AuFieldBase<AuTextField, string>, IHasMargin
 
         _dotNetRef?.Dispose();
         _dotNetRef = null;
+        Dispose();
     }
 }

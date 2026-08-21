@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 
 namespace Aurila.Components.Layout;
 
-public class AuSurface : AuControlBase<AuSurface>, IHasMargin, IHasShape, IHasBorder, IHasPadding, IHasBackground, IHasColor
+public class AuSurface : AuInteractiveContainerBase<AuSurface>, IHasMargin, IHasShape, IHasBorder, IHasPadding, IHasBackground, IHasColor
 {
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -15,8 +15,6 @@ public class AuSurface : AuControlBase<AuSurface>, IHasMargin, IHasShape, IHasBo
     [Parameter] public string? Border { get; set; }
 
     [Parameter] public IShape? Shape { get; set; }
-
-    [Parameter] public EventCallback Clicked { get; set; }
 
     [Parameter]
     public CssLength? Margin { get; set; }
@@ -70,25 +68,10 @@ public class AuSurface : AuControlBase<AuSurface>, IHasMargin, IHasShape, IHasBo
     {
         base.BuildClass(builder);
         builder.Add("au-surface");
-        builder.AddIf(Clicked.HasDelegate, "au-clickable");
     }
 
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildContainerContent(RenderTreeBuilder builder)
     {
-        builder.OpenElement(0, "div");
-        builder.AddMultipleAttributes(1, GetAppliedAttributes());
-
-        if(Clicked.HasDelegate)
-        {
-            builder.AddAttribute(2, "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, OnClickedAsync));
-        }
-
-        builder.AddContent(3, ChildContent);
-        builder.CloseElement();
-    }
-
-    private async Task OnClickedAsync()
-    {
-        await Clicked.InvokeAsync();
+        builder.AddContent(0, ChildContent);
     }
 }

@@ -8,6 +8,11 @@ import { BottomSheet } from "./modals/bottom-sheet";
 import { AdaptiveNavigationLayoutObserver } from "./navigation/adaptive-navigation";
 import { NavigationLedger } from "./navigation/navigation-ledger";
 import { CloseRequestWatcher } from "./modals/close-watcher";
+import { AccessibleButton } from "./controls/accessible-button";
+
+export function createAccessibleButton(element: HTMLElement): AccessibleButton {
+    return new AccessibleButton(element);
+}
 
 export function createNavigationLedger(
     dotNetObject: DotNetObject
@@ -56,9 +61,23 @@ export function createTextField(
     maxLines: number,
     minLines: number,
     dotNetObject: DotNetObject,
-    initialValue: string
+    initialValue: string,
+    enterBehavior: string,
+    enterModifier: string,
+    virtualEnterBehavior: string,
+    canSubmit: boolean
 ): TextField {
-    return new TextField(element, maxLines, minLines, dotNetObject, initialValue);
+    return new TextField(
+        element,
+        maxLines,
+        minLines,
+        dotNetObject,
+        initialValue,
+        enterBehavior,
+        enterModifier,
+        virtualEnterBehavior,
+        canSubmit
+    );
 }
 
 export function createAdaptiveNavigationLayoutObserver(

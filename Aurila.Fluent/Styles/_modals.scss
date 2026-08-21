@@ -1,0 +1,13 @@
+@use "mixins" as *;
+
+.au-modal { border: none; background: transparent; padding: 0; max-width: none; max-height: none; color: var(--fluent-color-neutral-foreground-1); &::backdrop { background: transparent; } }
+.au-modal__scrim { background: var(--fluent-color-scrim); opacity: 1; transition: opacity .2s; }
+.au-modal--closing .au-modal__scrim { opacity: 0; }
+
+.fl-dialog .au-modal__content-area { min-width: 320px; max-width: 600px; padding: 24px; border: 1px solid var(--fluent-color-neutral-stroke-2); border-radius: var(--fluent-radius-xlarge); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); box-shadow: var(--fluent-shadow-64); @include body-1; }
+.fl-dialog.au-modal--opening .au-modal__content-area { animation: fl-dialog-in .2s var(--fluent-curve-decelerate); }
+.fl-dialog.au-modal--closing .au-modal__content-area { animation: fl-dialog-out .15s ease-in forwards; }
+@keyframes fl-dialog-in { from { opacity: 0; transform: scale(.96) translateY(8px); } }
+@keyframes fl-dialog-out { to { opacity: 0; transform: scale(.98); } }
+
+.fl-bottom-sheet .au-modal__content-area { padding: 12px 18px 24px; border: 1px solid var(--fluent-color-neutral-stroke-2); border-bottom: 0; border-radius: var(--fluent-radius-xlarge) var(--fluent-radius-xlarge) 0 0; background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-28); &::before { content: ""; display: block; width: 36px; height: 4px; margin: 0 auto 16px; border-radius: 2px; background: var(--fluent-color-neutral-stroke-accessible); } }

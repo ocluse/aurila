@@ -1,0 +1,46 @@
+@use "../mixins" as *;
+
+.au-horizontal-divider {
+    border: none;
+    height: 1px;
+    background: var(--md-sys-color-outline-variant);
+    width: 100%;
+}
+
+.au-circular-progress {
+    color: var(--md-sys-color-primary);
+}
+
+.au-icon {
+    flex: 0 0 auto;
+}
+
+.au-image {
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: var(--md-sys-color-surface-container-highest);
+
+    &.au-image--loading {
+        animation: md-image-pulse 1.6s ease-in-out infinite;
+    }
+
+    &.au-image--error {
+        background: var(--md-sys-color-error-container);
+        color: var(--md-sys-color-on-error-container);
+    }
+}
+
+@keyframes md-image-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+// Clickable surfaces that are not one of the named components still deserve a state layer.
+.au-surface.au-clickable {
+    cursor: pointer;
+    @include state-layer(var(--md-sys-color-on-surface));
+}

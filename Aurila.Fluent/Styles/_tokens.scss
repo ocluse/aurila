@@ -1,0 +1,48 @@
+:root {
+    --fluent-radius-none: 0;
+    --fluent-radius-small: 2px;
+    --fluent-radius-medium: 4px;
+    --fluent-radius-large: 6px;
+    --fluent-radius-xlarge: 8px;
+    --fluent-radius-circular: 9999px;
+
+    --fluent-font-size-base-100: 10px;
+    --fluent-font-size-base-200: 12px;
+    --fluent-font-size-base-300: 14px;
+    --fluent-font-size-base-400: 16px;
+    --fluent-font-size-base-500: 20px;
+    --fluent-font-size-base-600: 24px;
+    --fluent-font-size-hero-700: 28px;
+    --fluent-font-size-hero-800: 32px;
+    --fluent-font-size-hero-900: 40px;
+    --fluent-font-size-hero-1000: 68px;
+    --fluent-line-height-base-100: 14px;
+    --fluent-line-height-base-200: 16px;
+    --fluent-line-height-base-300: 20px;
+    --fluent-line-height-base-400: 22px;
+    --fluent-line-height-base-500: 26px;
+    --fluent-line-height-base-600: 32px;
+    --fluent-line-height-hero-700: 36px;
+    --fluent-line-height-hero-800: 40px;
+    --fluent-line-height-hero-900: 52px;
+    --fluent-line-height-hero-1000: 92px;
+    --fluent-font-weight-regular: 400;
+    --fluent-font-weight-semibold: 600;
+    --fluent-font-weight-bold: 700;
+
+    --fluent-shadow-2: 0 0 2px var(--fluent-color-shadow-ambient-lighter), 0 1px 2px var(--fluent-color-shadow-key-lighter);
+    --fluent-shadow-4: 0 0 4px var(--fluent-color-shadow-ambient-lighter), 0 2px 4px var(--fluent-color-shadow-key-lighter);
+    --fluent-shadow-8: 0 0 8px var(--fluent-color-shadow-ambient), 0 4px 8px var(--fluent-color-shadow-key);
+    --fluent-shadow-16: 0 0 16px var(--fluent-color-shadow-ambient), 0 8px 16px var(--fluent-color-shadow-key);
+    --fluent-shadow-28: 0 0 28px var(--fluent-color-shadow-ambient), 0 14px 28px var(--fluent-color-shadow-key);
+    --fluent-shadow-64: 0 0 64px var(--fluent-color-shadow-ambient), 0 32px 64px var(--fluent-color-shadow-key);
+
+    --fluent-duration-ultra-fast: 50ms;
+    --fluent-duration-faster: 100ms;
+    --fluent-duration-fast: 150ms;
+    --fluent-duration-normal: 200ms;
+    --fluent-duration-slow: 300ms;
+    --fluent-curve-easy-ease: cubic-bezier(.33, 0, .67, 1);
+    --fluent-curve-decelerate: cubic-bezier(.1, .9, .2, 1);
+    --fluent-font-family-base: "Segoe UI", system-ui, sans-serif;
+}

@@ -1,0 +1,29 @@
+.au-surface {
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+}
+
+.md-surface--level0 {
+    background: var(--md-sys-color-surface);
+    box-shadow: var(--md-sys-elevation-level0);
+}
+.md-surface--level1 {
+    background: var(--md-sys-color-surface-container-low);
+    box-shadow: var(--md-sys-elevation-level1);
+}
+.md-surface--level2 {
+    background: var(--md-sys-color-surface-container);
+    box-shadow: var(--md-sys-elevation-level2);
+}
+.md-surface--level3 {
+    background: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level3);
+}
+.md-surface--level4 {
+    background: var(--md-sys-color-surface-container-high);
+    box-shadow: var(--md-sys-elevation-level4);
+}
+.md-surface--level5 {
+    background: var(--md-sys-color-surface-container-highest);
+    box-shadow: var(--md-sys-elevation-level5);
+}

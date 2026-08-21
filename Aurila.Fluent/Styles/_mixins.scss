@@ -1,0 +1,33 @@
+@mixin typography($size, $line, $weight: 400) {
+    font-family: var(--fluent-font-family-base);
+    font-size: $size;
+    line-height: $line;
+    font-weight: $weight;
+}
+
+@mixin body-1 { @include typography(var(--fluent-font-size-base-300), var(--fluent-line-height-base-300), var(--fluent-font-weight-regular)); }
+@mixin body-1-strong { @include typography(var(--fluent-font-size-base-300), var(--fluent-line-height-base-300), var(--fluent-font-weight-semibold)); }
+@mixin body-2 { @include typography(var(--fluent-font-size-base-400), var(--fluent-line-height-base-400), var(--fluent-font-weight-regular)); }
+@mixin caption-1 { @include typography(var(--fluent-font-size-base-200), var(--fluent-line-height-base-200), var(--fluent-font-weight-regular)); }
+
+@mixin focus-ring {
+    outline: none;
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--fluent-color-neutral-stroke-focus-1), 0 0 0 4px var(--fluent-color-neutral-stroke-focus-2);
+    }
+}
+
+@mixin disabled {
+    background: var(--fluent-color-neutral-background-disabled);
+    color: var(--fluent-color-neutral-foreground-disabled);
+    border-color: var(--fluent-color-neutral-stroke-disabled);
+    box-shadow: none;
+    cursor: default;
+}
+
+@mixin interactive-neutral {
+    transition: background-color var(--fluent-duration-faster) var(--fluent-curve-easy-ease),
+                border-color var(--fluent-duration-faster) var(--fluent-curve-easy-ease),
+                color var(--fluent-duration-faster) var(--fluent-curve-easy-ease),
+                box-shadow var(--fluent-duration-faster) var(--fluent-curve-easy-ease);
+}

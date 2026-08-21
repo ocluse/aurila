@@ -1,0 +1,103 @@
+@use "../mixins" as *;
+
+.au-calendar {
+    box-sizing: border-box;
+    padding: 12px;
+    border-radius: var(--md-sys-shape-corner-large);
+    background: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
+}
+
+.au-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 4px 8px;
+    @include title-medium;
+}
+
+.au-calendar__day-labels {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    color: var(--md-sys-color-on-surface-variant);
+    @include body-small;
+}
+
+.au-calendar__week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.au-calendar__view {
+    display: flex;
+    flex-direction: column;
+}
+
+.au-calendar__body {
+    display: flex;
+    flex-direction: column;
+}
+
+.au-calendar__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+}
+
+.au-calendar__day,
+.au-calendar__item,
+.au-calendar__month,
+.au-calendar__year {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 40px;
+    height: 40px;
+    border-radius: var(--md-sys-shape-corner-full);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    @include body-medium;
+    @include state-layer(var(--md-sys-color-on-surface));
+}
+
+.au-calendar__month,
+.au-calendar__year {
+    min-width: 72px;
+}
+
+.au-calendar__day--outside,
+.au-calendar__item--outside,
+.au-calendar__month--outside,
+.au-calendar__year--outside {
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.6;
+}
+
+.au-calendar__day--today,
+.au-calendar__item--today,
+.au-calendar__month--today,
+.au-calendar__year--today {
+    border: 1px solid var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
+}
+
+.au-calendar__day--selected,
+.au-calendar__item--selected,
+.au-calendar__month--selected,
+.au-calendar__year--selected {
+    background: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    border-color: transparent;
+}
+
+.au-calendar__day--disabled,
+.au-calendar__item--disabled,
+.au-calendar__month--disabled,
+.au-calendar__year--disabled {
+    opacity: 0.38;
+    pointer-events: none;
+}

@@ -1,0 +1,110 @@
+@use "../mixins" as *;
+
+.au-scaffold {
+    background: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+}
+
+.au-scaffold__content {
+    background: var(--md-sys-color-background);
+}
+
+.au-scaffold__fab {
+    padding: 16px;
+}
+
+.md-top-app-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 64px;
+    padding: 0 4px;
+    background: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    transition: background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+
+    &.md-top-app-bar--medium {
+        height: 112px;
+        align-items: flex-end;
+        padding-bottom: 24px;
+    }
+
+    &.md-top-app-bar--large {
+        height: 152px;
+        align-items: flex-end;
+        padding-bottom: 28px;
+    }
+
+    &.md-top-app-bar--center-aligned .au-top-app-bar__title {
+        text-align: center;
+    }
+}
+
+// The bar tints as content scrolls under it; Aurila does not track scroll for the bar, so this is
+// applied when the scaffold marks the bar as raised.
+.md-top-app-bar--raised {
+    background: var(--md-sys-color-surface-container);
+}
+
+.au-top-app-bar__navigation-icon {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.au-top-app-bar__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 12px;
+    @include typescale(22px, 28px, 400, 0);
+
+    .md-top-app-bar--medium & {
+        @include typescale(24px, 32px, 400, 0);
+    }
+
+    .md-top-app-bar--large & {
+        @include typescale(28px, 36px, 400, 0);
+    }
+}
+
+.au-top-app-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+}
+
+.au-snackbar-host {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    pointer-events: none;
+}
+
+.au-snackbar {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 14px 16px;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-inverse-surface);
+    color: var(--md-sys-color-inverse-on-surface);
+    box-shadow: var(--md-sys-elevation-level3);
+    pointer-events: auto;
+    animation: md-snackbar-in var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-decelerate);
+    @include body-medium;
+}
+
+@keyframes md-snackbar-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

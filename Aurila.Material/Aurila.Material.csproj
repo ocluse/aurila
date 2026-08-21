@@ -28,4 +28,10 @@
 		<ProjectReference Include="..\Aurila\Aurila.csproj" />
 	</ItemGroup>
 
+	<!-- Unlike Aurila, this package builds its CSS too: the stylesheet is the theme, so leaving it
+	     to a locally installed editor extension would make the package unbuildable on CI. -->
+	<Target Name="BundleAssets" BeforeTargets="Build">
+		<Exec Command="npm run build" WorkingDirectory="$(ProjectDir)" />
+	</Target>
+
 </Project>

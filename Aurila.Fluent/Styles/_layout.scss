@@ -1,0 +1,91 @@
+@use "mixins" as *;
+
+.au-surface { background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); }
+.fl-surface--level0 { background: var(--fluent-color-neutral-background-1); }
+.fl-surface--level1 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-2); }
+.fl-surface--level2 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-4); }
+.fl-surface--level3 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-8); }
+.fl-surface--level4 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-16); }
+.au-surface.au-clickable { cursor: pointer; @include interactive-neutral; &:hover { background: var(--fluent-color-neutral-background-2); } }
+
+.fl-card {
+    position: relative; display: flex; box-sizing: border-box; flex-direction: column; border: 1px solid transparent; border-radius: var(--fluent-radius-large); color: var(--fluent-color-neutral-foreground-1); overflow: hidden;
+    &.fl-card--elevated, &.fl-card--filled { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-4); }
+    &.fl-card--filled-alternative { background: var(--fluent-color-neutral-background-2); box-shadow: var(--fluent-shadow-4); }
+    &.fl-card--subtle { background: var(--fluent-color-subtle-background); box-shadow: none; }
+    &.fl-card--outline { background: var(--fluent-color-transparent-background); border-color: var(--fluent-color-neutral-stroke-1); box-shadow: none; }
+}
+.au-card__header { padding: 16px 16px 0; @include body-1-strong; }
+.au-card__content { padding: 16px; }
+.au-card__footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 16px 16px; }
+
+.fl-group-box { border: 1px solid var(--fluent-color-neutral-stroke-2); border-radius: var(--fluent-radius-xlarge); background: var(--fluent-color-neutral-background-1); }
+.au-group-box__header { padding: 10px 14px; border-bottom: 1px solid var(--fluent-color-neutral-stroke-2); @include body-1-strong; }
+.au-group-box__content { padding: 14px; }
+
+.au-alertbox { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--fluent-color-brand-stroke-2); border-radius: var(--fluent-radius-large); background: var(--fluent-color-brand-background-2); color: var(--fluent-color-neutral-foreground-1); @include body-1; }
+.au-alertbox__icon { display: flex; color: var(--fluent-color-brand-foreground-1); }
+.au-alertbox__content { flex: 1; }
+
+.au-scaffold, .au-scaffold__content { background: var(--fluent-color-neutral-background-2); color: var(--fluent-color-neutral-foreground-1); }
+.au-scaffold__fab { padding: 16px; }
+
+.fl-top-app-bar { display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 8px; border-bottom: 1px solid var(--fluent-color-neutral-stroke-2); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); }
+.fl-top-app-bar--brand { background: var(--fluent-color-brand-background); color: var(--fluent-color-neutral-foreground-on-brand); border-color: transparent; }
+.fl-top-app-bar--transparent { background: transparent; border-color: transparent; }
+.au-top-app-bar__navigation-icon, .au-top-app-bar__actions { display: flex; align-items: center; gap: 4px; }
+.au-top-app-bar__title { flex: 1; min-width: 0; padding: 0 8px; @include typography(16px, 22px, 600); }
+
+.au-snackbar-host { display: flex; flex-direction: column; gap: 8px; padding: 16px; pointer-events: none; }
+.au-snackbar { min-width: 280px; padding: 12px; border: 1px solid transparent; border-radius: var(--fluent-radius-medium); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); box-shadow: var(--fluent-shadow-8); pointer-events: auto; animation: fl-snackbar-in .2s var(--fluent-curve-decelerate); @include body-1-strong; }
+@keyframes fl-snackbar-in { from { opacity: 0; transform: translateY(8px); } }
+
+.fl-toaster {
+    position: fixed;
+    z-index: 100;
+    right: 24px;
+    bottom: 24px;
+    display: flex;
+    width: min(360px, calc(100vw - 32px));
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+.fl-toast {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) 32px;
+    gap: 10px;
+    align-items: start;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid transparent;
+    border-radius: var(--fluent-radius-medium);
+    background: var(--fluent-color-neutral-background-1);
+    color: var(--fluent-color-neutral-foreground-1);
+    box-shadow: var(--fluent-shadow-8);
+    pointer-events: auto;
+    animation: fl-snackbar-in var(--fluent-duration-normal) var(--fluent-curve-decelerate);
+}
+.fl-toast__icon { margin-top: 1px; color: var(--fluent-color-brand-foreground-1); }
+.fl-toast--success .fl-toast__icon { color: var(--fluent-color-status-success-foreground-1); }
+.fl-toast--warning .fl-toast__icon { color: var(--fluent-color-status-warning-foreground-1); }
+.fl-toast--error .fl-toast__icon { color: var(--fluent-color-status-danger-foreground-1); }
+.fl-toast__content { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.fl-toast__title { @include body-1-strong; }
+.fl-toast__body { color: var(--fluent-color-neutral-foreground-2); @include body-1; }
+.fl-toast__dismiss {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    margin: -6px -6px 0 0;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    border-radius: var(--fluent-radius-medium);
+    background: var(--fluent-color-subtle-background);
+    color: var(--fluent-color-neutral-foreground-2);
+    cursor: pointer;
+    @include focus-ring;
+    &:hover { background: var(--fluent-color-subtle-background-hover); color: var(--fluent-color-neutral-foreground-2-hover); }
+    &:active { background: var(--fluent-color-subtle-background-pressed); }
+}

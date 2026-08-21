@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "devDependencies": {
+    "sass": "^1.83.0"
+  },
+  "scripts": {
+    "build": "sass Styles/main.scss wwwroot/aurila.fluent.css --style=compressed --no-source-map --load-path=Styles"
+  }
+}

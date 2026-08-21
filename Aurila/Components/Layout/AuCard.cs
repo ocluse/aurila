@@ -2,7 +2,7 @@
 
 namespace Aurila.Components.Layout;
 
-public class AuCard : AuControlBase<AuCard>, IHasMargin
+public class AuCard : AuInteractiveContainerBase<AuCard>, IHasMargin
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -46,39 +46,33 @@ public class AuCard : AuControlBase<AuCard>, IHasMargin
         classBuilder.Add("au-card");
     }
 
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildContainerContent(RenderTreeBuilder builder)
     {
-        builder.OpenElement(1, "div");
+        if (HeaderContent != null)
         {
-            builder.AddMultipleAttributes(2, GetAppliedAttributes());
-
-            if (HeaderContent != null)
+            builder.OpenElement(0, "div");
             {
-                builder.OpenElement(3, "div");
-                {
-                    builder.AddAttribute(4, "class", "au-card__header");
-                    builder.AddContent(5, HeaderContent);
-                }
-                builder.CloseElement();
-            }
-
-            builder.OpenElement(6, "div");
-            {
-                builder.AddAttribute(7, "class", "au-card__content");
-                builder.AddContent(8, ChildContent);
+                builder.AddAttribute(1, "class", $"au-card__header {HeaderClass}".Trim());
+                builder.AddContent(2, HeaderContent);
             }
             builder.CloseElement();
+        }
 
-            if (FooterContent != null)
-            {
-                builder.OpenElement(9, "div");
-                {
-                    builder.AddAttribute(10, "class", "au-card__footer");
-                    builder.AddContent(11, FooterContent);
-                }
-                builder.CloseElement();
-            }
+        builder.OpenElement(3, "div");
+        {
+            builder.AddAttribute(4, "class", "au-card__content");
+            builder.AddContent(5, ChildContent);
         }
         builder.CloseElement();
+
+        if (FooterContent != null)
+        {
+            builder.OpenElement(6, "div");
+            {
+                builder.AddAttribute(7, "class", $"au-card__footer {FooterClass}".Trim());
+                builder.AddContent(8, FooterContent);
+            }
+            builder.CloseElement();
+        }
     }
 }

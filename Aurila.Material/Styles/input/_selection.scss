@@ -1,0 +1,155 @@
+@use "../mixins" as *;
+
+// Checkbox. Aurila renders the native input plus a sibling span used as the box.
+.au-checkbox__content {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    @include body-large;
+}
+
+.au-checkbox__content__input {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.au-checkbox_content__checkmark {
+    order: -1;
+    position: relative;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    border: 2px solid var(--md-sys-color-on-surface-variant);
+    border-radius: 2px;
+    transition:
+        background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+        border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+
+    &::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 0;
+        width: 5px;
+        height: 10px;
+        border: solid var(--md-sys-color-on-primary);
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg) scale(0);
+        transition: transform var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
+    }
+}
+
+.au-checkbox--checked .au-checkbox_content__checkmark {
+    background: var(--md-sys-color-primary);
+    border-color: var(--md-sys-color-primary);
+
+    &::after {
+        transform: rotate(45deg) scale(1);
+    }
+}
+
+.au-checkbox.au-input--disabled {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+// Switch.
+.au-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    @include body-large;
+}
+
+.au-switch__content {
+    position: relative;
+    flex: 0 0 auto;
+    width: 52px;
+    height: 32px;
+    box-sizing: border-box;
+    border: 2px solid var(--md-sys-color-outline);
+    border-radius: var(--md-sys-shape-corner-full);
+    background: var(--md-sys-color-surface-container-highest);
+    cursor: pointer;
+    transition:
+        background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+        border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.au-switch__content__slider {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--md-sys-color-outline);
+    transform: translateY(-50%);
+    transition:
+        transform var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-emphasized),
+        width var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-emphasized),
+        height var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-emphasized),
+        background-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.au-switch--checked {
+    .au-switch__content {
+        background: var(--md-sys-color-primary);
+        border-color: var(--md-sys-color-primary);
+    }
+
+    .au-switch__content__slider {
+        width: 24px;
+        height: 24px;
+        left: 2px;
+        background: var(--md-sys-color-on-primary);
+        transform: translateY(-50%) translateX(20px);
+    }
+}
+
+.au-switch.au-input--disabled {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+// Dropdown popup.
+.au-dropdown__popup {
+    box-sizing: border-box;
+    min-width: 112px;
+    max-height: 320px;
+    padding: 8px 0;
+    margin: 0;
+    border: none;
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    box-shadow: var(--md-sys-elevation-level2);
+    overflow-y: auto;
+}
+
+.au-dropdown__item {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 0 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    @include body-large;
+    @include state-layer(var(--md-sys-color-on-surface));
+
+    &.selected {
+        background: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+    }
+}

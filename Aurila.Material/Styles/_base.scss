@@ -1,0 +1,92 @@
+@use "mixins" as *;
+
+body {
+    background: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-background);
+    font-family: var(--md-sys-typescale-font);
+    @include body-large;
+}
+
+// Ripple. The container clips the wave to the host's shape; both live behind the content by way of
+// the stacking context the state layer already establishes.
+.md-ripple {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.md-ripple__wave {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    transform: scale(0);
+    will-change: transform, opacity;
+}
+
+// Type scale. Declared after .au-text so an explicit TextStyle wins over the default.
+.au-text {
+    margin: 0;
+    @include body-large;
+}
+
+.md-typescale-display-large {
+    @include typescale(57px, 64px, 400, -0.25px);
+}
+.md-typescale-display-medium {
+    @include typescale(45px, 52px, 400, 0);
+}
+.md-typescale-display-small {
+    @include typescale(36px, 44px, 400, 0);
+}
+.md-typescale-headline-large {
+    @include typescale(32px, 40px, 400, 0);
+}
+.md-typescale-headline-medium {
+    @include typescale(28px, 36px, 400, 0);
+}
+.md-typescale-headline-small {
+    @include typescale(24px, 32px, 400, 0);
+}
+.md-typescale-title-large {
+    @include typescale(22px, 28px, 400, 0);
+}
+.md-typescale-title-medium {
+    @include title-medium;
+}
+.md-typescale-title-small {
+    @include typescale(14px, 20px, 500, 0.1px);
+}
+.md-typescale-body-large {
+    @include body-large;
+}
+.md-typescale-body-medium {
+    @include body-medium;
+}
+.md-typescale-body-small {
+    @include body-small;
+}
+.md-typescale-label-large {
+    @include label-large;
+}
+.md-typescale-label-medium {
+    @include typescale(12px, 16px, 500, 0.5px);
+}
+.md-typescale-label-small {
+    @include typescale(11px, 16px, 500, 0.5px);
+}
+
+.md-typescale-display-large,
+.md-typescale-display-medium,
+.md-typescale-display-small,
+.md-typescale-headline-large,
+.md-typescale-headline-medium,
+.md-typescale-headline-small,
+.md-typescale-title-large,
+.md-typescale-title-medium,
+.md-typescale-title-small {
+    margin: 0;
+}

@@ -1,0 +1,286 @@
+@implements IDisposable
+@inject FluentThemeService ThemeService
+@inject IJSRuntime JS
+
+<div class="fluent-gallery">
+    <aside class="app-rail">
+        <a class="product-brand" href="#top" aria-label="Aurila Fluent home">
+            <span class="fluent-mark"><i></i><i></i><i></i><i></i></span>
+            <span><strong>Aurila</strong><small>Fluent</small></span>
+        </a>
+
+        <nav aria-label="Gallery sections">
+            @foreach (NavItem item in Navigation)
+            {
+                <a href="@($"#{item.Id}")"><GalleryIcon Name="@item.Icon" /><span>@item.Label</span></a>
+            }
+        </nav>
+
+        <div class="rail-account"><span>AU</span><div><strong>Aurila UI</strong><small>Design workspace</small></div></div>
+    </aside>
+
+    <div class="app-stage">
+        <header class="command-bar">
+            <div class="mobile-brand"><span class="fluent-mark"><i></i><i></i><i></i><i></i></span><strong>Aurila Fluent</strong></div>
+            <span class="breadcrumb">Design systems <b>/</b> Fluent 2</span>
+            <div class="command-actions">
+                <button title="Search"><GalleryIcon Name="search" /></button>
+                <button title="Settings"><GalleryIcon Name="settings" /></button>
+                <span class="status-pill"><i></i> Ready</span>
+            </div>
+        </header>
+
+        <main id="top">
+            <section class="hero">
+                <div class="hero-copy">
+                    <span class="overline">Aurila appearance system · Fluent 2</span>
+                    <AuText TextStyle="FluentTypeScale.Display">Familiar by design.<br /><span>Flexible by nature.</span></AuText>
+                    <AuText TextStyle="FluentTypeScale.Body1" Class="hero-lede">
+                        A complete Fluent experience for Blazor: productive, precise, accessible, and shaped by your brand from a single colour.
+                    </AuText>
+                    <div class="action-row hero-actions">
+                        <AuButton Appearance="FluentButton.Primary" Clicked="@(_ => ScrollTo("actions"))">Explore components <GalleryIcon Name="arrow" Size="16" /></AuButton>
+                        <AuButton Appearance="FluentButton.Secondary" Clicked="@(_ => ShowToast(WelcomeMessage, FluentToastIntent.Info))"><GalleryIcon Name="code" Size="16" /> Try an interaction</AuButton>
+                    </div>
+                    <div class="hero-stats">
+                        <div><strong>16</strong><span>brand shades</span></div>
+                        <div><strong>2</strong><span>adaptive modes</span></div>
+                        <div><strong>1</strong><span>Aurila API</span></div>
+                    </div>
+                </div>
+
+                <div class="theme-panel">
+                    <div class="window-titlebar"><div><span></span><span></span><span></span></div><strong>Theme workbench</strong><GalleryIcon Name="sparkle" Size="18" /></div>
+                    <div class="theme-panel__content">
+                        <div class="theme-preview">
+                            <div class="preview-nav"><i></i><i></i><i></i><i></i></div>
+                            <div class="preview-canvas">
+                                <span class="preview-label">Live preview</span>
+                                <div class="preview-card"><b></b><div><i></i><i></i></div></div>
+                                <div class="preview-actions"><b></b><i></i></div>
+                            </div>
+                        </div>
+
+                        <div class="theme-controls">
+                            <div class="control-heading"><div><strong>Brand theme</strong><span>Generated in real time</span></div><div class="mode-picker"><button class="@ModeClass(FluentThemeMode.Light)" aria-label="Light theme" title="Light theme" @onclick="() => SetMode(FluentThemeMode.Light)"><GalleryIcon Name="light" Size="16" /></button><button class="@ModeClass(FluentThemeMode.System)" aria-label="Use system theme" title="Use system theme" @onclick="() => SetMode(FluentThemeMode.System)">A</button><button class="@ModeClass(FluentThemeMode.Dark)" aria-label="Dark theme" title="Dark theme" @onclick="() => SetMode(FluentThemeMode.Dark)"><GalleryIcon Name="dark" Size="16" /></button></div></div>
+                            <label for="brand-seed">Brand colour <code>@_seed</code></label>
+                            <div class="seed-picker">
+                                <input id="brand-seed" type="color" value="@_seed" @oninput="SetCustomSeed" />
+                                @foreach (SeedPreset preset in SeedPresets)
+                                {
+                                    <button class="@(_seed == preset.Value ? "selected" : null)" style="--seed:@preset.Value" title="@preset.Name" @onclick="() => SetSeed(preset.Value)"></button>
+                                }
+                            </div>
+                            <div class="token-readout"><span><i class="brand"></i>Brand background</span><code>brand[80]</code></div>
+                            <div class="token-readout"><span><i class="neutral"></i>Neutral surface</span><code>neutralBackground1</code></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="foundations" class="gallery-section">
+                <SectionHeading Index="01" Kicker="Foundations" Title="A system of useful decisions."
+                                Description="Fluent separates raw brand and neutral values from semantic aliases, so components remain coherent across themes, products, and platforms." />
+
+                <div class="foundation-board">
+                    <div class="brand-ramp-panel">
+                        <div class="panel-title"><div><strong>Generated brand ramp</strong><span>Darkest to lightest</span></div><code>FluentBrandRamp</code></div>
+                        <div class="brand-ramp">
+                            @for (int shade = 10; shade <= 160; shade += 10) { <BrandSwatch Shade="@shade" /> }
+                        </div>
+                    </div>
+                    <div class="semantic-grid">
+                        @foreach (SemanticColor color in SemanticColors)
+                        {
+                            <div class="semantic-token"><span style="background:var(@color.Variable)"></span><div><strong>@color.Name</strong><code>@color.Variable</code></div></div>
+                        }
+                    </div>
+                </div>
+
+                <div class="two-column typography-elevation">
+                    <div class="demo-panel type-ramp">
+                        <div class="panel-title"><div><strong>Fluent 2 web type ramp</strong><span>Segoe UI · complete semantic hierarchy</span></div><code>FluentTypeScale</code></div>
+                        <div class="type-specimen"><code>Display</code><AuText TextStyle="FluentTypeScale.Display">Aa</AuText></div>
+                        <div class="type-specimen"><code>LargeTitle</code><AuText TextStyle="FluentTypeScale.LargeTitle">Large title</AuText></div>
+                        <div class="type-specimen"><code>Title1</code><AuText TextStyle="FluentTypeScale.Title1">Title 1</AuText></div>
+                        <div class="type-specimen"><code>Title2</code><AuText TextStyle="FluentTypeScale.Title2">Title 2</AuText></div>
+                        <div class="type-specimen"><code>Title3</code><AuText TextStyle="FluentTypeScale.Title3">Title 3</AuText></div>
+                        <div class="type-specimen"><code>Subtitle1</code><AuText TextStyle="FluentTypeScale.Subtitle1">Subtitle 1</AuText></div>
+                        <div class="type-specimen"><code>Subtitle2 / Stronger</code><div><AuText TextStyle="FluentTypeScale.Subtitle2">Subtitle 2</AuText><AuText TextStyle="FluentTypeScale.Subtitle2Stronger">Subtitle 2 stronger</AuText></div></div>
+                        <div class="type-specimen"><code>Body2</code><AuText TextStyle="FluentTypeScale.Body2">Body 2 · Prominent supporting copy</AuText></div>
+                        <div class="type-specimen"><code>Body1</code><div><AuText TextStyle="FluentTypeScale.Body1">Regular</AuText><AuText TextStyle="FluentTypeScale.Body1Strong">Strong</AuText><AuText TextStyle="FluentTypeScale.Body1Stronger">Stronger</AuText></div></div>
+                        <div class="type-specimen"><code>Caption1</code><div><AuText TextStyle="FluentTypeScale.Caption1">Regular</AuText><AuText TextStyle="FluentTypeScale.Caption1Strong">Strong</AuText><AuText TextStyle="FluentTypeScale.Caption1Stronger">Stronger</AuText></div></div>
+                        <div class="type-specimen"><code>Caption2</code><div><AuText TextStyle="FluentTypeScale.Caption2">Regular</AuText><AuText TextStyle="FluentTypeScale.Caption2Strong">Strong</AuText></div></div>
+                    </div>
+                    <div class="demo-panel elevation-ramp">
+                        <div class="panel-title"><div><strong>Elevation</strong><span>Ambient + key shadows</span></div><code>FluentElevation</code></div>
+                        <div class="elevation-cards">
+                            <AuSurface Appearance="FluentSurface.Level1">02</AuSurface><AuSurface Appearance="FluentSurface.Level2">04</AuSurface><AuSurface Appearance="FluentSurface.Level3">08</AuSurface><AuSurface Appearance="FluentSurface.Level4">16</AuSurface>
+                        </div>
+                        <p>Compact radii and directional shadows establish hierarchy while keeping interfaces crisp.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="actions" class="gallery-section">
+                <SectionHeading Index="02" Kicker="Actions" Title="The right emphasis for every action."
+                                Description="Primary, secondary, outline, subtle, and transparent appearances provide a predictable hierarchy with Fluent hover, press, focus, and disabled states." />
+                <div class="showcase-grid">
+                    <ShowcaseCard Title="Buttons" Caption="Five emphasis levels" ComponentName="AuButton" Wide="true">
+                        <div class="action-row">
+                            <AuButton Appearance="FluentButton.Primary" Clicked="@(_ => CountClick())">Primary · @_clickCount</AuButton>
+                            <AuButton Appearance="FluentButton.Secondary">Secondary</AuButton>
+                            <AuButton Appearance="FluentButton.Outline">Outline</AuButton>
+                            <AuButton Appearance="FluentButton.Subtle">Subtle</AuButton>
+                            <AuButton Appearance="FluentButton.Transparent">Transparent</AuButton>
+                            <AuButton Appearance="FluentButton.Primary" Disabled="true">Disabled</AuButton>
+                        </div>
+                    </ShowcaseCard>
+                    <ShowcaseCard Title="Icon buttons" Caption="Compact commands" ComponentName="AuIconButton">
+                        <div class="action-row">
+                            <AuIconButton Appearance="FluentIconButton.Primary" HtmlTitleAttr="Add"><GalleryIcon Name="add" /></AuIconButton>
+                            <AuIconButton Appearance="FluentIconButton.Secondary" HtmlTitleAttr="Search"><GalleryIcon Name="search" /></AuIconButton>
+                            <AuIconButton Appearance="FluentIconButton.Outline" HtmlTitleAttr="Settings"><GalleryIcon Name="settings" /></AuIconButton>
+                            <AuIconButton Appearance="FluentIconButton.Subtle" HtmlTitleAttr="Grid"><GalleryIcon Name="grid" /></AuIconButton>
+                            <AuIconButton Appearance="FluentIconButton.Subtle" Disabled="true"><GalleryIcon Name="close" /></AuIconButton>
+                        </div>
+                    </ShowcaseCard>
+                    <ShowcaseCard Title="Floating commands" Caption="Elevated action affordances" ComponentName="AuFloatingActionButton">
+                        <div class="action-row">
+                            <AuFloatingActionButton Appearance="FluentFab.BrandSmall"><GalleryIcon Name="add" Size="16" /></AuFloatingActionButton>
+                            <AuFloatingActionButton Appearance="FluentFab.Brand"><GalleryIcon Name="sparkle" /> Create</AuFloatingActionButton>
+                            <AuFloatingActionButton Appearance="FluentFab.Neutral"><GalleryIcon Name="palette" /> Theme</AuFloatingActionButton>
+                            <AuFloatingActionButton Appearance="FluentFab.BrandLarge"><GalleryIcon Name="add" Size="28" /></AuFloatingActionButton>
+                        </div>
+                    </ShowcaseCard>
+                </div>
+            </section>
+
+            <section id="inputs" class="gallery-section">
+                <SectionHeading Index="03" Kicker="Input & selection" Title="Efficient without feeling mechanical."
+                                Description="Compact fields, visible labels, clear validation structure, and familiar selection controls help people complete work quickly." />
+                <div class="form-workbench">
+                    <div class="form-title"><div><GalleryIcon Name="grid" /><span><strong>New workspace</strong><small>Configure your project details</small></span></div><span>All fields are interactive</span></div>
+                    <div class="form-grid">
+                        <AuTextBox @bind-Value="_workspaceName" Placeholder="Northstar"><Header>Workspace name</Header><Prefix><GalleryIcon Name="sparkle" Size="16" /></Prefix></AuTextBox>
+                        <AuDropdown TValue="string" Items="@Templates" @bind-Value="_template"><Header>Template</Header><Suffix><span>⌄</span></Suffix></AuDropdown>
+                        <AuTextBox @bind-Value="_owner" Appearance="FluentField.FilledDarkerBox" Placeholder="name@example.com"><Header>Owner email</Header></AuTextBox>
+                        <AuTextBox Value="Created automatically" ReadOnly="true"><Header>Workspace ID</Header></AuTextBox>
+                        <AuTextField @bind-Value="_description" Appearance="FluentField.FilledDarker" MinLines="2" MaxLines="4" Placeholder="Describe what this workspace is for"><Header>Description</Header></AuTextField>
+                    </div>
+                    <div class="selection-area">
+                        <div class="chip-area"><AuText TextStyle="FluentTypeScale.Body1Strong">Capabilities</AuText><AuChipSelect TValue="string" Items="@Capabilities" SelectionMode="SelectionMode.Multiple" SelectedItems="@_selectedCapabilities" SelectedItemsChanged="UpdateCapabilities" /></div>
+                        <div class="toggle-list">
+                            <div><span><strong>Enable collaboration</strong><small>Invite members after creation</small></span><AuSwitch @bind-Value="_collaboration" /></div>
+                            <div><span><strong>Private workspace</strong><small>Only invited members can view</small></span><AuSwitch @bind-Value="_private" /></div>
+                            <AuCheckBox @bind-Value="_notifications" Context="isChecked">Send me activity summaries</AuCheckBox>
+                        </div>
+                    </div>
+                    <div class="form-actions"><span>@_selectedCapabilities.Count capabilities selected</span><div><AuButton Appearance="FluentButton.Subtle">Cancel</AuButton><AuButton Appearance="FluentButton.Primary" Clicked="@(_ => ShowToast(WorkspaceCreatedMessage, FluentToastIntent.Success))">Create workspace</AuButton></div></div>
+                </div>
+            </section>
+
+            <section id="content" class="gallery-section">
+                <SectionHeading Index="04" Kicker="Content" Title="Structured surfaces that stay quiet."
+                                Description="Cards and semantic messages create useful grouping with strokes, neutral fills, and low elevation instead of decorative chrome." />
+                <div class="content-cards">
+                    <AuCard Appearance="FluentCard.Filled"><HeaderContent><span class="card-icon blue"><GalleryIcon Name="sparkle" /></span><h3>Filled</h3></HeaderContent><ChildContent><p>The default Fluent card uses neutral background 1 with shadow 4.</p></ChildContent><FooterContent><AuButton Appearance="FluentButton.Subtle">Open</AuButton></FooterContent></AuCard>
+                    <AuCard Appearance="FluentCard.FilledAlternative"><HeaderContent><span class="card-icon green"><GalleryIcon Name="grid" /></span><h3>Filled alternative</h3></HeaderContent><ChildContent><p>Use neutral background 2 when the surrounding canvas needs clearer separation.</p></ChildContent><FooterContent><AuButton Appearance="FluentButton.Subtle">Details</AuButton></FooterContent></AuCard>
+                    <AuCard Appearance="FluentCard.Outline"><HeaderContent><span class="card-icon orange"><GalleryIcon Name="code" /></span><h3>Outline</h3></HeaderContent><ChildContent><p>Keep hierarchy light with a precise one-pixel neutral stroke.</p></ChildContent><FooterContent><AuButton Appearance="FluentButton.Subtle">Inspect</AuButton></FooterContent></AuCard>
+                    <AuCard Appearance="FluentCard.Subtle"><HeaderContent><span class="card-icon blue"><GalleryIcon Name="info" /></span><h3>Subtle</h3></HeaderContent><ChildContent><p>A transparent surface keeps lightweight content within the page flow.</p></ChildContent><FooterContent><AuButton Appearance="FluentButton.Subtle">Learn more</AuButton></FooterContent></AuCard>
+                </div>
+                <AuAlertBox><Icon><GalleryIcon Name="info" /></Icon><ChildContent>The brand ramp is generated at runtime, while semantic neutral and status roles remain stable and accessible.</ChildContent></AuAlertBox>
+            </section>
+
+            <section id="navigation" class="gallery-section">
+                <SectionHeading Index="05" Kicker="Navigation" Title="Productivity patterns that already feel known."
+                                Description="App bars, side navigation, and compact bottom navigation inherit the active theme while preserving Aurila's stateful routing model." />
+                <div class="navigation-demo">
+                    <div class="app-preview">
+                        <AuTopAppBar Appearance="FluentTopAppBar.Neutral"><NavigationIcon><AuIconButton><GalleryIcon Name="menu" /></AuIconButton></NavigationIcon><Title>Project Northstar</Title><Actions><AuIconButton><GalleryIcon Name="search" /></AuIconButton><AuIconButton><GalleryIcon Name="settings" /></AuIconButton></Actions></AuTopAppBar>
+                        <div class="preview-body">
+                            <nav><a class="active"><GalleryIcon Name="home" />Overview</a><a><GalleryIcon Name="grid" />Components</a><a><GalleryIcon Name="palette" />Theme</a><a><GalleryIcon Name="code" />Examples</a></nav>
+                            <div class="preview-main"><span class="overline">Overview</span><h3>Good afternoon</h3><div class="metric-grid"><div><span>Components</span><strong>24</strong><i></i></div><div><span>Coverage</span><strong>96%</strong><i></i></div></div><div class="preview-table"><b></b><i></i><i></i><i></i></div></div>
+                        </div>
+                    </div>
+                    <div class="navigation-copy"><span class="overline">Adaptive shell</span><AuText TextStyle="FluentTypeScale.Title2">One model, from rail to bottom bar.</AuText><p>Aurila keeps navigation intent and page state intact while Fluent supplies the visual vocabulary people recognize.</p><ul><li><GalleryIcon Name="check" Size="16" /> Compact, information-dense layouts</li><li><GalleryIcon Name="check" Size="16" /> Clear selected and hover states</li><li><GalleryIcon Name="check" Size="16" /> Keyboard-visible focus treatment</li></ul></div>
+                </div>
+            </section>
+
+            <section id="feedback" class="gallery-section">
+                <SectionHeading Index="06" Kicker="Feedback" Title="Every action gets an answer."
+                                Description="Progress, transient messages, dialogs, and bottom sheets keep people informed without breaking the flow of work." />
+                <div class="showcase-grid">
+                    <ShowcaseCard Title="Spinner and progress ring" Caption="Fluent brand and contrast strokes" ComponentName="FluentSpinner · AuCircularProgress">
+                        <div class="progress-row"><AuCircularProgress Appearance="FluentSpinner.Default" Size="32" /><AuCircularProgress Progress="0.68" Size="40" TrackColor="var(--fluent-color-brand-stroke-2-contrast)" /><div><strong>68%</strong><span>Generating aliases</span></div></div>
+                    </ShowcaseCard>
+                    <ShowcaseCard Title="Transient UI" Caption="Intent-aware Fluent feedback" ComponentName="AuFluentToastHost · AuDialog">
+                        <div class="action-row"><AuButton Appearance="FluentButton.Secondary" Clicked="@(_ => ShowToast(AliasesCopiedMessage, FluentToastIntent.Success))">Show toast</AuButton><AuButton Appearance="FluentButton.Outline" Clicked="@(_ => _dialogOpen = true)">Open dialog</AuButton><AuButton Appearance="FluentButton.Subtle" Clicked="@(_ => _sheetOpen = true)">Bottom sheet</AuButton></div>
+                    </ShowcaseCard>
+                </div>
+            </section>
+
+            <section class="start-panel">
+                <div><span class="overline">Ready to use</span><AuText TextStyle="FluentTypeScale.Title1">Add Fluent to any Aurila app.</AuText><p>Register the appearance provider, publish the theme, and continue using the same Aurila component API.</p></div>
+                <pre><code><span>builder.Services</span>.AddAurilaFluent(<em>"#0F6CBD"</em>);
+
+&lt;<span>AuFluentTheme</span>&gt;
+  &lt;<span>AuButton</span> Appearance=<em>"FluentButton.Primary"</em>&gt;
+    Create workspace
+  &lt;/<span>AuButton</span>&gt;
+&lt;/<span>AuFluentTheme</span>&gt;</code></pre>
+            </section>
+
+            <footer><a class="product-brand" href="#top"><span class="fluent-mark"><i></i><i></i><i></i><i></i></span><span><strong>Aurila Fluent</strong><small>Blazor design system</small></span></a><span>Built for familiar, productive experiences.</span><a href="#top">Back to top ↑</a></footer>
+        </main>
+    </div>
+
+    <AuFluentToastHost @ref="_toaster" />
+    <AuDialog @bind-Open="_dialogOpen"><div class="dialog-content"><GalleryIcon Name="sparkle" Size="28" /><h2>Apply this brand theme?</h2><p>The generated ramp based on <code>@_seed</code> will become the active Fluent theme for this experience.</p><div><AuButton Appearance="FluentButton.Subtle" Clicked="@(_ => _dialogOpen = false)">Cancel</AuButton><AuButton Appearance="FluentButton.Primary" Clicked="@(_ => ApplyTheme())">Apply theme</AuButton></div></div></AuDialog>
+    <AuBottomSheet @bind-Open="_sheetOpen"><div class="sheet-content"><AuText TextStyle="FluentTypeScale.Title3">Quick actions</AuText><p>Choose what to do with the generated brand ramp.</p><button @onclick="() => CloseSheet(ExportedMessage)"><GalleryIcon Name="palette" /><span><strong>Export CSS tokens</strong><small>Copy semantic variables</small></span></button><button @onclick="() => CloseSheet(SavedMessage)"><GalleryIcon Name="sparkle" /><span><strong>Save theme</strong><small>Add to this workspace</small></span></button></div></AuBottomSheet>
+</div>
+
+@code {
+    private const string WelcomeMessage = "Welcome to the Fluent gallery";
+    private const string WorkspaceCreatedMessage = "Workspace created";
+    private const string AliasesCopiedMessage = "Semantic aliases copied";
+    private const string ExportedMessage = "CSS tokens exported";
+    private const string SavedMessage = "Theme saved to workspace";
+
+    private readonly NavItem[] Navigation = [new("foundations", "palette", "Foundations"), new("actions", "add", "Actions"), new("inputs", "code", "Input & selection"), new("content", "grid", "Content"), new("navigation", "home", "Navigation"), new("feedback", "info", "Feedback")];
+    private readonly SeedPreset[] SeedPresets = [new("Microsoft blue", "#0F6CBD"), new("Teams", "#6264A7"), new("Excel", "#107C41"), new("PowerPoint", "#C43E1C"), new("Magenta", "#C239B3")];
+    private readonly SemanticColor[] SemanticColors = [new("Brand background", "--fluent-color-brand-background"), new("Brand tint", "--fluent-color-brand-background-2"), new("Neutral surface", "--fluent-color-neutral-background-1"), new("Subtle surface", "--fluent-color-neutral-background-3"), new("Primary text", "--fluent-color-neutral-foreground-1"), new("Secondary text", "--fluent-color-neutral-foreground-2"), new("Danger", "--fluent-color-status-danger-foreground-1"), new("Success", "--fluent-color-status-success-foreground-1")];
+    private readonly string[] Templates = ["Blank", "Product design", "Engineering", "Research"];
+    private readonly string[] Capabilities = ["Tasks", "Files", "Notes", "Automation"];
+    private IReadOnlyCollection<string> _selectedCapabilities = ["Tasks", "Files"];
+    private string _seed = "#0F6CBD";
+    private string _workspaceName = "Northstar";
+    private string _template = "Product design";
+    private string _owner = string.Empty;
+    private string _description = "A shared workspace for the next generation of Aurila experiences.";
+    private bool _collaboration = true;
+    private bool _private;
+    private bool _notifications = true;
+    private bool _dialogOpen;
+    private bool _sheetOpen;
+    private int _clickCount;
+    private AuFluentToastHost? _toaster;
+
+    protected override void OnInitialized() => ThemeService.Changed += OnThemeChanged;
+    public void Dispose() => ThemeService.Changed -= OnThemeChanged;
+    private void OnThemeChanged() => _ = InvokeAsync(StateHasChanged);
+    private void SetMode(FluentThemeMode mode) => ThemeService.SetMode(mode);
+    private string ModeClass(FluentThemeMode mode) => ThemeService.Mode == mode ? "selected" : string.Empty;
+    private void SetSeed(string seed) { _seed = seed.ToUpperInvariant(); ThemeService.SetSeed(_seed); }
+    private void SetCustomSeed(ChangeEventArgs args) { if (args.Value is string value && value.Length == 7) SetSeed(value); }
+    private void CountClick() => _clickCount++;
+    private void UpdateCapabilities(IReadOnlyCollection<string> selected) => _selectedCapabilities = selected;
+    private void ShowToast(string title, FluentToastIntent intent = FluentToastIntent.Info) => _toaster?.ShowToast(title, "The operation completed in the current workspace.", intent);
+    private void ScrollTo(string id) => _ = JS.InvokeVoidAsync("fluentGallery.scrollTo", id);
+    private void ApplyTheme() { _dialogOpen = false; ShowToast("Brand theme applied", FluentToastIntent.Success); }
+    private void CloseSheet(string message) { _sheetOpen = false; ShowToast(message, FluentToastIntent.Success); }
+
+    private sealed record NavItem(string Id, string Icon, string Label);
+    private sealed record SeedPreset(string Name, string Value);
+    private sealed record SemanticColor(string Name, string Variable);
+}

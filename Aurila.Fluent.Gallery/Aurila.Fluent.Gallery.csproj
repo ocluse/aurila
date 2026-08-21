@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Aurila.Fluent.Gallery</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.7" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aurila\Aurila.csproj" />
+    <ProjectReference Include="..\Aurila.Fluent\Aurila.Fluent.csproj" />
+    <ProjectReference Include="..\Aurila.Web\Aurila.Web.csproj" />
+  </ItemGroup>
+
+  <Target Name="RemoveReferencedFrontendMetadata" BeforeTargets="_HandleFileConflictsForPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'package-lock.json' Or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'package.json' Or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'tsconfig.json'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

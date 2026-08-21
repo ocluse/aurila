@@ -1,0 +1,8 @@
+@use "mixins" as *;
+
+.au-bottom-navigation { display: flex; align-items: stretch; min-height: 64px; border-top: 1px solid var(--fluent-color-neutral-stroke-2); background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-2); }
+.au-bottom-navigation-item { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 7px 4px; border: 0; border-radius: 0; background: transparent; color: inherit; text-decoration: none; cursor: pointer; @include caption-1; @include focus-ring; &:hover { background: var(--fluent-color-neutral-background-3); } &.au-bottom-navigation-item--selected { color: var(--fluent-color-brand-foreground-1); box-shadow: inset 0 2px var(--fluent-color-brand-stroke-1); } }
+
+.au-adaptive-navigation-layout__navigation { background: var(--fluent-color-neutral-background-2); color: var(--fluent-color-neutral-foreground-2); border-right: 1px solid var(--fluent-color-neutral-stroke-2); }
+.au-adaptive-navigation-layout__content, .au-page { background: var(--fluent-color-neutral-background-1); color: var(--fluent-color-neutral-foreground-1); }
+.au-adaptive-navigation-item { display: flex; align-items: center; gap: 10px; min-height: 36px; margin: 2px 6px; padding: 0 10px; border: 0; border-radius: var(--fluent-radius-medium); background: transparent; color: var(--fluent-color-neutral-foreground-2); text-decoration: none; cursor: pointer; @include body-1; @include focus-ring; &:hover { background: var(--fluent-color-neutral-background-4); } &.au-adaptive-navigation-item--selected { background: var(--fluent-color-brand-background-2); color: var(--fluent-color-brand-foreground-1); font-weight: 600; } }

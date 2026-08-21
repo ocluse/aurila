@@ -1,5 +1,4 @@
-﻿using Aurila.Components.Layout.Internal;
-using Aurila.Contracts.Layout;
+﻿using Aurila.Contracts.Layout;
 using Aurila.Design;
 using Aurila.Enums.Layout;
 using Aurila.Models.Layout;
@@ -7,12 +6,9 @@ using System.Text;
 
 namespace Aurila.Components.Layout;
 
-public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadding, IRow, IColumn
+public class AuGrid : AuInteractiveLayoutBase<AuGrid>, IHasMargin, IHasPadding, IRow, IColumn
 {
     private readonly string _gridId = $"au-grid-{Guid.NewGuid().ToString("N")[..8]}";
-
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
     public string ColumnDefinitions { get; set; } = "1fr";
@@ -89,7 +85,7 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
     [Parameter]
     public CssLength? PaddingLeft { get; set; }
 
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildLeadingContent(RenderTreeBuilder builder)
     {
         // dynamically generated CSS only if we have breakpoints:
         if (Breakpoints != null && Breakpoints.Any())
@@ -98,9 +94,6 @@ public class AuGrid : AuControlBase<AuGrid>, ILayoutParent, IHasMargin, IHasPadd
             builder.AddContent(1, GenerateGridCss());
             builder.CloseElement();
         }
-        builder.OpenRegion(2);
-        LayoutRenderingUtility.Render(this, builder);
-        builder.CloseRegion();
     }
 
     protected override void BuildClass(ClassBuilder builder)

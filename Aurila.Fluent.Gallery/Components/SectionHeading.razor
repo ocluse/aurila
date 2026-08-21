@@ -1,0 +1,12 @@
+<div class="section-heading">
+    <span class="section-index">@Index</span>
+    <div><span class="overline">@Kicker</span><AuText TextStyle="FluentTypeScale.Title1">@Title</AuText></div>
+    <AuText TextStyle="FluentTypeScale.Body1">@Description</AuText>
+</div>
+
+@code {
+    [Parameter] public string Index { get; set; } = "01";
+    [Parameter, EditorRequired] public string Kicker { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Description { get; set; } = string.Empty;
+}

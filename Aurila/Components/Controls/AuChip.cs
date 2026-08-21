@@ -2,7 +2,7 @@
 
 namespace Aurila.Components.Controls;
 
-public class AuChip : AuControlBase<AuChip>, IHasMargin
+public class AuChip : AuClickableBase<AuChip>, IHasMargin
 {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -11,7 +11,7 @@ public class AuChip : AuControlBase<AuChip>, IHasMargin
     public bool Selected { get; set; }
 
     [Parameter]
-    public bool Disabled { get; set; }
+    public bool Selectable { get; set; }
 
     [Parameter]
     public CssLength? Margin { get; set; }
@@ -34,21 +34,33 @@ public class AuChip : AuControlBase<AuChip>, IHasMargin
     [Parameter]
     public CssLength? MarginBottom { get; set; }
 
-    protected override void BuildClass(ClassBuilder builder)
+    protected override void BuildControlClass(ClassBuilder builder)
     {
-        base.BuildClass(builder);
+        base.BuildControlClass(builder);
         builder.Add("au-chip")
             .AddIf(Selected, "au-chip--selected")
             .AddIf(Disabled, "au-chip--disabled");
     }
 
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildAttributes(IDictionary<string, object> attributes)
     {
-        builder.OpenElement(1, "div");
+        base.BuildAttributes(attributes);
+
+        if (RendersAsLink)
         {
-            builder.AddMultipleAttributes(2, GetAppliedAttributes());
-            builder.AddContent(3, ChildContent);
+            if (Selected)
+            {
+                attributes["aria-current"] = "page";
+            }
         }
-        builder.CloseElement();
+        else if (Selectable || Selected)
+        {
+            attributes["aria-pressed"] = Selected ? "true" : "false";
+        }
+    }
+
+    protected override void BuildContent(RenderTreeBuilder builder)
+    {
+        builder.AddContent(0, ChildContent);
     }
 }

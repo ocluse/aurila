@@ -1,0 +1,14 @@
+<div class="showcase-panel component-card @(Wide ? "component-card--wide" : null)">
+    <div class="component-card__heading">
+        <h3>@Title</h3>
+        <span>@Caption</span>
+    </div>
+    <div class="component-card__body">@ChildContent</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public bool Wide { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

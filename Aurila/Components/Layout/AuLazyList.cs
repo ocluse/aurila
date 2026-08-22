@@ -4,15 +4,23 @@ using System.Collections.Specialized;
 
 namespace Aurila.Components.Layout;
 
-public sealed class AuLazyList<TKey, TItem> : ComponentBase, IDisposable where TKey : notnull
+public sealed class AuLazyList<TCursor, TItem> : ComponentBase, IDisposable
 {
     [Parameter]
     [EditorRequired]
-    public IPager<TKey, TItem> Pager { get; set; } = null!;
+    public IPager<TCursor, TItem> Pager { get; set; } = null!;
 
     [Parameter]
     [EditorRequired]
     public RenderFragment<TItem> ItemTemplate { get; set; } = null!;
+
+    /// <summary>
+    /// Gets the stable identity used to preserve an item's component subtree when pager items are
+    /// inserted, removed, replaced, or reordered. When omitted, the pager supplies the key when it
+    /// implements <see cref="IItemKeyProvider{TItem}"/>.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, object>? ItemKey { get; set; }
 
     [Parameter]
     public RenderFragment? EmptyTemplate { get; set; }
@@ -40,6 +48,7 @@ public sealed class AuLazyList<TKey, TItem> : ComponentBase, IDisposable where T
     public void Dispose()
     {
         Pager.CollectionChanged -= OnPagerDataChanged;
+        Pager.StateChanged -= PagerStateChanged;
 
         ScrollController?.ScrollChanged -= OnScrollChanged;
     }
@@ -101,9 +110,21 @@ public sealed class AuLazyList<TKey, TItem> : ComponentBase, IDisposable where T
 
     private void RenderItems(RenderTreeBuilder builder)
     {
+        var keyProvider = Pager as IItemKeyProvider<TItem>;
+
         foreach (var item in Pager.Items)
         {
-            builder.AddContent(1, ItemTemplate, item);
+            if (ItemKey is null && keyProvider is null)
+            {
+                builder.AddContent(1, ItemTemplate, item);
+                continue;
+            }
+
+            builder.OpenComponent<AuLazyListItem<TItem>>(1);
+            builder.SetKey(ItemKey?.Invoke(item) ?? keyProvider!.GetItemKey(item));
+            builder.AddAttribute(2, nameof(AuLazyListItem<TItem>.Item), item);
+            builder.AddAttribute(3, nameof(AuLazyListItem<TItem>.ChildContent), ItemTemplate);
+            builder.CloseComponent();
         }
     }
 
@@ -149,5 +170,19 @@ public sealed class AuLazyList<TKey, TItem> : ComponentBase, IDisposable where T
     {
         _ = InvokeAsync(StateHasChanged);
     }
+}
+
+internal sealed class AuLazyListItem<TItem> : ComponentBase
+{
+    [Parameter]
+    [EditorRequired]
+    public TItem Item { get; set; } = default!;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment<TItem> ChildContent { get; set; } = null!;
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+        => builder.AddContent(0, ChildContent, Item);
 }
 

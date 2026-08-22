@@ -7,6 +7,13 @@ body {
     @include body-large;
 }
 
+// Flow-content clickables use a role-button instead of an invalid native button. Give their ripple
+// layer a local positioning and stacking context even when the component has no named appearance.
+.au-interactive-container {
+    position: relative;
+    isolation: isolate;
+}
+
 // Ripple. The container clips the wave to the host's shape; both live behind the content by way of
 // the stacking context the state layer already establishes.
 .md-ripple {

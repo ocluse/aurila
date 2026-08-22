@@ -6,7 +6,7 @@
 .fl-surface--level2 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-4); }
 .fl-surface--level3 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-8); }
 .fl-surface--level4 { background: var(--fluent-color-neutral-background-1); box-shadow: var(--fluent-shadow-16); }
-.au-surface.au-clickable { cursor: pointer; @include interactive-neutral; &:hover { background: var(--fluent-color-neutral-background-2); } }
+.au-surface.au-clickable { cursor: pointer; @include interactive-neutral; @include focus-ring; &:hover { background: var(--fluent-color-neutral-background-2); } }
 
 .fl-card {
     position: relative; display: flex; box-sizing: border-box; flex-direction: column; border: 1px solid transparent; border-radius: var(--fluent-radius-large); color: var(--fluent-color-neutral-foreground-1); overflow: hidden;
@@ -14,6 +14,12 @@
     &.fl-card--filled-alternative { background: var(--fluent-color-neutral-background-2); box-shadow: var(--fluent-shadow-4); }
     &.fl-card--subtle { background: var(--fluent-color-subtle-background); box-shadow: none; }
     &.fl-card--outline { background: var(--fluent-color-transparent-background); border-color: var(--fluent-color-neutral-stroke-1); box-shadow: none; }
+}
+.fl-card.au-clickable {
+    cursor: pointer;
+    @include interactive-neutral;
+    @include focus-ring;
+    &:hover:not(.au-clickable--disabled) { box-shadow: var(--fluent-shadow-8); }
 }
 .au-card__header { padding: 16px 16px 0; @include body-1-strong; }
 .au-card__content { padding: 16px; }

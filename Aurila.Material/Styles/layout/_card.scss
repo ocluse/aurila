@@ -25,6 +25,7 @@
     &.au-clickable {
         cursor: pointer;
         @include state-layer(var(--md-sys-color-on-surface));
+        @include focus-ring;
     }
 }
 

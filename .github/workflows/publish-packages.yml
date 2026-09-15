@@ -42,6 +42,10 @@ jobs:
         run: npm ci
         working-directory: ./Aurila.Web
 
+      - name: Test navigation fallback
+        run: npm test
+        working-directory: ./Aurila
+
       - name: Restore dependencies
         run: dotnet restore ./Aurila.Web/Aurila.Web.csproj
 

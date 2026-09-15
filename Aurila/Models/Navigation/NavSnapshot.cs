@@ -3,12 +3,13 @@ using System.Text.Json;
 namespace Aurila.Models.Navigation;
 
 /// <summary>
-/// A point-in-time projection of <c>navigation.entries()</c>.
+/// A point-in-time projection of the active navigation ledger's entry list.
 /// </summary>
 /// <remarks>
-/// This is a read-only view of the browser's session history, which is the single source of truth
-/// for Aurila navigation. Nothing in the framework may mutate session history directly; all writes
-/// go through <see cref="Contracts.Navigation.INavigationLedger"/>.
+/// This is a read-only view of the entries Aurila can address. The native backend projects
+/// <c>navigation.entries()</c>; the History API fallback projects the contiguous session-history
+/// segment created by Aurila. All writes go through
+/// <see cref="Contracts.Navigation.INavigationLedger"/>.
 /// </remarks>
 public sealed record NavSnapshot(IReadOnlyList<NavEntryRef> Entries, int CurrentIndex)
 {
@@ -29,7 +30,7 @@ public sealed record NavSnapshot(IReadOnlyList<NavEntryRef> Entries, int Current
 }
 
 /// <summary>
-/// A single <c>NavigationHistoryEntry</c>.
+/// A single addressable entry in the active navigation ledger.
 /// </summary>
 /// <param name="Key">
 /// Stable identity of the history <em>slot</em>. Survives replacement, reload and session restore,
@@ -37,7 +38,7 @@ public sealed record NavSnapshot(IReadOnlyList<NavEntryRef> Entries, int Current
 /// duplicated tab shares keys with a document whose in-memory state it does not have.
 /// </param>
 /// <param name="Id">Identity of this <em>version</em> of the entry. Changes whenever the entry changes.</param>
-/// <param name="Index">Position in <c>navigation.entries()</c>.</param>
+/// <param name="Index">Position in the ledger's addressable entry list.</param>
 /// <param name="Url">Absolute URL, or <c>null</c> when the entry is not readable (not same-origin).</param>
 /// <param name="Path">
 /// The app-relative path (<c>pathname + search + hash</c>, base href stripped), or <c>null</c>

@@ -8,8 +8,8 @@ namespace Aurila.Components;
 /// The root of an Aurila application.
 /// </summary>
 /// <remarks>
-/// Brings up the navigation ledger before any navigation host runs, so that the browser's entry list
-/// is readable by the time a host asks what page to show. Also opens an <see cref="AuAppearanceScope"/>
+/// Brings up the navigation ledger before any navigation host runs, so that its entry list is
+/// readable by the time a host asks what page to show. Also opens an <see cref="AuAppearanceScope"/>
 /// so that a provider registered in the service container styles the whole app without further setup.
 /// </remarks>
 public sealed class AurilaApp : ComponentBase, IAsyncDisposable

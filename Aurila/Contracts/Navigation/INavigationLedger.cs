@@ -7,11 +7,11 @@ namespace Aurila.Contracts.Navigation;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Aurila treats <c>navigation.entries()</c> as the source of truth for where the user is and where
-/// they have been. .NET holds only a projection of it. Consequently this interface is the
-/// <em>only</em> thing in the framework permitted to write to session history — there are no calls
-/// to <c>history.pushState</c> or <c>history.replaceState</c> anywhere, and adding one reintroduces
-/// the drift this design exists to remove.
+/// .NET holds only a projection of the active JavaScript ledger. In browsers with the Navigation
+/// API, <c>navigation.entries()</c> is authoritative. Other browsers use a managed projection of the
+/// contiguous entries Aurila creates with the History API. Consequently this interface remains the
+/// <em>only</em> thing in the framework permitted to write to session history; writing around it
+/// would make either backend drift.
 /// </para>
 /// <para>
 /// The abstraction also exists so that navigation can be tested without a browser; see
@@ -80,8 +80,10 @@ public interface INavigationLedger : IAsyncDisposable
     /// Declares whether anything might refuse to leave the current page.
     /// </summary>
     /// <remarks>
-    /// When armed, navigations are held back and replayed after confirmation rather than committed
-    /// and undone, so a refusal never leaves a wrong URL in the address bar.
+    /// Framework-initiated navigations are held back and replayed after confirmation rather than
+    /// committed and undone, so a refusal never leaves a wrong URL in the address bar. On the
+    /// History API fallback, a traversal initiated by browser UI is only observable after commit and
+    /// is therefore reported to guards as non-blockable.
     /// </remarks>
     ValueTask SetGuardArmedAsync(bool armed);
 }

@@ -3,7 +3,7 @@
 namespace Aurila.Models.Navigation;
 
 /// <summary>
-/// A navigate event as reported by the browser, before Aurila has done anything about it.
+/// A navigation as observed by the active browser-history backend.
 /// </summary>
 public sealed record NavigateObservation
 {
@@ -38,7 +38,7 @@ public sealed record NavigateObservation
     public required bool HashChange { get; init; }
 
     /// <summary>
-    /// The payload passed to the navigation, as delivered by the platform.
+    /// The payload associated with the navigation, if any.
     /// </summary>
     public System.Text.Json.JsonElement? Info { get; init; }
 

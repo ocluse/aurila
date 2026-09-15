@@ -8,9 +8,11 @@ namespace Aurila.Contracts.Navigation;
 /// <remarks>
 /// <para>
 /// The two members are deliberately asymmetric. Whether a guard <em>might</em> object has to be known
-/// synchronously, before the browser commits a navigation, so <see cref="IsArmed"/> must be cheap and
+/// synchronously, before a blockable navigation commits, so <see cref="IsArmed"/> must be cheap and
 /// must not block. Only when it is true is the navigation held back and
-/// <see cref="CanLeaveAsync"/> asked, which may take as long as it likes and may show UI.
+/// <see cref="CanLeaveAsync"/> asked, which may take as long as it likes and may show UI. A traversal
+/// started from browser UI is not blockable on the History API fallback; in that case the guard is
+/// notified after commit with <see cref="NavigationLeaveContext.CanBlock"/> false.
 /// </para>
 /// <para>
 /// A guard that is never armed costs nothing: navigations take the fast path and commit immediately.

@@ -4,7 +4,7 @@ using Aurila.Models.Navigation;
 namespace Aurila.Services.Navigation;
 
 /// <summary>
-/// The .NET projection of <c>navigation.entries()</c>: a cache of live pages keyed by history entry.
+/// A cache of live pages keyed by entries from the active navigation ledger.
 /// </summary>
 /// <remarks>
 /// <para>

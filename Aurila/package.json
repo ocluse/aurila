@@ -5,6 +5,7 @@
     "esbuild": "^0.25.4"
   },
   "scripts": {
-    "build": "esbuild --bundle Scripts/index.ts --outfile=wwwroot/aurila.js --minify --sourcemap --format=esm"
+    "build": "esbuild --bundle Scripts/index.ts --outfile=wwwroot/aurila.js --minify --sourcemap --format=esm --target=es2021",
+    "test": "esbuild Tests/navigation/history-api-ledger.test.ts --bundle --platform=node --format=cjs --target=node20 --outfile=../artifacts/history-api-ledger.test.cjs && node --test ../artifacts/history-api-ledger.test.cjs"
   }
 }

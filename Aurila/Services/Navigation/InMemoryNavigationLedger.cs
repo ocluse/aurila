@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Aurila.Services.Navigation;
 
 /// <summary>
-/// A browser-free <see cref="INavigationLedger"/> that models the Navigation API's entry list.
+/// A browser-free <see cref="INavigationLedger"/> that models Aurila's addressable entry list.
 /// </summary>
 /// <remarks>
 /// Navigation is the part of a UI framework most likely to break in ways that only show up on a real

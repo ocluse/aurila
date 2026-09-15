@@ -6,7 +6,8 @@ import { ScrollBox } from "./layout/scroll-box";
 import { HorizontalPager } from "./layout/horizontal-pager";
 import { BottomSheet } from "./modals/bottom-sheet";
 import { AdaptiveNavigationLayoutObserver } from "./navigation/adaptive-navigation";
-import { NavigationLedger } from "./navigation/navigation-ledger";
+import { createNavigationLedger as createLedger } from "./navigation/navigation-ledger";
+import { NavigationLedgerBackend } from "./navigation/navigation-ledger-contract";
 import { CloseRequestWatcher } from "./modals/close-watcher";
 import { AccessibleButton } from "./controls/accessible-button";
 
@@ -16,8 +17,8 @@ export function createAccessibleButton(element: HTMLElement): AccessibleButton {
 
 export function createNavigationLedger(
     dotNetObject: DotNetObject
-): NavigationLedger {
-    return new NavigationLedger(dotNetObject);
+): NavigationLedgerBackend {
+    return createLedger(dotNetObject);
 }
 
 export function createCloseRequestWatcher(
